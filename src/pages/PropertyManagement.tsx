@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
 import { Property } from '@/types/property';
+import { useAuth } from '@/hooks/useAuth';
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -17,6 +18,7 @@ const PropertyManagement = () => {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -79,9 +81,39 @@ const PropertyManagement = () => {
     }
   };
 
+  // Get user profile to check type
+  const getUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('type')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) throw error;
+      
+      // If user is not an owner, redirect to dashboard
+      if (data.type !== 'owner') {
+        toast({
+          title: 'Acesso restrito',
+          description: 'Apenas proprietários podem gerenciar imóveis',
+          variant: 'destructive'
+        });
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   useEffect(() => {
-    fetchProperties();
-  }, []);
+    if (user) {
+      getUserProfile();
+      fetchProperties();
+    }
+  }, [user]);
 
   const handleCreateProperty = () => {
     navigate('/property/new');

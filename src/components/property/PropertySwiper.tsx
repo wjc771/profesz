@@ -49,7 +49,7 @@ const PropertySwiper = ({ properties, onLike, onDislike }: PropertySwiperProps) 
   // No more properties to show
   if (currentIndex >= properties.length) {
     return (
-      <div className="card-swipe-area flex items-center justify-center">
+      <div className="card-swipe-area flex items-center justify-center h-[400px]">
         <div className="text-center p-6">
           <h3 className="text-xl font-bold mb-2">Você viu todos os imóveis</h3>
           <p className="text-muted-foreground mb-4">
@@ -68,9 +68,9 @@ const PropertySwiper = ({ properties, onLike, onDislike }: PropertySwiperProps) 
     : '';
 
   return (
-    <div className="card-swipe-area">
+    <div className="card-swipe-area relative h-[400px] overflow-hidden">
       <Card 
-        className={`absolute inset-0 property-card ${animationClass}`}
+        className={`relative h-full ${animationClass}`}
       >
         <div className="relative h-full">
           <img
