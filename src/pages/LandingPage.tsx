@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Check, ChevronDown, Users, Home, Buildings, Search, ArrowRight, Mail, Phone, Lock, PlayCircle } from 'lucide-react';
+import { MessageSquare, Check, ChevronDown, Users, Home, Building, Search, ArrowRight, Mail, Phone, Lock, PlayCircle } from 'lucide-react';
 import PlanSelection from '@/components/subscription/PlanSelection';
 import WhatsAppButton from '@/components/landing/WhatsAppButton';
 import FeatureCard from '@/components/landing/FeatureCard';
@@ -44,7 +44,7 @@ const LandingPage = () => {
       description: 'Conecte-se diretamente com proprietários ou corretores sem intermediários.'
     },
     {
-      icon: Buildings,
+      icon: Building,
       title: 'Para imobiliárias',
       description: 'Ferramentas especiais para profissionais do mercado imobiliário.'
     }
