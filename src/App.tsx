@@ -12,6 +12,7 @@ import VerificationPending from "./pages/VerificationPending";
 import Profile from "./pages/Profile";
 import Subscription from "./pages/Subscription";
 import LandingPage from "./pages/LandingPage";
+import PropertyPreferences from "./pages/PropertyPreferences";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/verification-pending" element={<VerificationPending />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/subscription" element={<Subscription />} />
+          <Route path="/property-preferences" element={<PropertyPreferences />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

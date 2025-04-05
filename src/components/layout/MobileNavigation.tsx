@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { Home, User, Search, Plus } from 'lucide-react';
+import { Home, User, Search, Plus, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MobileNavigation = () => {
@@ -24,6 +24,11 @@ const MobileNavigation = () => {
       href: '/add-property',
     },
     {
+      label: 'Preferências',
+      icon: Settings,
+      href: '/property-preferences',
+    },
+    {
       label: 'Perfil',
       icon: User,
       href: '/profile',
@@ -32,7 +37,7 @@ const MobileNavigation = () => {
 
   return (
     <div className="fixed bottom-0 left-0 z-50 w-full border-t bg-background/95 backdrop-blur md:hidden">
-      <div className="grid h-16 grid-cols-4 items-center justify-items-center">
+      <div className="grid h-16 grid-cols-5 items-center justify-items-center">
         {navItems.map((item) => (
           <Link
             key={item.href}
@@ -44,7 +49,7 @@ const MobileNavigation = () => {
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <item.icon className="h-6 w-6" />
+            <item.icon className="h-5 w-5" />
             <span className="text-xs">{item.label}</span>
           </Link>
         ))}
