@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/components/ui/use-toast';
 import { Mail } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { useAuth } from '@/hooks/useAuth';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
@@ -27,7 +27,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const { toast } = useToast();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,22 +45,11 @@ const Login = () => {
     setError(null);
 
     try {
-      // This will be replaced with actual Supabase authentication
-      console.log('Login with:', data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: 'Login realizado com sucesso',
-        description: 'Bem-vindo de volta ao MatchImobiliário!'
-      });
-      
-      // Change this to navigate to dashboard instead of root
-      navigate('/dashboard');
-    } catch (err) {
+      await signIn(data.email, data.password);
+      // Navegação é feita dentro da função signIn
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError('Falha ao fazer login. Verifique suas credenciais e tente novamente.');
+      setError(err.message || 'Falha ao fazer login. Verifique suas credenciais e tente novamente.');
     } finally {
       setIsLoading(false);
     }

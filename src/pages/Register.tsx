@@ -1,12 +1,11 @@
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/components/ui/use-toast';
 import { Mail } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +18,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/hooks/useAuth';
 
 const registerSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
@@ -29,7 +30,7 @@ const registerSchema = z.object({
     .regex(/^(?=.*[a-zA-Z])(?=.*[0-9])/, {
       message: 'Senha deve conter pelo menos uma letra e um número',
     }),
-  // Fix: Changed from literal(true) to boolean().refine() to handle the boolean type correctly
+  type: z.enum(['owner', 'buyer', 'agent']).default('buyer'),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Você precisa aceitar os termos e condições',
   }),
@@ -38,8 +39,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +49,7 @@ const Register = () => {
       name: '',
       email: '',
       password: '',
+      type: 'buyer',
       acceptTerms: false,
     },
   });
@@ -58,21 +59,11 @@ const Register = () => {
     setError(null);
 
     try {
-      // This will be replaced with actual Supabase registration
-      console.log('Register with:', data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: 'Cadastro realizado com sucesso',
-        description: 'Enviamos um email para confirmar sua conta. Por favor, verifique sua caixa de entrada.'
-      });
-      
-      navigate('/verification-pending');
-    } catch (err) {
+      await signUp(data.email, data.password, data.name, data.type);
+      // Navegação é feita dentro da função signUp
+    } catch (err: any) {
       console.error('Registration error:', err);
-      setError('Falha ao criar conta. Este email pode já estar em uso.');
+      setError(err.message || 'Falha ao criar conta. Este email pode já estar em uso.');
     } finally {
       setIsLoading(false);
     }
@@ -147,6 +138,31 @@ const Register = () => {
                     <p className="text-xs text-muted-foreground">
                       Mínimo 8 caracteres, incluindo letras e números
                     </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quem você é?</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo de usuário" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="buyer">Comprador/Inquilino</SelectItem>
+                        <SelectItem value="owner">Proprietário</SelectItem>
+                        <SelectItem value="agent">Corretor</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

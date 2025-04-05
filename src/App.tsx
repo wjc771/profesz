@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import Subscription from "./pages/Subscription";
 import LandingPage from "./pages/LandingPage";
 import PropertyPreferences from "./pages/PropertyPreferences";
+import { AuthProvider, AuthRequired } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
 
@@ -22,18 +23,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verification-pending" element={<VerificationPending />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/subscription" element={<Subscription />} />
-          <Route path="/property-preferences" element={<PropertyPreferences />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/dashboard" element={<AuthRequired><Index /></AuthRequired>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/verification-pending" element={<VerificationPending />} />
+            <Route path="/profile" element={<AuthRequired><Profile /></AuthRequired>} />
+            <Route path="/subscription" element={<AuthRequired><Subscription /></AuthRequired>} />
+            <Route path="/property-preferences" element={<AuthRequired><PropertyPreferences /></AuthRequired>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

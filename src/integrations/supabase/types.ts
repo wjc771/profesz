@@ -9,7 +9,261 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          phone: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          id: string
+          name?: string | null
+          phone?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string
+          area: number
+          bathrooms: number
+          bedrooms: number
+          city: string
+          condominium: number | null
+          created_at: string
+          description: string
+          has_balcony: boolean | null
+          has_elevator: boolean | null
+          has_gym: boolean | null
+          has_pool: boolean | null
+          id: string
+          images: string[] | null
+          is_active: boolean
+          is_furnished: boolean | null
+          is_premium: boolean
+          lat: number | null
+          lng: number | null
+          neighborhood: string
+          owner_id: string
+          parking_spaces: number
+          pets_allowed: boolean | null
+          price: number
+          property_tax: number | null
+          state: string
+          title: string
+          transaction_type: string
+          type: string
+          updated_at: string
+          zip_code: string
+        }
+        Insert: {
+          address: string
+          area: number
+          bathrooms: number
+          bedrooms: number
+          city: string
+          condominium?: number | null
+          created_at?: string
+          description: string
+          has_balcony?: boolean | null
+          has_elevator?: boolean | null
+          has_gym?: boolean | null
+          has_pool?: boolean | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          is_furnished?: boolean | null
+          is_premium?: boolean
+          lat?: number | null
+          lng?: number | null
+          neighborhood: string
+          owner_id: string
+          parking_spaces: number
+          pets_allowed?: boolean | null
+          price: number
+          property_tax?: number | null
+          state: string
+          title: string
+          transaction_type: string
+          type: string
+          updated_at?: string
+          zip_code: string
+        }
+        Update: {
+          address?: string
+          area?: number
+          bathrooms?: number
+          bedrooms?: number
+          city?: string
+          condominium?: number | null
+          created_at?: string
+          description?: string
+          has_balcony?: boolean | null
+          has_elevator?: boolean | null
+          has_gym?: boolean | null
+          has_pool?: boolean | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          is_furnished?: boolean | null
+          is_premium?: boolean
+          lat?: number | null
+          lng?: number | null
+          neighborhood?: string
+          owner_id?: string
+          parking_spaces?: number
+          pets_allowed?: boolean | null
+          price?: number
+          property_tax?: number | null
+          state?: string
+          title?: string
+          transaction_type?: string
+          type?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
+      property_demands: {
+        Row: {
+          cities: string[]
+          created_at: string
+          has_balcony: boolean | null
+          has_elevator: boolean | null
+          has_gym: boolean | null
+          has_pool: boolean | null
+          id: string
+          is_active: boolean
+          is_furnished: boolean | null
+          max_price: number
+          min_area: number | null
+          min_bathrooms: number | null
+          min_bedrooms: number | null
+          min_parking_spaces: number | null
+          min_price: number
+          neighborhoods: string[] | null
+          pets_allowed: boolean | null
+          property_types: string[]
+          states: string[]
+          transaction_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cities: string[]
+          created_at?: string
+          has_balcony?: boolean | null
+          has_elevator?: boolean | null
+          has_gym?: boolean | null
+          has_pool?: boolean | null
+          id?: string
+          is_active?: boolean
+          is_furnished?: boolean | null
+          max_price: number
+          min_area?: number | null
+          min_bathrooms?: number | null
+          min_bedrooms?: number | null
+          min_parking_spaces?: number | null
+          min_price: number
+          neighborhoods?: string[] | null
+          pets_allowed?: boolean | null
+          property_types: string[]
+          states: string[]
+          transaction_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cities?: string[]
+          created_at?: string
+          has_balcony?: boolean | null
+          has_elevator?: boolean | null
+          has_gym?: boolean | null
+          has_pool?: boolean | null
+          id?: string
+          is_active?: boolean
+          is_furnished?: boolean | null
+          max_price?: number
+          min_area?: number | null
+          min_bathrooms?: number | null
+          min_bedrooms?: number | null
+          min_parking_spaces?: number | null
+          min_price?: number
+          neighborhoods?: string[] | null
+          pets_allowed?: boolean | null
+          property_types?: string[]
+          states?: string[]
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      property_matches: {
+        Row: {
+          contacted: boolean
+          created_at: string
+          demand_id: string
+          id: string
+          property_id: string | null
+          score: number
+          viewed: boolean
+        }
+        Insert: {
+          contacted?: boolean
+          created_at?: string
+          demand_id: string
+          id?: string
+          property_id?: string | null
+          score: number
+          viewed?: boolean
+        }
+        Update: {
+          contacted?: boolean
+          created_at?: string
+          demand_id?: string
+          id?: string
+          property_id?: string | null
+          score?: number
+          viewed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_matches_demand_id_fkey"
+            columns: ["demand_id"]
+            isOneToOne: false
+            referencedRelation: "property_demands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_matches_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

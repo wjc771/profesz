@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Check, Mail } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const VerificationPending = () => {
   const { toast } = useToast();
@@ -15,32 +16,44 @@ const VerificationPending = () => {
     setResending(true);
     
     try {
-      // This will be replaced with actual Supabase resend verification
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Recuperar o email da sessão atual
+      const { data } = await supabase.auth.getSession();
+      const email = data.session?.user?.email;
+      
+      if (!email) {
+        throw new Error('Email não encontrado. Tente fazer login novamente.');
+      }
+      
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      });
+      
+      if (error) throw error;
       
       toast({
         title: 'Email enviado',
         description: 'Um novo email de verificação foi enviado para o seu endereço de email.'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error resending verification:', error);
       toast({
         variant: 'destructive',
         title: 'Erro',
-        description: 'Não foi possível enviar o email de verificação. Tente novamente mais tarde.'
+        description: error.message || 'Não foi possível enviar o email de verificação. Tente novamente mais tarde.'
       });
     } finally {
       setResending(false);
     }
   };
 
-  // This would be a temporary solution until Supabase is integrated
+  // Função temporária até que a verificação real seja feita pelo Supabase
   const handleVerified = () => {
     toast({
       title: 'Conta verificada',
-      description: 'Sua conta foi verificada com sucesso!'
+      description: 'Simulando verificação para fins de desenvolvimento.'
     });
-    navigate('/');
+    navigate('/login');
   };
 
   return (
@@ -84,7 +97,7 @@ const VerificationPending = () => {
               Voltar para login
             </Link>
           </p>
-          {/* Temporary button for demo purposes - to be removed */}
+          {/* Botão temporário para fins de desenvolvimento */}
           <Button 
             onClick={handleVerified} 
             variant="link" 
