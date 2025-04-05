@@ -56,7 +56,8 @@ const Login = () => {
         description: 'Bem-vindo de volta ao MatchImobiliário!'
       });
       
-      navigate('/');
+      // Change this to navigate to dashboard instead of root
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
       setError('Falha ao fazer login. Verifique suas credenciais e tente novamente.');
