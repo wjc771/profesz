@@ -170,7 +170,7 @@ export const mockDemands: PropertyDemand[] = [
   {
     id: "d1",
     userId: "user5",
-    transactionType: "buy",
+    transactionType: "sale", // Changed from "buy" to "sale"
     propertyTypes: ["apartment", "house"],
     priceRange: {
       min: 300000,
