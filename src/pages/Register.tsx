@@ -1,6 +1,5 @@
-
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +41,8 @@ const Register = () => {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const location = useLocation();
+  
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -53,6 +53,13 @@ const Register = () => {
       acceptTerms: false,
     },
   });
+
+  useEffect(() => {
+    const emailFromLanding = location.state?.email;
+    if (emailFromLanding) {
+      form.setValue('email', emailFromLanding);
+    }
+  }, [location.state, form]);
 
   const handleSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
