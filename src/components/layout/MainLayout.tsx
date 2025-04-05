@@ -1,7 +1,7 @@
 
 import { ReactNode } from 'react';
 import Header from './Header';
-import MobileNavigation from './MobileNavigation';
+import { MobileNavigation } from './MobileNavigation';
 
 interface MainLayoutProps {
   children: ReactNode;

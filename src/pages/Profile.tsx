@@ -17,6 +17,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+// Estendendo o tipo do perfil para incluir os campos adicionais
+interface ExtendedProfile {
+  id: string;
+  name: string | null;
+  email: string;
+  phone: string | null;
+  type: string;
+  avatar_url: string | null;
+  updated_at: string;
+  created_at: string;
+  creci?: string;
+  agency_name?: string;
+}
+
 const Profile = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -55,14 +69,15 @@ const Profile = () => {
       if (error) throw error;
       
       if (data) {
-        setName(data.name || '');
-        setEmail(data.email || '');
-        setPhone(data.phone || '');
-        setType(data.type || 'buyer');
-        setAvatarUrl(data.avatar_url || '');
-        // Estes campos seriam armazenados como metadados ou em uma coluna separada no perfil real
-        setCreci(data.creci || '');
-        setAgencyName(data.agency_name || '');
+        const profileData = data as ExtendedProfile;
+        setName(profileData.name || '');
+        setEmail(profileData.email || '');
+        setPhone(profileData.phone || '');
+        setType(profileData.type || 'buyer');
+        setAvatarUrl(profileData.avatar_url || '');
+        // Acesso aos campos customizados
+        setCreci(profileData.creci || '');
+        setAgencyName(profileData.agency_name || '');
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -90,7 +105,7 @@ const Profile = () => {
         type,
         creci,
         agency_name: agencyName,
-        updated_at: new Date(),
+        updated_at: new Date().toISOString(), // Convertendo Date para string
       };
       
       const { error } = await supabase
