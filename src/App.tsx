@@ -15,6 +15,7 @@ import Subscription from "./pages/Subscription";
 import LandingPage from "./pages/LandingPage";
 import PropertyPreferences from "./pages/PropertyPreferences";
 import { AuthProvider, AuthRequired } from "./hooks/useAuth";
+import { SubscriptionProvider } from "./hooks/useSubscription";
 
 const queryClient = new QueryClient();
 
@@ -25,19 +26,21 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<AuthRequired><Index /></AuthRequired>} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/verification-pending" element={<VerificationPending />} />
-            <Route path="/profile" element={<AuthRequired><Profile /></AuthRequired>} />
-            <Route path="/settings" element={<AuthRequired><UserSettings /></AuthRequired>} />
-            <Route path="/subscription" element={<AuthRequired><Subscription /></AuthRequired>} />
-            <Route path="/property-preferences" element={<AuthRequired><PropertyPreferences /></AuthRequired>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SubscriptionProvider>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/dashboard" element={<AuthRequired><Index /></AuthRequired>} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verification-pending" element={<VerificationPending />} />
+              <Route path="/profile" element={<AuthRequired><Profile /></AuthRequired>} />
+              <Route path="/settings" element={<AuthRequired><UserSettings /></AuthRequired>} />
+              <Route path="/subscription" element={<AuthRequired><Subscription /></AuthRequired>} />
+              <Route path="/property-preferences" element={<AuthRequired><PropertyPreferences /></AuthRequired>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SubscriptionProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
