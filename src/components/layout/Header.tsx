@@ -26,7 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function Header() {
   const { user, signOut } = useAuth();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isScrolled, setIsScrolled] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
 
