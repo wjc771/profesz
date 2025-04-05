@@ -9,6 +9,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
 import { PropertyDemand, PropertyType, TransactionType } from '@/types/property';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 
 const DemandManagement = () => {
   const [demands, setDemands] = useState<PropertyDemand[]>([]);
@@ -118,11 +120,13 @@ const DemandManagement = () => {
     setConfirmDialogOpen(true);
   };
 
+  const isMobile = useIsMobile();
+
   return (
     <MainLayout>
-      <div className="container max-w-6xl py-6">
+      <div className="py-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gerenciamento de Demandas</h1>
+          <h1 className="mobile-heading font-bold">Gerenciamento de Demandas</h1>
           <Button onClick={handleCreateDemand}>Adicionar Demanda</Button>
         </div>
 
@@ -131,58 +135,104 @@ const DemandManagement = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
         ) : demands.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Transação</TableHead>
-                  <TableHead>Tipos de Imóvel</TableHead>
-                  <TableHead>Faixa de Preço</TableHead>
-                  <TableHead>Localidades</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {demands.map((demand) => (
-                  <TableRow key={demand.id}>
-                    <TableCell>
-                      {demand.transactionType === 'sale' ? 'Compra' : 'Aluguel'}
-                    </TableCell>
-                    <TableCell>
-                      {demand.propertyTypes.map(type => 
-                        type === 'apartment' ? 'Apartamento' :
-                        type === 'house' ? 'Casa' :
-                        type === 'commercial' ? 'Comercial' :
-                        type === 'land' ? 'Terreno' : 'Outro'
-                      ).join(', ')}
-                    </TableCell>
-                    <TableCell>
-                      {formatCurrency(demand.priceRange.min)} - {formatCurrency(demand.priceRange.max)}
-                    </TableCell>
-                    <TableCell>
-                      {demand.locationPreferences.cities.join(', ')}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${demand.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          isMobile ? (
+            <div className="space-y-4">
+              {demands.map((demand) => (
+                <Card key={demand.id} className="mobile-card bg-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex justify-between items-center">
+                      <span>{demand.transactionType === 'sale' ? 'Compra' : 'Aluguel'}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${demand.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}>
                         {demand.isActive ? 'Ativa' : 'Inativa'}
                       </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEditDemand(demand.id)}>
-                          Editar
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => confirmDelete(demand.id)}>
-                          Excluir
-                        </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="py-2">
+                    <div className="grid gap-1 mobile-text">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tipos:</span>
+                        <span>{demand.propertyTypes.map(type => 
+                          type === 'apartment' ? 'Apartamento' :
+                          type === 'house' ? 'Casa' :
+                          type === 'commercial' ? 'Comercial' :
+                          type === 'land' ? 'Terreno' : 'Outro'
+                        ).join(', ')}</span>
                       </div>
-                    </TableCell>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Preço:</span>
+                        <span>{formatCurrency(demand.priceRange.min)} - {formatCurrency(demand.priceRange.max)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Localidades:</span>
+                        <span className="text-right">{demand.locationPreferences.cities.join(', ')}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex gap-2 pt-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditDemand(demand.id)}>
+                      Editar
+                    </Button>
+                    <Button variant="destructive" size="sm" className="flex-1" onClick={() => confirmDelete(demand.id)}>
+                      Excluir
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-md border bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>Transação</TableHead>
+                    <TableHead>Tipos de Imóvel</TableHead>
+                    <TableHead>Faixa de Preço</TableHead>
+                    <TableHead>Localidades</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {demands.map((demand) => (
+                    <TableRow key={demand.id}>
+                      <TableCell>
+                        {demand.transactionType === 'sale' ? 'Compra' : 'Aluguel'}
+                      </TableCell>
+                      <TableCell>
+                        {demand.propertyTypes.map(type => 
+                          type === 'apartment' ? 'Apartamento' :
+                          type === 'house' ? 'Casa' :
+                          type === 'commercial' ? 'Comercial' :
+                          type === 'land' ? 'Terreno' : 'Outro'
+                        ).join(', ')}
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(demand.priceRange.min)} - {formatCurrency(demand.priceRange.max)}
+                      </TableCell>
+                      <TableCell>
+                        {demand.locationPreferences.cities.join(', ')}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${demand.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}>
+                          {demand.isActive ? 'Ativa' : 'Inativa'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEditDemand(demand.id)}>
+                            Editar
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => confirmDelete(demand.id)}>
+                            Excluir
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
             <h3 className="text-xl font-semibold mb-2">Nenhuma demanda cadastrada</h3>
