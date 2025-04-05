@@ -1,102 +1,209 @@
 
-import { useState } from 'react';
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
+import { useAuth } from "@/hooks/useAuth";
+import { MobileNavigation } from "./MobileNavigation";
+import { useEffect, useState } from "react";
+import { LogIn, LogOut, UserCircle, Building, Search, Heart, Cog } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { useMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link } from 'react-router-dom';
-import { useToast } from "@/components/ui/use-toast";
-import { Home, User, Settings, Bell } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
-const Header = () => {
-  const { toast } = useToast();
-  const [authenticated, setAuthenticated] = useState(false);
-  
-  const handleSignOut = () => {
-    // This will be replaced with actual Supabase signOut
-    setAuthenticated(false);
-    toast({
-      title: "Desconectado",
-      description: "Você foi desconectado com sucesso.",
-    });
+export default function Header() {
+  const { user, signOut } = useAuth();
+  const isMobile = useMobile();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      getProfile();
+    }
+  }, [user]);
+
+  const getProfile = async () => {
+    try {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      
+      setProfileData(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
   };
-
+  
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+    <header
+      className={`sticky top-0 z-50 bg-background transition-all ${
+        isScrolled ? "shadow-md" : ""
+      }`}
+    >
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="rounded-full bg-primary p-1">
-              <Home className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-xl">MatchImobiliário</span>
+        <div className="flex items-center gap-6 md:gap-10">
+          <Link to="/" className="font-bold text-xl flex items-center gap-2">
+            <span className="bg-primary text-primary-foreground p-1 rounded">MI</span>
+            MatchImobiliário
           </Link>
+
+          {!isMobile && (
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <Link to="/">
+                    <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                      Início
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                {user && (
+                  <>
+                    <NavigationMenuItem>
+                      <Link to="/dashboard">
+                        <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                          Dashboard
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <Link to="/property-preferences">
+                        <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
+                          Buscar
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger>Mais</NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="grid w-[200px] gap-3 p-4">
+                          <li>
+                            <Link to="/subscription">
+                              <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                                <div className="text-sm font-medium leading-none">
+                                  <div className="flex items-center gap-2">
+                                    <Heart className="h-4 w-4" />
+                                    Assinatura
+                                  </div>
+                                </div>
+                              </NavigationMenuLink>
+                            </Link>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </>
+                )}
+              </NavigationMenuList>
+            </NavigationMenu>
+          )}
         </div>
-        
-        <div className="flex items-center gap-4">
-          {authenticated ? (
+
+        <div className="flex items-center gap-2">
+          {user ? (
             <>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                  3
-                </span>
-              </Button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src="/placeholder.svg" alt="User avatar" />
-                      <AvatarFallback>US</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
-                      <User className="h-4 w-4" />
-                      <span>Perfil</span>
+              {!isMobile && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={profileData?.avatar_url || ""} />
+                        <AvatarFallback className="text-xs">
+                          {profileData?.name ? profileData.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <Link to="/profile">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <UserCircle className="mr-2 h-4 w-4" />
+                        <span>Meu Perfil</span>
+                      </DropdownMenuItem>
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
-                      <Settings className="h-4 w-4" />
-                      <span>Configurações</span>
+                    <Link to="/settings">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <Cog className="mr-2 h-4 w-4" />
+                        <span>Configurações</span>
+                      </DropdownMenuItem>
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={handleSignOut} 
-                    className="cursor-pointer text-destructive focus:text-destructive"
-                  >
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <Link to="/dashboard">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <Building className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link to="/property-preferences">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <Search className="mr-2 h-4 w-4" />
+                        <span>Buscar Imóveis</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                      onClick={signOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sair</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link to="/login">
-                <Button variant="outline">Entrar</Button>
-              </Link>
-              <Link to="/register">
-                <Button>Cadastrar</Button>
-              </Link>
-            </div>
+            <>
+              {!isMobile && (
+                <>
+                  <Link to="/login">
+                    <Button variant="ghost" size="sm">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Entrar
+                    </Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button size="sm">Cadastrar</Button>
+                  </Link>
+                </>
+              )}
+            </>
           )}
+          <MobileNavigation />
         </div>
       </div>
     </header>
   );
-};
-
-export default Header;
+}

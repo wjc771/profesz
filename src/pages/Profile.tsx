@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,26 +12,93 @@ import { Link } from 'react-router-dom';
 import { mockProperties } from '@/lib/mockData';
 import PropertyCard from '@/components/property/PropertyCard';
 import { Property } from '@/types/property';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, Save, Upload } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Profile = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState('João Silva');
-  const [email, setEmail] = useState('joao.silva@example.com');
-  const [phone, setPhone] = useState('(11) 98765-4321');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [type, setType] = useState('buyer');
+  const [creci, setCreci] = useState('');
+  const [agencyName, setAgencyName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   // In a real app, these would come from the authenticated user
   const userProperties = mockProperties.slice(0, 2);
+  
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    setLoading(true);
+    try {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        setName(data.name || '');
+        setEmail(data.email || '');
+        setPhone(data.phone || '');
+        setType(data.type || 'buyer');
+        setAvatarUrl(data.avatar_url || '');
+        // Estes campos seriam armazenados como metadados ou em uma coluna separada no perfil real
+        setCreci(data.creci || '');
+        setAgencyName(data.agency_name || '');
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao carregar perfil',
+        description: 'Não foi possível carregar os dados do seu perfil.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      // This would be replaced with actual Supabase update
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!user) return;
+      
+      const updates = {
+        id: user.id,
+        name,
+        phone,
+        type,
+        creci,
+        agency_name: agencyName,
+        updated_at: new Date(),
+      };
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+        
+      if (error) throw error;
       
       toast({
         title: 'Perfil atualizado',
@@ -51,6 +118,58 @@ const Profile = () => {
     }
   };
 
+  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('Você precisa selecionar uma imagem para upload.');
+      }
+      
+      if (!user) throw new Error('Usuário não autenticado');
+      
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      
+      // Upload da imagem para o storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+        
+      if (uploadError) throw uploadError;
+      
+      // Obter URL pública da imagem
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+        
+      // Atualizar avatar_url do perfil
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      setAvatarUrl(data.publicUrl);
+      
+      toast({
+        title: 'Avatar atualizado',
+        description: 'Sua foto de perfil foi atualizada com sucesso.',
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro no upload',
+        description: error.message || 'Não foi possível atualizar sua foto de perfil.',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSelectProperty = (property: Property) => {
     toast({
       title: 'Imóvel selecionado',
@@ -58,6 +177,16 @@ const Profile = () => {
     });
     // In the future, this would navigate to a property detail page
   };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="container max-w-6xl flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -84,29 +213,65 @@ const Profile = () => {
                     <div className="flex justify-center mb-4">
                       <Avatar className="h-24 w-24">
                         <AvatarImage src={avatarUrl || '/placeholder.svg'} alt="Avatar" />
-                        <AvatarFallback className="text-2xl">{name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        <AvatarFallback className="text-2xl">{name ? name.split(' ').map(n => n[0]).join('') : 'U'}</AvatarFallback>
                       </Avatar>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Nome</p>
-                      <p className="font-medium">{name}</p>
+                      <p className="font-medium">{name || 'Não informado'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{email}</p>
+                      <p className="font-medium">{email || 'Não informado'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Telefone</p>
-                      <p className="font-medium">{phone}</p>
+                      <p className="font-medium">{phone || 'Não informado'}</p>
                     </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Tipo de usuário</p>
+                      <p className="font-medium capitalize">{type || 'Comprador'}</p>
+                    </div>
+                    {type === 'agent' && (
+                      <>
+                        <div>
+                          <p className="text-sm text-muted-foreground">CRECI</p>
+                          <p className="font-medium">{creci || 'Não informado'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Imobiliária</p>
+                          <p className="font-medium">{agencyName || 'Não informado'}</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <form onSubmit={handleSaveProfile} className="space-y-4">
                     <div className="flex justify-center mb-4">
-                      <Avatar className="h-24 w-24">
-                        <AvatarImage src={avatarUrl || '/placeholder.svg'} alt="Avatar" />
-                        <AvatarFallback className="text-2xl">{name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-24 w-24">
+                          <AvatarImage src={avatarUrl || '/placeholder.svg'} alt="Avatar" />
+                          <AvatarFallback className="text-2xl">{name ? name.split(' ').map(n => n[0]).join('') : 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-2 -right-2">
+                          <label htmlFor="avatar-upload" className="cursor-pointer">
+                            <div className="rounded-full bg-primary p-1 hover:bg-primary/90 transition-colors">
+                              {uploading ? 
+                                <Loader2 className="h-4 w-4 text-white animate-spin" /> : 
+                                <Upload className="h-4 w-4 text-white" />
+                              }
+                            </div>
+                            <input 
+                              id="avatar-upload" 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={uploadAvatar}
+                              disabled={uploading}
+                            />
+                          </label>
+                        </div>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome</Label>
@@ -123,9 +288,10 @@ const Profile = () => {
                         id="email" 
                         type="email" 
                         value={email} 
-                        onChange={e => setEmail(e.target.value)} 
-                        required 
+                        disabled 
+                        className="bg-muted"
                       />
+                      <p className="text-xs text-muted-foreground">O email não pode ser alterado.</p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Telefone</Label>
@@ -135,13 +301,58 @@ const Profile = () => {
                         onChange={e => setPhone(e.target.value)} 
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="type">Tipo de usuário</Label>
+                      <Select value={type} onValueChange={setType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="buyer">Comprador</SelectItem>
+                          <SelectItem value="owner">Proprietário</SelectItem>
+                          <SelectItem value="agent">Corretor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {type === 'agent' && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="creci">CRECI</Label>
+                          <Input 
+                            id="creci" 
+                            value={creci} 
+                            onChange={e => setCreci(e.target.value)} 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="agencyName">Nome da Imobiliária</Label>
+                          <Input 
+                            id="agencyName" 
+                            value={agencyName} 
+                            onChange={e => setAgencyName(e.target.value)} 
+                          />
+                        </div>
+                      </>
+                    )}
+                    
                     <div className="flex space-x-2">
                       <Button 
                         type="submit" 
                         disabled={isSubmitting}
                         className="flex-1"
                       >
-                        {isSubmitting ? 'Salvando...' : 'Salvar'}
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Salvar
+                          </>
+                        )}
                       </Button>
                       <Button 
                         type="button"
