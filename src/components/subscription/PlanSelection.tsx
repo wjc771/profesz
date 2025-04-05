@@ -50,10 +50,10 @@ const PlanSelection = ({
             )}
             <CardTitle className={compact ? "text-xl" : "text-2xl"}>{plan.name}</CardTitle>
             <div>
-              <span className={compact ? "text-3xl font-bold" : "text-4xl font-bold"}>{plan.price}</span>
-              {plan.price !== 'Grátis' && plan.price !== 'Personalizado' && <span className="text-muted-foreground">/mês</span>}
+              <span className={compact ? "text-2xl font-bold" : "text-3xl font-bold"}>{plan.price}</span>
+              {plan.price !== 'Grátis' && plan.price !== 'Personalizado' && <span className="text-muted-foreground text-sm ml-1">/mês</span>}
             </div>
-            <CardDescription>{plan.description}</CardDescription>
+            <CardDescription className="line-clamp-2 h-10">{plan.description}</CardDescription>
             {plan.bestFor && (
               <p className="text-xs text-muted-foreground mt-1">
                 Ideal para: {plan.bestFor}
@@ -64,7 +64,7 @@ const PlanSelection = ({
             {plan.id !== 'custom' && !compact && (
               <div className="mb-4 space-y-2">
                 <h4 className="text-sm font-medium">Limites do plano:</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Anúncios:</span>
                     <span className="font-medium">{formatLimit(plan.limits.activeListings)}</span>
@@ -98,7 +98,7 @@ const PlanSelection = ({
                   
                   {plan.limits.highlightsPerWeek !== undefined && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Destaques/semana:</span>
+                      <span className="text-muted-foreground">Destaques/sem:</span>
                       <span className="font-medium">{formatLimit(plan.limits.highlightsPerWeek)}</span>
                     </div>
                   )}
@@ -114,15 +114,15 @@ const PlanSelection = ({
             )}
             
             <h4 className="text-sm font-medium mb-2">{plan.id === 'custom' ? 'Serviços disponíveis:' : 'Recursos inclusos:'}</h4>
-            <ul className="space-y-2 my-4">
-              {(showAllFeatures ? plan.features : plan.features.slice(0, compact ? 5 : 8)).map((feature, index) => (
+            <ul className="space-y-2 my-2">
+              {(showAllFeatures ? plan.features : plan.features.slice(0, compact ? 4 : 6)).map((feature, index) => (
                 <li key={index} className="flex items-start gap-2">
                   {feature.included ? (
-                    <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 text-muted-foreground opacity-30 shrink-0 mt-0.5" />
+                    <AlertCircle className="h-4 w-4 text-muted-foreground opacity-30 shrink-0 mt-0.5" />
                   )}
-                  <div className={feature.included ? '' : 'text-muted-foreground opacity-70'}>
+                  <div className={`${feature.included ? '' : 'text-muted-foreground opacity-70'} text-sm`}>
                     <span className={feature.included ? '' : 'line-through'}>
                       {feature.name}
                     </span>
@@ -130,7 +130,7 @@ const PlanSelection = ({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="inline-block h-4 w-4 ml-1 text-muted-foreground cursor-help" />
+                            <Info className="inline-block h-3 w-3 ml-1 text-muted-foreground cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
                             <p>{feature.details}</p>
@@ -142,9 +142,9 @@ const PlanSelection = ({
                 </li>
               ))}
               
-              {!showAllFeatures && plan.features.length > (compact ? 5 : 8) && (
+              {!showAllFeatures && plan.features.length > (compact ? 4 : 6) && (
                 <li className="text-xs text-muted-foreground">
-                  +{plan.features.length - (compact ? 5 : 8)} recursos adicionais
+                  +{plan.features.length - (compact ? 4 : 6)} recursos adicionais
                 </li>
               )}
             </ul>

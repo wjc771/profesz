@@ -14,7 +14,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className={`flex-1 ${isMobile ? 'pb-20' : 'py-6'}`}>
+      <main className={`flex-1 overflow-x-hidden ${isMobile ? 'pb-20 pt-4' : 'py-6'}`}>
         <div className="container mobile-container max-w-6xl">
           {children}
         </div>

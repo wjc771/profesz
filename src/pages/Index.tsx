@@ -54,11 +54,13 @@ const Index = () => {
           
           <TabsContent value="discover" className="focus-visible:outline-none focus-visible:ring-0">
             <div className="flex flex-col items-center mb-8">
-              <PropertySwiper 
-                properties={mockProperties}
-                onLike={handleLikeProperty}
-                onDislike={handleDislikeProperty}
-              />
+              <div className="max-w-full w-full md:max-w-md lg:max-w-lg overflow-hidden">
+                <PropertySwiper 
+                  properties={mockProperties}
+                  onLike={handleLikeProperty}
+                  onDislike={handleDislikeProperty}
+                />
+              </div>
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground mb-2">
                   Deslize para direita para demonstrar interesse ou para esquerda para passar

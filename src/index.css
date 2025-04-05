@@ -30,7 +30,7 @@
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
+    --card: 223 47% 12%;
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
@@ -75,5 +75,24 @@
   
   .mobile-heading {
     @apply text-xl md:text-3xl;
+  }
+
+  /* Plan card specific styles */
+  .plan-card {
+    @apply h-full bg-card transition-colors;
+  }
+
+  .plan-card .card-content {
+    @apply flex-1;
+  }
+
+  /* Better text display in dark mode */
+  .dark .text-muted-foreground {
+    @apply text-opacity-80;
+  }
+
+  /* Property swiper container */
+  .property-swiper-container {
+    @apply max-w-full md:max-w-xl mx-auto;
   }
 }
