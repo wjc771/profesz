@@ -40,7 +40,8 @@ export function MobileNavigation() {
             <h2 className="text-lg font-semibold">Menu</h2>
           </div>
           <nav className="space-y-2">
-            <Link to="/">
+            {/* Updated the "Início" link to go to dashboard if user is logged in */}
+            <Link to={user ? "/dashboard" : "/"}>
               <Button
                 variant="ghost"
                 className="w-full justify-start"

@@ -75,7 +75,8 @@ export default function Header() {
     >
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-10">
-          <Link to="/" className="font-bold text-xl flex items-center gap-2">
+          {/* Updated the logo link to go to dashboard if user is logged in */}
+          <Link to={user ? "/dashboard" : "/"} className="font-bold text-xl flex items-center gap-2">
             <span className="bg-primary text-primary-foreground p-1 rounded">MI</span>
             MatchImobiliário
           </Link>
@@ -84,7 +85,8 @@ export default function Header() {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <Link to="/">
+                  {/* Updated the "Início" link to go to dashboard if user is logged in */}
+                  <Link to={user ? "/dashboard" : "/"}>
                     <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
                       Início
                     </NavigationMenuLink>
