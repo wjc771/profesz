@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import PlanSelection from '@/components/subscription/PlanSelection';
 import { useToast } from '@/components/ui/use-toast';
-import { plans } from '@/data/plans';
+import { plans, standAloneServices } from '@/data/plans';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Tabs, 
@@ -13,6 +14,9 @@ import {
 } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Info, ShoppingCart } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Subscription = () => {
   const { toast } = useToast();
@@ -70,6 +74,16 @@ const Subscription = () => {
     }
   };
 
+  const handlePurchaseService = (serviceId: string) => {
+    const service = standAloneServices.find(s => s.id === serviceId);
+    if (!service) return;
+    
+    toast({
+      title: 'Serviço adquirido',
+      description: `Você adquiriu ${service.name} por ${service.price}.`,
+    });
+  };
+
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto py-6 px-4">
@@ -81,6 +95,7 @@ const Subscription = () => {
             </div>
             <TabsList className="mt-4 md:mt-0">
               <TabsTrigger value="plans">Planos</TabsTrigger>
+              <TabsTrigger value="services">Serviços Avulsos</TabsTrigger>
               <TabsTrigger value="billing">Faturamento</TabsTrigger>
               <TabsTrigger value="usage">Uso</TabsTrigger>
             </TabsList>
@@ -95,7 +110,7 @@ const Subscription = () => {
             </div>
 
             <PlanSelection 
-              plans={plans} 
+              plans={plans.filter(p => p.id !== 'custom')} 
               currentPlanId={currentPlanId} 
               onSelectPlan={handleSelectPlan} 
               isProcessing={isProcessing}
@@ -104,6 +119,60 @@ const Subscription = () => {
             <div className="mt-10 text-center text-sm text-muted-foreground">
               <p>Você pode alterar ou cancelar seu plano a qualquer momento.</p>
               <p className="mt-1">Precisa de ajuda para escolher? <a href="#" className="text-primary hover:underline">Fale conosco</a></p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="services" className="space-y-8">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold mb-2">Serviços Avulsos</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Impulsione seus resultados com nossos serviços adicionais, disponíveis independente do seu plano atual.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {standAloneServices.map((service) => (
+                <Card key={service.id} className="flex flex-col">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{service.name}</CardTitle>
+                    <div className="flex justify-between items-center">
+                      <span className="text-2xl font-bold">{service.price}</span>
+                      {service.duration && (
+                        <Badge variant="outline" className="text-xs">
+                          {service.duration}
+                        </Badge>
+                      )}
+                      {service.quantity && (
+                        <Badge variant="outline" className="text-xs">
+                          {service.quantity}
+                        </Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <p className="text-sm text-muted-foreground">{service.description}</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      onClick={() => handlePurchaseService(service.id)}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Adquirir agora
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+
+            <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-muted text-sm text-muted-foreground">
+              <p className="font-medium mb-2">Importante:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Os serviços avulsos são cobrados separadamente do seu plano mensal</li>
+                <li>Alguns serviços podem ter requisitos específicos (ex: imagens em alta resolução para Tour Virtual)</li>
+                <li>Para serviços de marketing e divulgação, o processo pode levar até 24h para iniciar</li>
+              </ul>
             </div>
           </TabsContent>
 
@@ -204,7 +273,7 @@ const Subscription = () => {
                       <span className="text-sm font-medium">Anúncios ativos</span>
                       <span className="text-sm text-muted-foreground">
                         {currentPlanId === "free" ? "1 de 1" : 
-                         currentPlanId === "personal" ? "0 de 5" : 
+                         currentPlanId === "personal" ? "0 de 10" : 
                          currentPlanId === "professional" ? "0 de ∞" : "0"}
                       </span>
                     </div>
@@ -221,7 +290,7 @@ const Subscription = () => {
                       <span className="text-sm font-medium">Buscas ativas</span>
                       <span className="text-sm text-muted-foreground">
                         {currentPlanId === "free" ? "0 de 1" : 
-                         currentPlanId === "personal" ? "0 de 5" : 
+                         currentPlanId === "personal" ? "0 de 10" : 
                          currentPlanId === "professional" ? "0 de ∞" : "0"}
                       </span>
                     </div>
@@ -255,7 +324,7 @@ const Subscription = () => {
                       <span className="text-sm font-medium">Contatos realizados</span>
                       <span className="text-sm text-muted-foreground">
                         {currentPlanId === "free" ? "Não disponível" : 
-                         currentPlanId === "personal" ? "0 de 15" : 
+                         currentPlanId === "personal" ? "0 de 30" : 
                          currentPlanId === "professional" ? "0 de ∞" : "0"}
                       </span>
                     </div>
@@ -273,8 +342,65 @@ const Subscription = () => {
                       </div>
                     )}
                   </div>
+                  
+                  {currentPlanId === "personal" && (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Impulsionamentos restantes</span>
+                          <span className="text-sm text-muted-foreground">3 de 3</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary" 
+                            style={{ width: "100%" }}
+                          ></div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Destaque semanal</span>
+                          <span className="text-sm text-muted-foreground">Disponível</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary" 
+                            style={{ width: "0%" }}
+                          ></div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {currentPlanId === "professional" && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Usuários da equipe</span>
+                        <span className="text-sm text-muted-foreground">0 de 10</span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary" 
+                          style={{ width: "0%" }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+              
+              {currentPlanId !== "free" && (
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Estatísticas de uso</h3>
+                  <div className="p-4 bg-muted/30 rounded-lg border border-muted text-sm">
+                    <p className="mb-2">As estatísticas detalhadas de uso estão disponíveis em seu painel de Analytics.</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/analytics')}>
+                      Ver Analytics
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

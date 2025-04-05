@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, AlertCircle, Info } from "lucide-react";
+import { Check, AlertCircle, Info, Users, Image, Video, Crown, BarChart } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { type PlanFeature, type Plan } from "@/data/plans";
 
@@ -15,16 +15,26 @@ interface PlanSelectionProps {
 
 const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = false }: PlanSelectionProps) => {
   // Helper to format limit display
-  const formatLimit = (limit: number | null): string => {
-    if (limit === null) return "Não disponível";
+  const formatLimit = (limit: number | null | undefined): string => {
+    if (limit === undefined || limit === null) return "Não disponível";
     if (limit === -1) return "Ilimitado";
     return limit.toString();
+  };
+
+  // Helper to get appropriate icon for a feature
+  const getFeatureIcon = (feature: string) => {
+    if (feature.includes("usuário") || feature.includes("equipe")) return Users;
+    if (feature.includes("foto") || feature.includes("mídia")) return Image;
+    if (feature.includes("vídeo")) return Video;
+    if (feature.includes("premium") || feature.includes("destaque")) return Crown;
+    if (feature.includes("analytics") || feature.includes("estatística")) return BarChart;
+    return Info;
   };
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       {plans.map((plan) => (
-        <Card key={plan.id} className={`plan-card ${plan.recommended ? 'border-primary ring-1 ring-primary' : ''}`}>
+        <Card key={plan.id} className={`plan-card flex flex-col ${plan.recommended ? 'border-primary ring-1 ring-primary' : ''}`}>
           <CardHeader className="space-y-1 pb-2">
             {plan.recommended && (
               <Badge className="w-fit mb-2 bg-primary hover:bg-primary">Recomendado</Badge>
@@ -35,33 +45,68 @@ const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = fals
               {plan.price !== 'Grátis' && plan.price !== 'Personalizado' && <span className="text-muted-foreground">/mês</span>}
             </div>
             <CardDescription>{plan.description}</CardDescription>
+            {plan.bestFor && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Ideal para: {plan.bestFor}
+              </p>
+            )}
           </CardHeader>
           <CardContent className="flex-1">
-            <div className="mb-4 space-y-2">
-              <h4 className="text-sm font-medium">Limites do plano:</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Anúncios:</span>
-                  <span className="font-medium">{formatLimit(plan.limits.activeListings)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Buscas:</span>
-                  <span className="font-medium">{formatLimit(plan.limits.activeSearches)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Matches/mês:</span>
-                  <span className="font-medium">{formatLimit(plan.limits.matchesPerMonth)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Contatos/mês:</span>
-                  <span className="font-medium">{formatLimit(plan.limits.contactsPerMonth)}</span>
+            {plan.id !== 'custom' && (
+              <div className="mb-4 space-y-2">
+                <h4 className="text-sm font-medium">Limites do plano:</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Anúncios:</span>
+                    <span className="font-medium">{formatLimit(plan.limits.activeListings)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Buscas:</span>
+                    <span className="font-medium">{formatLimit(plan.limits.activeSearches)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Matches/mês:</span>
+                    <span className="font-medium">{formatLimit(plan.limits.matchesPerMonth)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Contatos/mês:</span>
+                    <span className="font-medium">{formatLimit(plan.limits.contactsPerMonth)}</span>
+                  </div>
+                  
+                  {plan.limits.photosPerListing !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Fotos/imóvel:</span>
+                      <span className="font-medium">{formatLimit(plan.limits.photosPerListing)}</span>
+                    </div>
+                  )}
+                  
+                  {plan.limits.videosPerListing !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Vídeos/imóvel:</span>
+                      <span className="font-medium">{formatLimit(plan.limits.videosPerListing)}</span>
+                    </div>
+                  )}
+                  
+                  {plan.limits.highlightsPerWeek !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Destaques/semana:</span>
+                      <span className="font-medium">{formatLimit(plan.limits.highlightsPerWeek)}</span>
+                    </div>
+                  )}
+                  
+                  {plan.limits.teamMembers !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Usuários:</span>
+                      <span className="font-medium">{formatLimit(plan.limits.teamMembers)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
             
-            <h4 className="text-sm font-medium mb-2">Recursos inclusos:</h4>
+            <h4 className="text-sm font-medium mb-2">{plan.id === 'custom' ? 'Serviços disponíveis:' : 'Recursos inclusos:'}</h4>
             <ul className="space-y-2 my-4">
-              {plan.features.map((feature, index) => (
+              {plan.features.slice(0, 8).map((feature, index) => (
                 <li key={index} className="flex items-start gap-2">
                   {feature.included ? (
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -87,6 +132,12 @@ const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = fals
                   </div>
                 </li>
               ))}
+              
+              {plan.features.length > 8 && (
+                <li className="text-xs text-muted-foreground">
+                  +{plan.features.length - 8} recursos adicionais
+                </li>
+              )}
             </ul>
           </CardContent>
           <CardFooter>
@@ -101,7 +152,7 @@ const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = fals
                 : plan.id === "free" && !currentPlanId 
                   ? "Começar grátis" 
                   : plan.id === "custom"
-                    ? "Fale conosco"
+                    ? "Ver serviços avulsos"
                     : "Escolher plano"}
             </Button>
           </CardFooter>
