@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import VerificationPending from "./pages/VerificationPending";
 import Profile from "./pages/Profile";
 import Subscription from "./pages/Subscription";
+import LandingPage from "./pages/LandingPage";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +22,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/dashboard" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verification-pending" element={<VerificationPending />} />
