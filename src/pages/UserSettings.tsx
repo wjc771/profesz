@@ -1,3 +1,4 @@
+
 import MainLayout from "@/components/layout/MainLayout";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -6,6 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -54,9 +56,14 @@ const UserSettings = () => {
     }
   };
 
-  const [name, setName] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.phone || "");
+  // Use userEmail from auth user data
+  const userEmail = user?.email || "";
+  // Get username from email (part before @)
+  const displayName = userEmail ? userEmail.split('@')[0] : "";
+  
+  const [name, setName] = useState(displayName);
+  const [email, setEmail] = useState(userEmail);
+  const [phone, setPhone] = useState("");
 
   return (
     <MainLayout>

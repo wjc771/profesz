@@ -17,6 +17,19 @@ interface SubscriptionContextType {
   upgradePlan: (planId: string) => Promise<void>;
 }
 
+// Define the Profile type that matches our Supabase table
+interface Profile {
+  id: string;
+  email: string;
+  name: string | null;
+  phone: string | null;
+  type: string;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+  subscription_plan_id: string | null;
+}
+
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
