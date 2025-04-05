@@ -1,13 +1,106 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import MainLayout from '@/components/layout/MainLayout';
+import PropertySwiper from '@/components/property/PropertySwiper';
+import PropertyCard from '@/components/property/PropertyCard';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/use-toast';
+import { mockProperties } from '@/lib/mockData';
+import { Property } from '@/types/property';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
+  const { toast } = useToast();
+  const [likedProperties, setLikedProperties] = useState<Property[]>([]);
+  const [activeTab, setActiveTab] = useState('discover');
+
+  const handleLikeProperty = (property: Property) => {
+    setLikedProperties(prev => [...prev, property]);
+    toast({
+      title: 'Interesse registrado',
+      description: `Você demonstrou interesse em ${property.title}`,
+    });
+  };
+
+  const handleDislikeProperty = (property: Property) => {
+    console.log('Disliked:', property.id);
+    // Could track disliked properties if needed
+  };
+
+  const handleSelectProperty = (property: Property) => {
+    toast({
+      title: 'Imóvel selecionado',
+      description: `Você selecionou ${property.title}`,
+    });
+    // In the future, this would navigate to a property detail page
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <MainLayout>
+      <div className="container max-w-6xl">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2">Bem-vindo ao MatchImobiliário</h1>
+          <p className="text-muted-foreground">
+            Encontre o imóvel perfeito para você ou conecte-se com potenciais compradores
+          </p>
+        </div>
+
+        <Tabs defaultValue="discover" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="discover">Descobrir</TabsTrigger>
+            <TabsTrigger value="matches">Interesses ({likedProperties.length})</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="discover" className="focus-visible:outline-none focus-visible:ring-0">
+            <div className="flex flex-col items-center mb-8">
+              <PropertySwiper 
+                properties={mockProperties}
+                onLike={handleLikeProperty}
+                onDislike={handleDislikeProperty}
+              />
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Deslize para direita para demonstrar interesse ou para esquerda para passar
+                </p>
+                <Link to="/property-preferences">
+                  <Button variant="outline" size="sm">
+                    Ajustar preferências
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="matches" className="focus-visible:outline-none focus-visible:ring-0">
+            {likedProperties.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {likedProperties.map((property) => (
+                  <PropertyCard 
+                    key={property.id} 
+                    property={property} 
+                    onSelect={() => handleSelectProperty(property)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-semibold mb-2">Nenhum interesse registrado</h3>
+                <p className="text-muted-foreground mb-4">
+                  Navegue pelos imóveis disponíveis e demonstre interesse para vê-los aqui.
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('discover')}
+                  variant="outline"
+                >
+                  Descobrir imóveis
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 
