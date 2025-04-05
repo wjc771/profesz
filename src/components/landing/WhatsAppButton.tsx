@@ -1,5 +1,5 @@
 
-import { Icons } from 'lucide-react';
+import React from 'react';
 
 interface WhatsAppButtonProps {
   phoneNumber: string;
