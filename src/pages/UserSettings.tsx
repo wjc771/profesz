@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,17 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2, Moon, Sun, Check, LockKeyhole, Languages } from 'lucide-react';
+import { Loader2, Moon, Sun, Check, LockKeyhole, Languages, CreditCard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import PlanSelection from '@/components/subscription/PlanSelection';
+import { plans } from '@/data/plans';
 
 const UserSettings = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [updatePasswordLoading, setUpdatePasswordLoading] = useState(false);
@@ -27,9 +29,11 @@ const UserSettings = () => {
   const [language, setLanguage] = useState('pt-BR');
   const [receiveEmailNotifications, setReceiveEmailNotifications] = useState(true);
   const [receiveInAppNotifications, setReceiveInAppNotifications] = useState(true);
+  const [currentPlanId, setCurrentPlanId] = useState<string>('free');
+  const [showPlanDialog, setShowPlanDialog] = useState(false);
+  const [changingPlan, setChangingPlan] = useState(false);
   
   useEffect(() => {
-    // Carregar preferências do localStorage ou do banco de dados
     const storedTheme = localStorage.getItem('theme-preference') as 'light' | 'dark' | 'system' | null;
     if (storedTheme) {
       setThemePreference(storedTheme);
@@ -38,6 +42,11 @@ const UserSettings = () => {
     const storedLanguage = localStorage.getItem('language-preference');
     if (storedLanguage) {
       setLanguage(storedLanguage);
+    }
+
+    const storedPlan = localStorage.getItem('user-subscription');
+    if (storedPlan) {
+      setCurrentPlanId(storedPlan);
     }
   }, []);
   
@@ -50,7 +59,6 @@ const UserSettings = () => {
     } else if (theme === 'light') {
       document.documentElement.classList.remove('dark');
     } else {
-      // Sistema
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.classList.toggle('dark', prefersDark);
     }
@@ -75,8 +83,6 @@ const UserSettings = () => {
     setLoading(true);
     
     try {
-      // Aqui você salvaria as preferências no banco de dados para o usuário logado
-      
       toast({
         title: 'Preferências atualizadas',
         description: 'Suas preferências de notificação foram atualizadas com sucesso.',
@@ -124,6 +130,35 @@ const UserSettings = () => {
     }
   };
   
+  const handleChangePlan = async (planId: string) => {
+    setChangingPlan(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      localStorage.setItem('user-subscription', planId);
+      setCurrentPlanId(planId);
+      
+      toast({
+        title: 'Plano atualizado',
+        description: `Seu plano foi atualizado para ${plans.find(p => p.id === planId)?.name}.`,
+      });
+      
+      setShowPlanDialog(false);
+    } catch (error) {
+      console.error('Error updating plan:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro na atualização',
+        description: 'Não foi possível atualizar seu plano. Tente novamente mais tarde.',
+      });
+    } finally {
+      setChangingPlan(false);
+    }
+  };
+
+  const currentPlan = plans.find(p => p.id === currentPlanId);
+  
   return (
     <MainLayout>
       <div className="container max-w-6xl">
@@ -137,6 +172,7 @@ const UserSettings = () => {
         <Tabs defaultValue="account">
           <TabsList className="mb-6">
             <TabsTrigger value="account">Conta</TabsTrigger>
+            <TabsTrigger value="subscription">Assinatura</TabsTrigger>
             <TabsTrigger value="appearance">Aparência</TabsTrigger>
             <TabsTrigger value="notifications">Notificações</TabsTrigger>
           </TabsList>
@@ -232,7 +268,7 @@ const UserSettings = () => {
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium">Plano atual: <span className="text-primary">Gratuito</span></h3>
+                    <h3 className="font-medium">Plano atual: <span className="text-primary">{currentPlan?.name || 'Gratuito'}</span></h3>
                     <Link to="/subscription">
                       <Button variant="default" size="sm">
                         Fazer upgrade
@@ -287,6 +323,194 @@ const UserSettings = () => {
                 </Link>
               </CardFooter>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="subscription" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Seu Plano</CardTitle>
+                <CardDescription>
+                  Gerencie seu plano de assinatura atual
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg bg-muted/30">
+                  <div>
+                    <h3 className="font-medium flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-primary" />
+                      Plano atual: <span className="text-primary">{currentPlan?.name || 'Gratuito'}</span>
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {currentPlan?.description || 'Plano básico com funcionalidades limitadas'}
+                    </p>
+                  </div>
+                  <Button 
+                    variant="default" 
+                    onClick={() => setShowPlanDialog(true)}
+                    className="mt-4 md:mt-0"
+                  >
+                    Mudar plano
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Limites e recursos do seu plano</h3>
+                  
+                  {currentPlan && currentPlan.id !== 'custom' && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-4">
+                        <h4 className="font-medium">Limites de uso</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Anúncios ativos</span>
+                              <span className="font-medium">
+                                {currentPlan.limits.activeListings === -1 
+                                  ? "Ilimitado" 
+                                  : `0/${currentPlan.limits.activeListings}`}
+                              </span>
+                            </div>
+                            <div className="w-full h-2 bg-muted rounded-full">
+                              <div 
+                                className="bg-primary h-2 rounded-full" 
+                                style={{ width: "0%" }}
+                              ></div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Buscas ativas</span>
+                              <span className="font-medium">
+                                {currentPlan.limits.activeSearches === -1 
+                                  ? "Ilimitado" 
+                                  : `0/${currentPlan.limits.activeSearches}`}
+                              </span>
+                            </div>
+                            <div className="w-full h-2 bg-muted rounded-full">
+                              <div 
+                                className="bg-primary h-2 rounded-full" 
+                                style={{ width: "0%" }}
+                              ></div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span>Matches restantes (este mês)</span>
+                              <span className="font-medium">
+                                {currentPlan.limits.matchesPerMonth === -1 
+                                  ? "Ilimitado" 
+                                  : `${currentPlan.limits.matchesPerMonth}/${currentPlan.limits.matchesPerMonth}`}
+                              </span>
+                            </div>
+                            <div className="w-full h-2 bg-muted rounded-full">
+                              <div 
+                                className="bg-primary h-2 rounded-full" 
+                                style={{ width: "100%" }}
+                              ></div>
+                            </div>
+                          </div>
+                          
+                          {currentPlan.limits.contactsPerMonth !== null && (
+                            <div>
+                              <div className="flex justify-between text-sm mb-1">
+                                <span>Contatos restantes (este mês)</span>
+                                <span className="font-medium">
+                                  {currentPlan.limits.contactsPerMonth === -1 
+                                    ? "Ilimitado" 
+                                    : `${currentPlan.limits.contactsPerMonth}/${currentPlan.limits.contactsPerMonth}`}
+                                </span>
+                              </div>
+                              <div className="w-full h-2 bg-muted rounded-full">
+                                <div 
+                                  className="bg-primary h-2 rounded-full" 
+                                  style={{ width: "100%" }}
+                                ></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h4 className="font-medium">Principais recursos</h4>
+                        <ul className="space-y-2">
+                          {currentPlan.features
+                            .filter(f => f.included)
+                            .slice(0, 7)
+                            .map((feature, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                <span className="text-sm">{feature.name}</span>
+                              </li>
+                            ))}
+                          
+                          {currentPlan.features.filter(f => f.included).length > 7 && (
+                            <li className="text-xs text-muted-foreground">
+                              +{currentPlan.features.filter(f => f.included).length - 7} recursos adicionais
+                            </li>
+                          )}
+                        </ul>
+                        
+                        <Link to="/subscription" className="text-sm text-primary hover:underline block mt-2">
+                          Ver todos os detalhes do plano
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {currentPlan && currentPlan.id === 'custom' && (
+                    <div className="text-center p-4 border rounded">
+                      <p className="text-muted-foreground">
+                        Você está utilizando serviços avulsos. Para verificar seu consumo,
+                        acesse a página de assinatura.
+                      </p>
+                      <Link to="/subscription">
+                        <Button variant="outline" className="mt-4">
+                          Ver detalhes
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col sm:flex-row gap-4">
+                <Link to="/subscription" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full">
+                    Gerenciar assinatura
+                  </Button>
+                </Link>
+                <Button variant="ghost" className="w-full sm:w-auto" onClick={() => setShowPlanDialog(true)}>
+                  Ver todos os planos
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Escolha um plano</DialogTitle>
+                  <DialogDescription>
+                    Selecione o plano que melhor atende às suas necessidades
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <PlanSelection 
+                    plans={plans.filter(p => p.id !== 'custom')} 
+                    currentPlanId={currentPlanId}
+                    onSelectPlan={handleChangePlan}
+                    isProcessing={changingPlan}
+                    compact={true}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowPlanDialog(false)}>
+                    Cancelar
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
           
           <TabsContent value="appearance" className="space-y-6">

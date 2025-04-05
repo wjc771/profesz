@@ -11,9 +11,18 @@ interface PlanSelectionProps {
   currentPlanId?: string;
   onSelectPlan: (planId: string) => void;
   isProcessing?: boolean;
+  compact?: boolean;
+  showAllFeatures?: boolean;
 }
 
-const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = false }: PlanSelectionProps) => {
+const PlanSelection = ({ 
+  plans, 
+  currentPlanId, 
+  onSelectPlan, 
+  isProcessing = false, 
+  compact = false,
+  showAllFeatures = false
+}: PlanSelectionProps) => {
   // Helper to format limit display
   const formatLimit = (limit: number | null | undefined): string => {
     if (limit === undefined || limit === null) return "Não disponível";
@@ -32,16 +41,16 @@ const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = fals
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className={`grid gap-6 ${compact ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
       {plans.map((plan) => (
         <Card key={plan.id} className={`plan-card flex flex-col ${plan.recommended ? 'border-primary ring-1 ring-primary' : ''}`}>
-          <CardHeader className="space-y-1 pb-2">
+          <CardHeader className={`space-y-1 ${compact ? 'pb-2' : 'pb-4'}`}>
             {plan.recommended && (
               <Badge className="w-fit mb-2 bg-primary hover:bg-primary">Recomendado</Badge>
             )}
-            <CardTitle className="text-xl">{plan.name}</CardTitle>
+            <CardTitle className={compact ? "text-xl" : "text-2xl"}>{plan.name}</CardTitle>
             <div>
-              <span className="text-3xl font-bold">{plan.price}</span>
+              <span className={compact ? "text-3xl font-bold" : "text-4xl font-bold"}>{plan.price}</span>
               {plan.price !== 'Grátis' && plan.price !== 'Personalizado' && <span className="text-muted-foreground">/mês</span>}
             </div>
             <CardDescription>{plan.description}</CardDescription>
@@ -52,7 +61,7 @@ const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = fals
             )}
           </CardHeader>
           <CardContent className="flex-1">
-            {plan.id !== 'custom' && (
+            {plan.id !== 'custom' && !compact && (
               <div className="mb-4 space-y-2">
                 <h4 className="text-sm font-medium">Limites do plano:</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -106,7 +115,7 @@ const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = fals
             
             <h4 className="text-sm font-medium mb-2">{plan.id === 'custom' ? 'Serviços disponíveis:' : 'Recursos inclusos:'}</h4>
             <ul className="space-y-2 my-4">
-              {plan.features.slice(0, 8).map((feature, index) => (
+              {(showAllFeatures ? plan.features : plan.features.slice(0, compact ? 5 : 8)).map((feature, index) => (
                 <li key={index} className="flex items-start gap-2">
                   {feature.included ? (
                     <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -133,9 +142,9 @@ const PlanSelection = ({ plans, currentPlanId, onSelectPlan, isProcessing = fals
                 </li>
               ))}
               
-              {plan.features.length > 8 && (
+              {!showAllFeatures && plan.features.length > (compact ? 5 : 8) && (
                 <li className="text-xs text-muted-foreground">
-                  +{plan.features.length - 8} recursos adicionais
+                  +{plan.features.length - (compact ? 5 : 8)} recursos adicionais
                 </li>
               )}
             </ul>
