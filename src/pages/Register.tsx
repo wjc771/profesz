@@ -29,8 +29,9 @@ const registerSchema = z.object({
     .regex(/^(?=.*[a-zA-Z])(?=.*[0-9])/, {
       message: 'Senha deve conter pelo menos uma letra e um número',
     }),
-  acceptTerms: z.literal(true, {
-    errorMap: () => ({ message: 'Você precisa aceitar os termos e condições' }),
+  // Fix: Changed from literal(true) to boolean().refine() to handle the boolean type correctly
+  acceptTerms: z.boolean().refine(val => val === true, {
+    message: 'Você precisa aceitar os termos e condições',
   }),
 });
 
