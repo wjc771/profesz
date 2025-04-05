@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
-import { PropertyDemand } from '@/types/property';
+import { PropertyDemand, PropertyType, TransactionType } from '@/types/property';
 
 const DemandManagement = () => {
   const [demands, setDemands] = useState<PropertyDemand[]>([]);
@@ -28,11 +28,11 @@ const DemandManagement = () => {
       if (error) throw error;
       
       // Transform the database data to match the PropertyDemand type
-      const transformedData = data.map(item => ({
+      const transformedData: PropertyDemand[] = data.map(item => ({
         id: item.id,
         userId: item.user_id,
-        transactionType: item.transaction_type as any,
-        propertyTypes: item.property_types,
+        transactionType: item.transaction_type as TransactionType,
+        propertyTypes: item.property_types.map(type => type as PropertyType),
         priceRange: {
           min: item.min_price,
           max: item.max_price

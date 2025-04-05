@@ -27,6 +27,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { PropertyType, TransactionType } from '@/types/property';
 
 // Schema de validação para o formulário de demandas
 const demandFormSchema = z.object({
@@ -112,8 +113,8 @@ const DemandForm = () => {
         if (error) throw error;
 
         form.reset({
-          transactionType: data.transaction_type,
-          propertyTypes: data.property_types,
+          transactionType: data.transaction_type as TransactionType,
+          propertyTypes: data.property_types.map(type => type as PropertyType),
           minPrice: data.min_price,
           maxPrice: data.max_price,
           cities: data.cities,

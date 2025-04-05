@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { PropertyMatch } from '@/types/property';
+import { PropertyMatch, PropertyType, TransactionType } from '@/types/property';
 
 const MatchManagement = () => {
   const [matches, setMatches] = useState<PropertyMatch[]>([]);
@@ -33,7 +33,7 @@ const MatchManagement = () => {
       if (error) throw error;
       
       // Transform the data to match the PropertyMatch type
-      const transformedData = data.map(item => ({
+      const transformedData: PropertyMatch[] = data.map(item => ({
         id: item.id,
         propertyId: item.property_id,
         demandId: item.demand_id,
@@ -44,8 +44,8 @@ const MatchManagement = () => {
         property: item.property ? {
           id: item.property.id,
           title: item.property.title,
-          type: item.property.type,
-          transactionType: item.property.transaction_type,
+          type: item.property.type as PropertyType,
+          transactionType: item.property.transaction_type as TransactionType,
           price: item.property.price,
           location: {
             address: item.property.address,

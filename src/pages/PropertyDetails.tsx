@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
-import { Property } from '@/types/property';
+import { Property, PropertyType, TransactionType } from '@/types/property';
 
 const PropertyDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,8 +36,8 @@ const PropertyDetails = () => {
           id: data.id,
           title: data.title,
           description: data.description,
-          type: data.type,
-          transactionType: data.transaction_type,
+          type: data.type as PropertyType,
+          transactionType: data.transaction_type as TransactionType,
           price: data.price,
           propertyTax: data.property_tax,
           location: {
