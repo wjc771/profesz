@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+// Estendendo o tipo do perfil para incluir os campos adicionais
 interface ExtendedProfile {
   id: string;
   name: string | null;
@@ -44,6 +46,7 @@ const Profile = () => {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // In a real app, these would come from the authenticated user
   const userProperties = mockProperties.slice(0, 2);
   
   useEffect(() => {
@@ -72,6 +75,7 @@ const Profile = () => {
         setPhone(profileData.phone || '');
         setType(profileData.type || 'buyer');
         setAvatarUrl(profileData.avatar_url || '');
+        // Acesso aos campos customizados
         setCreci(profileData.creci || '');
         setAgencyName(profileData.agency_name || '');
       }
@@ -101,7 +105,7 @@ const Profile = () => {
         type,
         creci,
         agency_name: agencyName,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(), // Convertendo Date para string
       };
       
       const { error } = await supabase
@@ -144,16 +148,19 @@ const Profile = () => {
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
       
+      // Upload da imagem para o storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
         
       if (uploadError) throw uploadError;
       
+      // Obter URL pública da imagem
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
         
+      // Atualizar avatar_url do perfil
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: data.publicUrl })
@@ -183,34 +190,7 @@ const Profile = () => {
       title: 'Imóvel selecionado',
       description: `Você selecionou ${property.title}`,
     });
-  };
-
-  const SubscriptionOverview = () => {
-    return (
-      <div className="space-y-4">
-        <div>
-          <div className="flex items-center justify-between">
-            <p className="font-medium">Plano Gratuito</p>
-            <Link to="/subscription">
-              <Button variant="link" className="p-0 h-auto">
-                Fazer upgrade
-              </Button>
-            </Link>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            2 de 2 imóveis utilizados
-          </p>
-          <div className="w-full h-2 bg-muted rounded-full mt-2">
-            <div className="bg-primary h-2 rounded-full w-full"></div>
-          </div>
-        </div>
-        <div className="text-sm text-muted-foreground">
-          <p>• 1 oferta e 1 demanda ativas</p>
-          <p>• Notificação básica de matches</p>
-          <p>• Filtros básicos</p>
-        </div>
-      </div>
-    );
+    // In the future, this would navigate to a property detail page
   };
 
   if (loading) {
@@ -423,7 +403,29 @@ const Profile = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SubscriptionOverview />
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">Plano Gratuito</p>
+                      <Link to="/subscription">
+                        <Button variant="link" className="p-0 h-auto">
+                          Fazer upgrade
+                        </Button>
+                      </Link>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      2 de 2 imóveis utilizados
+                    </p>
+                    <div className="w-full h-2 bg-muted rounded-full mt-2">
+                      <div className="bg-primary h-2 rounded-full w-full"></div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    <p>• 1 oferta e 1 demanda ativas</p>
+                    <p>• Notificação básica de matches</p>
+                    <p>• Filtros básicos</p>
+                  </div>
+                </div>
               </CardContent>
               <CardFooter>
                 <Link to="/subscription" className="w-full">

@@ -17,7 +17,6 @@ export type Database = {
           id: string
           name: string | null
           phone: string | null
-          subscription_plan_id: string | null
           type: string
           updated_at: string
         }
@@ -28,7 +27,6 @@ export type Database = {
           id: string
           name?: string | null
           phone?: string | null
-          subscription_plan_id?: string | null
           type: string
           updated_at?: string
         }
@@ -39,7 +37,6 @@ export type Database = {
           id?: string
           name?: string | null
           phone?: string | null
-          subscription_plan_id?: string | null
           type?: string
           updated_at?: string
         }
