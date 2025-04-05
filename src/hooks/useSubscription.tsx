@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plan, plans } from "@/data/plans";
 import { toast } from "@/hooks/use-toast";
+import { Database } from "@/integrations/supabase/types";
 
 interface SubscriptionContextType {
   currentPlan: Plan | null;
@@ -17,18 +18,8 @@ interface SubscriptionContextType {
   upgradePlan: (planId: string) => Promise<void>;
 }
 
-// Define the Profile type that matches our Supabase table
-interface Profile {
-  id: string;
-  email: string;
-  name: string | null;
-  phone: string | null;
-  type: string;
-  avatar_url: string | null;
-  created_at: string;
-  updated_at: string;
-  subscription_plan_id: string | null;
-}
+// Define the Profile type using the Database types
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
