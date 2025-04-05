@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
@@ -12,6 +11,8 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const Subscription = () => {
   const { toast } = useToast();
@@ -20,7 +21,6 @@ const Subscription = () => {
   const [currentPlanId, setCurrentPlanId] = useState<string | undefined>("free");
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Getting current billing cycle for display purposes
   const startDate = new Date();
   const endDate = new Date();
   endDate.setMonth(endDate.getMonth() + 1);
@@ -36,23 +36,17 @@ const Subscription = () => {
   const handleSelectPlan = async (planId: string) => {
     if (planId === currentPlanId) return;
     
-    // For the custom plan, redirect to contact page or show contact info
     if (planId === "custom") {
-      // You can implement custom logic here, such as opening a contact form or redirecting to contact page
       toast({
         title: 'Plano Personalizado',
         description: 'Nossa equipe entrará em contato para discutir suas necessidades específicas.',
       });
-      
-      // For demo purposes, we're just showing a toast
-      // In a real app, you might want to collect more information or redirect
       return;
     }
     
     setIsProcessing(true);
     
     try {
-      // This would be replaced with actual Supabase/Stripe integration
       console.log('Selecting plan:', planId);
       await new Promise(resolve => setTimeout(resolve, 1500));
       
@@ -63,7 +57,6 @@ const Subscription = () => {
         description: `Seu plano foi atualizado para ${plans.find(p => p.id === planId)?.name}.`,
       });
 
-      // Simulate redirect to dashboard after upgrade
       setTimeout(() => navigate('/dashboard'), 1000);
     } catch (error) {
       console.error('Error upgrading plan:', error);
@@ -206,7 +199,6 @@ const Subscription = () => {
                 <h3 className="text-lg font-medium mb-4">Uso atual (este mês)</h3>
                 
                 <div className="space-y-4">
-                  {/* Anúncios ativos */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Anúncios ativos</span>
@@ -224,7 +216,6 @@ const Subscription = () => {
                     </div>
                   </div>
                   
-                  {/* Buscas ativas */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Buscas ativas</span>
@@ -242,7 +233,6 @@ const Subscription = () => {
                     </div>
                   </div>
                   
-                  {/* Matches este mês */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Matches este mês</span>
@@ -260,7 +250,6 @@ const Subscription = () => {
                     </div>
                   </div>
                   
-                  {/* Contatos realizados */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Contatos realizados</span>
