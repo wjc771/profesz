@@ -8,7 +8,11 @@ import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 
-export default function SubscriptionOverview() {
+interface SubscriptionOverviewProps {
+  compact?: boolean;
+}
+
+export default function SubscriptionOverview({ compact = false }: SubscriptionOverviewProps) {
   const { currentPlan, isLoading, usageLimits } = useSubscription();
 
   // Helper to format limit display
@@ -38,6 +42,54 @@ export default function SubscriptionOverview() {
     );
   }
 
+  // Versão compacta para o perfil do usuário
+  if (compact) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Plano {currentPlan.name}</span>
+            {currentPlan.id !== 'free' && (
+              <Crown className="h-4 w-4 text-yellow-500" />
+            )}
+          </div>
+          <Link to="/subscription">
+            <Button variant="link" className="p-0 h-auto text-sm">
+              {currentPlan.id === 'free' ? 'Fazer upgrade' : 'Gerenciar'}
+            </Button>
+          </Link>
+        </div>
+        
+        <div className="space-y-2">
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span>Imóveis</span>
+              <span>{usageLimits.activeListings.used}/{formatLimit(usageLimits.activeListings.total)}</span>
+            </div>
+            <Progress value={usageLimits.activeListings.total === Infinity ? 0 : (usageLimits.activeListings.used / usageLimits.activeListings.total) * 100} />
+          </div>
+          
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span>Buscas</span>
+              <span>{usageLimits.activeSearches.used}/{formatLimit(usageLimits.activeSearches.total)}</span>
+            </div>
+            <Progress value={usageLimits.activeSearches.total === Infinity ? 0 : (usageLimits.activeSearches.used / usageLimits.activeSearches.total) * 100} />
+          </div>
+          
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span>Matches</span>
+              <span>{usageLimits.matchesThisMonth.used}/{formatLimit(usageLimits.matchesThisMonth.total)}</span>
+            </div>
+            <Progress value={usageLimits.matchesThisMonth.total === Infinity ? 0 : (usageLimits.matchesThisMonth.used / usageLimits.matchesThisMonth.total) * 100} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Versão completa para o dashboard
   return (
     <Card>
       <CardHeader className="pb-2">
