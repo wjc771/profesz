@@ -9,67 +9,181 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, X } from "lucide-react";
+import { Check, X, Info } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const UserTypeComparison = () => {
   return (
     <div className="w-full overflow-auto">
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+        <h3 className="flex items-center gap-2 text-lg font-semibold mb-2">
+          <Info className="h-5 w-5 text-blue-500" />
+          Entendendo os tipos de usuário
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Abaixo você pode ver as diferenças entre os diferentes tipos de usuário e suas permissões no sistema.
+          Cada tipo tem funcionalidades específicas para suas necessidades.
+        </p>
+      </div>
+      
       <Table>
         <TableCaption>Comparação entre os diferentes tipos de usuários</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[200px]">Recurso</TableHead>
-            <TableHead>Comprador (Buyer)</TableHead>
-            <TableHead>Proprietário (Owner)</TableHead>
-            <TableHead>Corretor (Agent)</TableHead>
-            <TableHead>Imobiliária (Agency)</TableHead>
+            <TableHead>
+              <div className="flex flex-col items-center">
+                <span>Comprador</span>
+                <span className="text-xs text-muted-foreground">(Buyer)</span>
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex flex-col items-center">
+                <span>Proprietário</span>
+                <span className="text-xs text-muted-foreground">(Owner)</span>
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex flex-col items-center">
+                <span>Corretor</span>
+                <span className="text-xs text-muted-foreground">(Agent)</span>
+              </div>
+            </TableHead>
+            <TableHead>
+              <div className="flex flex-col items-center">
+                <span>Imobiliária</span>
+                <span className="text-xs text-muted-foreground">(Agency)</span>
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow>
-            <TableCell className="font-medium">Visualizar Imóveis</TableCell>
+            <TableCell className="font-medium">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
+                    Visualizar Imóveis
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Ver detalhes de imóveis disponíveis na plataforma</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">Cadastrar Imóveis</TableCell>
+            <TableCell className="font-medium">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
+                    Cadastrar Imóveis
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Adicionar e gerenciar imóveis para venda ou aluguel</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">Criar Buscas</TableCell>
+            <TableCell className="font-medium">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
+                    Criar Buscas
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Definir critérios de busca para encontrar imóveis ideais</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">Ver Matches</TableCell>
+            <TableCell className="font-medium">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
+                    Ver Matches
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Visualizar correspondências entre buscas e imóveis disponíveis</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">Gerenciar Clientes</TableCell>
+            <TableCell className="font-medium">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
+                    Gerenciar Clientes
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Acompanhar e organizar clientes interessados em imóveis</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">Gerenciar Corretores</TableCell>
+            <TableCell className="font-medium">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
+                    Gerenciar Corretores
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Administrar equipe de corretores e suas atividades</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">Análises Avançadas</TableCell>
+            <TableCell className="font-medium">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
+                    Análises Avançadas
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Acessar relatórios e estatísticas detalhadas sobre o mercado imobiliário</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
             <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
