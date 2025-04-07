@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import DashboardStats from '@/components/dashboard/DashboardStats';
@@ -10,10 +11,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { Profile, UserType } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, Search, Users, BarChart3, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Building, Search, Users, BarChart3 } from 'lucide-react';
 import { mockProfiles } from '@/lib/mockData';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import UserTypeComparison from '@/components/UserTypeComparison';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -58,12 +58,6 @@ const Dashboard = () => {
         setUseMockData(false); // Only disable mock data if we successfully fetched a profile
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
-        toast({
-          title: 'Erro ao carregar perfil',
-          description: 'Usando dados de demonstração',
-          variant: 'default'
-        });
-
         // Use mock data if there's an error
         setUseMockData(true);
         // Find a mock profile to use
@@ -76,32 +70,6 @@ const Dashboard = () => {
 
     fetchUserProfile();
   }, [user, toast]);
-
-  // Toggle mock data for testing purposes
-  const handleToggleMockData = () => {
-    setUseMockData(!useMockData);
-    if (!useMockData) {
-      // Find a mock profile of the same type as the real user for demonstration
-      const mockUserType = userProfile?.type || 'buyer';
-      const mockProfile = mockProfiles.find(p => p.type === mockUserType) || mockProfiles[0];
-      setUserProfile(mockProfile);
-      
-      toast({
-        title: 'Modo de Demonstração Ativado',
-        description: `Dados de demonstração carregados para usuário do tipo: ${mockProfile.type}`,
-        variant: 'default'
-      });
-    } else {
-      // Revert to real data
-      fetchUserProfile();
-      
-      toast({
-        title: 'Modo de Demonstração Desativado',
-        description: 'Usando dados reais do usuário',
-        variant: 'default'
-      });
-    }
-  };
 
   const fetchUserProfile = async () => {
     if (!user) return;
@@ -303,39 +271,24 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <div className="container max-w-6xl py-8">
-        <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Bem-vindo, {userProfile?.name || user.email}!
-              {userProfile?.type && (
-                <span className="ml-2 text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
-                  {userProfile.type === 'buyer' ? 'Comprador' : 
-                   userProfile.type === 'owner' ? 'Proprietário' : 
-                   userProfile.type === 'agent' ? 'Corretor' : 
-                   userProfile.type === 'agency' ? 'Imobiliária' : ''}
-                </span>
-              )}
-            </p>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <Button 
-              variant={useMockData ? "destructive" : "outline"}
-              size="sm" 
-              onClick={handleToggleMockData}
-            >
-              {useMockData ? 'Desativar' : 'Ativar'} Dados de Demonstração
-            </Button>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Bem-vindo, {userProfile?.name || user.email}!
+            {userProfile?.type && (
+              <span className="ml-2 text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
+                {userProfile.type === 'buyer' ? 'Comprador' : 
+                 userProfile.type === 'owner' ? 'Proprietário' : 
+                 userProfile.type === 'agent' ? 'Corretor' : 
+                 userProfile.type === 'agency' ? 'Imobiliária' : ''}
+              </span>
+            )}
+          </p>
         </div>
 
-        <Alert className="mb-6 border-blue-500 bg-blue-50 text-blue-800">
-          <AlertCircle className="h-4 w-4 text-blue-500" />
-          <AlertTitle className="text-blue-800 font-bold">Demonstração Ativa</AlertTitle>
-          <AlertDescription className="text-blue-700">
-            Dados de demonstração estão ativos para mostrar como o sistema funciona. Para ver seus dados reais, desative o modo de demonstração no botão acima.
-          </AlertDescription>
-        </Alert>
+        <div className="mb-8">
+          <UserTypeComparison />
+        </div>
 
         {/* Stats */}
         <div className="mb-8">
