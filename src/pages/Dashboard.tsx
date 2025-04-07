@@ -22,8 +22,8 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showComparison, setShowComparison] = useState(true); // Set to true by default
-  const [useMockData, setUseMockData] = useState(false);
+  const [showComparison, setShowComparison] = useState(true); // Always show comparison by default
+  const [useMockData, setUseMockData] = useState(true); // Enable mock data by default
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -58,12 +58,13 @@ const Dashboard = () => {
 
         console.log("User profile fetched:", transformedData);
         setUserProfile(transformedData);
+        setUseMockData(false); // Only disable mock data if we successfully fetched a profile
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
         toast({
           title: 'Erro ao carregar perfil',
-          description: error.message || 'Falha ao carregar perfil',
-          variant: 'destructive'
+          description: 'Usando dados de demonstração',
+          variant: 'default'
         });
 
         // Use mock data if there's an error
@@ -340,29 +341,28 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <Alert className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Importante</AlertTitle>
-          <AlertDescription>
-            Se você não está vendo dados, use o botão <strong>"Ativar Dados de Demonstração"</strong> para visualizar como o sistema funciona com dados de exemplo.
+        <Alert className="mb-6 border-blue-500 bg-blue-50 text-blue-800">
+          <AlertCircle className="h-4 w-4 text-blue-500" />
+          <AlertTitle className="text-blue-800 font-bold">Demonstração Ativa</AlertTitle>
+          <AlertDescription className="text-blue-700">
+            Dados de demonstração estão ativos para mostrar como o sistema funciona. Para ver seus dados reais, desative o modo de demonstração no botão acima.
           </AlertDescription>
         </Alert>
 
-        {showComparison && (
-          <div className="mb-8">
-            <Card className="border-2 border-primary/20">
-              <CardHeader className="bg-primary/5">
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="h-5 w-5 text-primary" />
-                  Comparação de Tipos de Usuário
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <UserTypeComparison />
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* ALWAYS SHOW User Type Comparison by default */}
+        <div className="mb-8">
+          <Card className="border-2 border-primary/20">
+            <CardHeader className="bg-primary/5">
+              <CardTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5 text-primary" />
+                Comparação de Tipos de Usuário
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UserTypeComparison />
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Stats */}
         <div className="mb-8">

@@ -18,7 +18,7 @@ import {
 
 const UserTypeComparison = () => {
   return (
-    <div className="w-full overflow-auto">
+    <div className="w-full overflow-auto bg-white rounded-md shadow p-4">
       <div className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-500 rounded-md">
         <h3 className="flex items-center gap-2 text-lg font-semibold mb-2 text-blue-800">
           <Info className="h-5 w-5 text-blue-600" />
