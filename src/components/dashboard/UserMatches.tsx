@@ -205,7 +205,7 @@ export const UserMatches = () => {
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">{match.score}% Match</Badge>
                       {match.viewed && <Badge variant="outline">Visualizado</Badge>}
-                      {match.contacted && <Badge variant="success">Contactado</Badge>}
+                      {match.contacted && <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-200">Contactado</Badge>}
                     </div>
                   </div>
                   
