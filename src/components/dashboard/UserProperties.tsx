@@ -30,6 +30,7 @@ export const UserProperties = () => {
           
         if (error) throw error;
         
+        console.log("User profile type fetched:", data.type);
         setProfileType(data.type);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
@@ -119,7 +120,9 @@ export const UserProperties = () => {
     navigate(`/property/${property.id}`);
   };
 
+  // Check if the user is allowed to add properties (owner, agent, agency)
   const isPropertyManager = profileType === 'owner' || profileType === 'agent' || profileType === 'agency';
+  console.log("Is property manager:", isPropertyManager, "Profile type:", profileType);
 
   return (
     <Card className="w-full">

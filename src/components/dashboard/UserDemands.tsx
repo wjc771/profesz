@@ -31,6 +31,7 @@ export const UserDemands = () => {
           
         if (error) throw error;
         
+        console.log("User profile type fetched for demands:", data.type);
         setProfileType(data.type);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
@@ -113,11 +114,15 @@ export const UserDemands = () => {
     navigate(`/matches/${demand.id}`);
   };
 
+  // Only buyers should be able to add new demands
+  const isBuyer = profileType === 'buyer';
+  console.log("Is buyer:", isBuyer, "Profile type:", profileType);
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Suas Buscas</CardTitle>
-        {profileType === 'buyer' && (
+        {isBuyer && (
           <Button size="sm" onClick={handleAddDemand}>Nova Busca</Button>
         )}
       </CardHeader>
@@ -182,7 +187,7 @@ export const UserDemands = () => {
         ) : (
           <div className="text-center p-6 border rounded-md bg-muted/50">
             <p className="mb-4">Você ainda não possui buscas cadastradas.</p>
-            {profileType === 'buyer' && (
+            {isBuyer && (
               <Button onClick={handleAddDemand}>Cadastrar Busca</Button>
             )}
           </div>

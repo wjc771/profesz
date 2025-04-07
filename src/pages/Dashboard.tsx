@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import DashboardStats from '@/components/dashboard/DashboardStats';
@@ -10,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Profile, UserType } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Building, Search, Users, BarChart3 } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -47,6 +49,7 @@ const Dashboard = () => {
           agencyName: data.agency_name
         };
 
+        console.log("User profile fetched:", transformedData);
         setUserProfile(transformedData);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
@@ -73,6 +76,148 @@ const Dashboard = () => {
     );
   }
 
+  // Render specific dashboard content based on user type
+  const renderDashboardContent = () => {
+    if (!userProfile) return null;
+
+    console.log("Rendering dashboard for user type:", userProfile.type);
+    
+    switch (userProfile.type) {
+      case 'buyer':
+        return (
+          <Tabs defaultValue="demands" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="demands" className="flex items-center gap-2">
+                <Search size={16} />
+                Minhas Buscas
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="flex items-center gap-2">
+                <Building size={16} />
+                Meus Matches
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="demands">
+              <UserDemands />
+            </TabsContent>
+            <TabsContent value="matches">
+              <UserMatches />
+            </TabsContent>
+          </Tabs>
+        );
+        
+      case 'owner':
+        return (
+          <Tabs defaultValue="properties" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="properties" className="flex items-center gap-2">
+                <Building size={16} />
+                Meus Imóveis
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="flex items-center gap-2">
+                <Search size={16} />
+                Interessados
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="properties">
+              <UserProperties />
+            </TabsContent>
+            <TabsContent value="matches">
+              <UserMatches />
+            </TabsContent>
+          </Tabs>
+        );
+        
+      case 'agent':
+        return (
+          <Tabs defaultValue="properties" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="properties" className="flex items-center gap-2">
+                <Building size={16} />
+                Imóveis
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="flex items-center gap-2">
+                <Search size={16} />
+                Matches
+              </TabsTrigger>
+              <TabsTrigger value="clients" className="flex items-center gap-2">
+                <Users size={16} />
+                Clientes
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="properties">
+              <UserProperties />
+            </TabsContent>
+            <TabsContent value="matches">
+              <UserMatches />
+            </TabsContent>
+            <TabsContent value="clients">
+              <Card className="w-full">
+                <CardHeader>
+                  <CardTitle>Meus Clientes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        );
+        
+      case 'agency':
+        return (
+          <Tabs defaultValue="properties" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="properties" className="flex items-center gap-2">
+                <Building size={16} />
+                Imóveis
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="flex items-center gap-2">
+                <Search size={16} />
+                Matches
+              </TabsTrigger>
+              <TabsTrigger value="agents" className="flex items-center gap-2">
+                <Users size={16} />
+                Corretores
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <BarChart3 size={16} />
+                Análises
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="properties">
+              <UserProperties />
+            </TabsContent>
+            <TabsContent value="matches">
+              <UserMatches />
+            </TabsContent>
+            <TabsContent value="agents">
+              <Card className="w-full">
+                <CardHeader>
+                  <CardTitle>Equipe de Corretores</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="analytics">
+              <Card className="w-full">
+                <CardHeader>
+                  <CardTitle>Análises de Mercado</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        );
+      
+      default:
+        return <p>Tipo de perfil não reconhecido</p>;
+    }
+  };
+
   return (
     <MainLayout>
       <div className="container max-w-6xl py-8">
@@ -80,6 +225,14 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
           <p className="text-muted-foreground">
             Bem-vindo, {userProfile?.name || user.email}!
+            {userProfile?.type && (
+              <span className="ml-2 text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
+                {userProfile.type === 'buyer' ? 'Comprador' : 
+                 userProfile.type === 'owner' ? 'Proprietário' : 
+                 userProfile.type === 'agent' ? 'Corretor' : 
+                 userProfile.type === 'agency' ? 'Imobiliária' : ''}
+              </span>
+            )}
           </p>
         </div>
 
@@ -90,102 +243,7 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="space-y-6">
-          {/* Customized dashboard based on user type */}
-          {userProfile?.type === 'buyer' && (
-            <Tabs defaultValue="demands" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="demands">Minhas Buscas</TabsTrigger>
-                <TabsTrigger value="matches">Meus Matches</TabsTrigger>
-              </TabsList>
-              <TabsContent value="demands">
-                <UserDemands />
-              </TabsContent>
-              <TabsContent value="matches">
-                <UserMatches />
-              </TabsContent>
-            </Tabs>
-          )}
-
-          {/* Owner dashboard */}
-          {userProfile?.type === 'owner' && (
-            <Tabs defaultValue="properties" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="properties">Meus Imóveis</TabsTrigger>
-                <TabsTrigger value="matches">Interessados</TabsTrigger>
-              </TabsList>
-              <TabsContent value="properties">
-                <UserProperties />
-              </TabsContent>
-              <TabsContent value="matches">
-                <UserMatches />
-              </TabsContent>
-            </Tabs>
-          )}
-
-          {/* Agent dashboard */}
-          {userProfile?.type === 'agent' && (
-            <Tabs defaultValue="properties" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="properties">Imóveis</TabsTrigger>
-                <TabsTrigger value="matches">Matches</TabsTrigger>
-                <TabsTrigger value="clients">Clientes</TabsTrigger>
-              </TabsList>
-              <TabsContent value="properties">
-                <UserProperties />
-              </TabsContent>
-              <TabsContent value="matches">
-                <UserMatches />
-              </TabsContent>
-              <TabsContent value="clients">
-                <Card className="w-full">
-                  <CardHeader>
-                    <CardTitle>Meus Clientes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          )}
-
-          {/* Agency dashboard */}
-          {userProfile?.type === 'agency' && (
-            <Tabs defaultValue="properties" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="properties">Imóveis</TabsTrigger>
-                <TabsTrigger value="matches">Matches</TabsTrigger>
-                <TabsTrigger value="agents">Corretores</TabsTrigger>
-                <TabsTrigger value="analytics">Análises</TabsTrigger>
-              </TabsList>
-              <TabsContent value="properties">
-                <UserProperties />
-              </TabsContent>
-              <TabsContent value="matches">
-                <UserMatches />
-              </TabsContent>
-              <TabsContent value="agents">
-                <Card className="w-full">
-                  <CardHeader>
-                    <CardTitle>Equipe de Corretores</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="analytics">
-                <Card className="w-full">
-                  <CardHeader>
-                    <CardTitle>Análises de Mercado</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          )}
+          {renderDashboardContent()}
         </div>
       </div>
     </MainLayout>

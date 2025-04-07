@@ -32,6 +32,7 @@ export const UserMatches = () => {
           
         if (error) throw error;
         
+        console.log("User profile type fetched for matches:", data.type);
         setProfileType(data.type);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
@@ -60,6 +61,8 @@ export const UserMatches = () => {
             
           if (demandsError) throw demandsError;
           
+          console.log("User demands fetched:", demandsData?.length || 0);
+          
           if (demandsData && demandsData.length > 0) {
             // Get matches based on user's demands
             const demandIds = demandsData.map(d => d.id);
@@ -74,6 +77,7 @@ export const UserMatches = () => {
               
             if (matchesError) throw matchesError;
             matchesData = matchesResult || [];
+            console.log("Buyer matches fetched:", matchesData.length);
           }
         } else {
           // For owners, agents, agencies - get properties first
@@ -83,6 +87,8 @@ export const UserMatches = () => {
             .eq('owner_id', user.id);
             
           if (propertiesError) throw propertiesError;
+          
+          console.log("User properties fetched for matches:", propertiesData?.length || 0);
           
           if (propertiesData && propertiesData.length > 0) {
             // Get matches based on user's properties
@@ -98,6 +104,7 @@ export const UserMatches = () => {
               
             if (matchesError) throw matchesError;
             matchesData = matchesResult || [];
+            console.log("Owner/Agent matches fetched:", matchesData.length);
           }
         }
         
@@ -219,7 +226,14 @@ export const UserMatches = () => {
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">{match.score}% Match</Badge>
                       {match.viewed && <Badge variant="outline">Visualizado</Badge>}
-                      {match.contacted && <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-200">Contactado</Badge>}
+                      {match.contacted && (
+                        <Badge 
+                          variant="outline" 
+                          className="bg-green-100 text-green-800 hover:bg-green-200"
+                        >
+                          Contactado
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   
