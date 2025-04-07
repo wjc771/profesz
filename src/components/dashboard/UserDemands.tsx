@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PropertyDemand } from '@/types/property';
+import { PropertyDemand, TransactionType, PropertyType } from '@/types/property';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
@@ -38,8 +38,8 @@ export const UserDemands = () => {
         const transformedData = data?.map(item => ({
           id: item.id,
           userId: item.user_id,
-          transactionType: item.transaction_type,
-          propertyTypes: item.property_types,
+          transactionType: item.transaction_type as TransactionType,
+          propertyTypes: item.property_types as PropertyType[],
           priceRange: {
             min: item.min_price,
             max: item.max_price,
@@ -94,7 +94,7 @@ export const UserDemands = () => {
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Suas Buscas</CardTitle>
-        {user?.type === 'buyer' && (
+        {user?.user_metadata?.type === 'buyer' && (
           <Button size="sm" onClick={handleAddDemand}>Nova Busca</Button>
         )}
       </CardHeader>
@@ -159,7 +159,7 @@ export const UserDemands = () => {
         ) : (
           <div className="text-center p-6 border rounded-md bg-muted/50">
             <p className="mb-4">Você ainda não possui buscas cadastradas.</p>
-            {user?.type === 'buyer' && (
+            {user?.user_metadata?.type === 'buyer' && (
               <Button onClick={handleAddDemand}>Cadastrar Busca</Button>
             )}
           </div>

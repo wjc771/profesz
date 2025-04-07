@@ -96,11 +96,13 @@ export const UserProperties = () => {
     navigate(`/property/${property.id}`);
   };
 
+  const isPropertyManager = user?.user_metadata?.type === 'owner' || user?.user_metadata?.type === 'agent' || user?.user_metadata?.type === 'agency';
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Seus Imóveis</CardTitle>
-        {(user?.type === 'owner' || user?.type === 'agent' || user?.type === 'agency') && (
+        {isPropertyManager && (
           <Button size="sm" onClick={handleAddProperty}>Adicionar Imóvel</Button>
         )}
       </CardHeader>
@@ -122,7 +124,7 @@ export const UserProperties = () => {
         ) : (
           <div className="text-center p-6 border rounded-md bg-muted/50">
             <p className="mb-4">Você ainda não possui imóveis cadastrados.</p>
-            {(user?.type === 'owner' || user?.type === 'agent' || user?.type === 'agency') && (
+            {isPropertyManager && (
               <Button onClick={handleAddProperty}>Cadastrar Imóvel</Button>
             )}
           </div>

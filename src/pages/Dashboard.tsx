@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserProperties from '@/components/dashboard/UserProperties';
 import UserDemands from '@/components/dashboard/UserDemands';
 import { useToast } from '@/components/ui/use-toast';
-import { Profile } from '@/types/profile';
+import { Profile, UserType } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
@@ -31,7 +31,22 @@ const Dashboard = () => {
           throw error;
         }
 
-        setUserProfile(data as Profile);
+        // Transform data from snake_case to camelCase
+        const transformedData: Profile = {
+          id: data.id,
+          email: data.email,
+          name: data.name,
+          type: data.type as UserType,
+          phone: data.phone,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+          subscriptionPlanId: data.subscription_plan_id as any,
+          avatarUrl: data.avatar_url,
+          creci: data.creci,
+          agencyName: data.agency_name
+        };
+
+        setUserProfile(transformedData);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
         toast({
