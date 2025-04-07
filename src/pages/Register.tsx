@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ const registerSchema = z.object({
     .regex(/^(?=.*[a-zA-Z])(?=.*[0-9])/, {
       message: 'Senha deve conter pelo menos uma letra e um número',
     }),
-  type: z.enum(['owner', 'buyer', 'agent']).default('buyer'),
+  type: z.enum(['owner', 'buyer', 'agent', 'agency']).default('buyer'),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Você precisa aceitar os termos e condições',
   }),
@@ -168,6 +169,7 @@ const Register = () => {
                         <SelectItem value="buyer">Comprador/Inquilino</SelectItem>
                         <SelectItem value="owner">Proprietário</SelectItem>
                         <SelectItem value="agent">Corretor</SelectItem>
+                        <SelectItem value="agency">Imobiliária</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
