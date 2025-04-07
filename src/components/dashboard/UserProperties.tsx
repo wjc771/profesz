@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,53 +8,51 @@ import { useToast } from '@/components/ui/use-toast';
 import PropertyCard from '../property/PropertyCard';
 import { useNavigate } from 'react-router-dom';
 import { mockProperties } from '@/lib/mockData';
-
 export const UserProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileType, setProfileType] = useState<string | null>(null);
   const [useMockData, setUseMockData] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const {
+    user
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) return;
-      
       try {
         console.log("Fetching user profile type for properties component...");
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('type')
-          .eq('id', user.id)
-          .single();
-          
+        const {
+          data,
+          error
+        } = await supabase.from('profiles').select('type').eq('id', user.id).single();
         if (error) throw error;
-        
         console.log("User profile type fetched:", data.type);
         setProfileType(data.type);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
       }
     };
-
     fetchUserProfile();
   }, [user]);
-
   useEffect(() => {
     const fetchProperties = async () => {
       if (!user) return;
-      
       setLoading(true);
       try {
         // Check if we have any properties in the database
-        const { data: propertyCount, error: countError } = await supabase
-          .from('properties')
-          .select('id', { count: 'exact', head: true });
-        
+        const {
+          data: propertyCount,
+          error: countError
+        } = await supabase.from('properties').select('id', {
+          count: 'exact',
+          head: true
+        });
         if (countError) throw countError;
-        
+
         // If we have no properties, use mock data
         if (propertyCount === null || propertyCount.length === 0) {
           console.log("No properties found in database, using mock data");
@@ -66,16 +63,13 @@ export const UserProperties = () => {
           setLoading(false);
           return;
         }
-        
         console.log("Fetching properties for user:", user.id);
-        
-        const { data, error } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('owner_id', user.id);
-        
+        const {
+          data,
+          error
+        } = await supabase.from('properties').select('*').eq('owner_id', user.id);
         if (error) throw error;
-        
+
         // If user has no properties, use mock data
         if (!data || data.length === 0) {
           console.log("User has no properties, using mock data");
@@ -84,9 +78,8 @@ export const UserProperties = () => {
           setLoading(false);
           return;
         }
-        
         console.log("Properties fetched:", data?.length || 0);
-        
+
         // Transform the database data to match the Property type
         const transformedData = data?.map(item => ({
           id: item.id,
@@ -125,7 +118,6 @@ export const UserProperties = () => {
           isActive: item.is_active,
           isPremium: item.is_premium
         })) || [];
-        
         setProperties(transformedData);
         setUseMockData(false);
       } catch (error: any) {
@@ -135,7 +127,7 @@ export const UserProperties = () => {
           description: error.message,
           variant: 'destructive'
         });
-        
+
         // If there's an error, use mock data
         console.log("Error fetching properties, using mock data");
         setUseMockData(true);
@@ -144,14 +136,11 @@ export const UserProperties = () => {
         setLoading(false);
       }
     };
-
     fetchProperties();
   }, [user, toast]);
-
   const handleAddProperty = () => {
     navigate('/property/new');
   };
-
   const handleViewProperty = (property: Property) => {
     navigate(`/property/${property.id}`);
   };
@@ -159,48 +148,24 @@ export const UserProperties = () => {
   // Check if the user is allowed to add properties (owner, agent, agency)
   const isPropertyManager = profileType === 'owner' || profileType === 'agent' || profileType === 'agency';
   console.log("Is property manager:", isPropertyManager, "Profile type:", profileType);
-
-  return (
-    <Card className="w-full">
+  return <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>
           Seus Imóveis 
-          {useMockData && (
-            <span className="ml-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
-              Dados de Demonstração
-            </span>
-          )}
+          {useMockData}
         </CardTitle>
-        {isPropertyManager && (
-          <Button size="sm" onClick={handleAddProperty}>Adicionar Imóvel</Button>
-        )}
+        {isPropertyManager && <Button size="sm" onClick={handleAddProperty}>Adicionar Imóvel</Button>}
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="flex justify-center p-4">
+        {loading ? <div className="flex justify-center p-4">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : properties.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {properties.map((property) => (
-              <PropertyCard 
-                key={property.id} 
-                property={property} 
-                onSelect={() => handleViewProperty(property)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center p-6 border rounded-md bg-muted/50">
+          </div> : properties.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {properties.map(property => <PropertyCard key={property.id} property={property} onSelect={() => handleViewProperty(property)} />)}
+          </div> : <div className="text-center p-6 border rounded-md bg-muted/50">
             <p className="mb-4">Você ainda não possui imóveis cadastrados.</p>
-            {isPropertyManager && (
-              <Button onClick={handleAddProperty}>Cadastrar Imóvel</Button>
-            )}
-          </div>
-        )}
+            {isPropertyManager && <Button onClick={handleAddProperty}>Cadastrar Imóvel</Button>}
+          </div>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default UserProperties;
