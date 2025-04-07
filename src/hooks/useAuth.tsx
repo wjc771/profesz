@@ -68,6 +68,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, name: string, userType: string) => {
     try {
+      // Validate user type to ensure it's one of the allowed values
+      const validTypes = ['owner', 'buyer', 'agent', 'agency'];
+      
+      if (!validTypes.includes(userType)) {
+        throw new Error('Tipo de usuário inválido');
+      }
+      
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -88,6 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       navigate('/verification-pending');
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         variant: 'destructive',
         title: 'Erro no cadastro',

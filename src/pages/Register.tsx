@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -129,6 +128,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="password"
@@ -176,6 +176,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="acceptTerms"
@@ -208,6 +209,7 @@ const Register = () => {
               </Button>
             </form>
           </Form>
+          
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border"></div>
