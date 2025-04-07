@@ -24,6 +24,7 @@ export const UserMatches = () => {
       if (!user) return;
       
       try {
+        console.log("Fetching user profile type for matches component...");
         const { data, error } = await supabase
           .from('profiles')
           .select('type')
@@ -210,7 +211,11 @@ export const UserMatches = () => {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Matches de Imóveis</CardTitle>
+        <CardTitle>
+          {profileType === 'buyer' 
+            ? 'Imóveis que Combinam com Você' 
+            : 'Potenciais Compradores'}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -253,7 +258,7 @@ export const UserMatches = () => {
                           Ver Detalhes
                         </Button>
                         
-                        {!match.contacted && (
+                        {!match.contacted && profileType === 'buyer' && (
                           <Button 
                             variant="outline" 
                             onClick={() => handleContactSeller(match)}
@@ -273,7 +278,9 @@ export const UserMatches = () => {
           <div className="text-center p-6 border rounded-md bg-muted/50">
             <p className="mb-4">Nenhum match encontrado ainda.</p>
             <p className="text-muted-foreground">
-              Os matches aparecem quando suas buscas ou propriedades coincidem com outros usuários.
+              {profileType === 'buyer'
+                ? 'Os matches aparecem quando suas buscas coincidem com propriedades disponíveis.'
+                : 'Os matches aparecem quando suas propriedades coincidem com as buscas dos compradores.'}
             </p>
           </div>
         )}

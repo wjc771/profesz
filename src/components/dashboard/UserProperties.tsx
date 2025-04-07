@@ -22,6 +22,7 @@ export const UserProperties = () => {
       if (!user) return;
       
       try {
+        console.log("Fetching user profile type for properties component...");
         const { data, error } = await supabase
           .from('profiles')
           .select('type')
@@ -56,6 +57,7 @@ export const UserProperties = () => {
         if (error) throw error;
         
         console.log("Properties fetched:", data?.length || 0);
+        console.log("Raw properties data:", data);
         
         // Transform the database data to match the Property type
         const transformedData = data?.map(item => ({
@@ -96,6 +98,7 @@ export const UserProperties = () => {
           isPremium: item.is_premium
         })) || [];
         
+        console.log("Transformed properties:", transformedData);
         setProperties(transformedData);
       } catch (error: any) {
         console.error('Error fetching properties:', error);

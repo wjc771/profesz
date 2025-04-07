@@ -24,6 +24,7 @@ const Dashboard = () => {
       if (!user) return;
 
       try {
+        console.log("Fetching user profile for:", user.id);
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
