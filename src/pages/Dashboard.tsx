@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import DashboardStats from '@/components/dashboard/DashboardStats';
@@ -7,12 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserProperties from '@/components/dashboard/UserProperties';
 import UserDemands from '@/components/dashboard/UserDemands';
 import UserMatches from '@/components/dashboard/UserMatches';
-import UserTypeComparison from '@/components/UserTypeComparison';
 import { useToast } from '@/components/ui/use-toast';
 import { Profile, UserType } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, Search, Users, BarChart3, Info, AlertCircle } from 'lucide-react';
+import { Building, Search, Users, BarChart3, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockProfiles } from '@/lib/mockData';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,7 +20,6 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showComparison, setShowComparison] = useState(true); // Always show comparison by default
   const [useMockData, setUseMockData] = useState(true); // Enable mock data by default
 
   useEffect(() => {
@@ -321,16 +318,7 @@ const Dashboard = () => {
               )}
             </p>
           </div>
-          <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
-            <Button 
-              variant={showComparison ? "default" : "outline"} 
-              size="sm" 
-              onClick={() => setShowComparison(!showComparison)}
-              className="flex items-center gap-1"
-            >
-              <Info size={16} />
-              {showComparison ? 'Esconder' : 'Mostrar'} Comparação de Perfis
-            </Button>
+          <div className="mt-4 md:mt-0">
             <Button 
               variant={useMockData ? "destructive" : "outline"}
               size="sm" 
@@ -348,21 +336,6 @@ const Dashboard = () => {
             Dados de demonstração estão ativos para mostrar como o sistema funciona. Para ver seus dados reais, desative o modo de demonstração no botão acima.
           </AlertDescription>
         </Alert>
-
-        {/* ALWAYS SHOW User Type Comparison by default */}
-        <div className="mb-8">
-          <Card className="border-2 border-primary/20">
-            <CardHeader className="bg-primary/5">
-              <CardTitle className="flex items-center gap-2">
-                <Info className="h-5 w-5 text-primary" />
-                Comparação de Tipos de Usuário
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <UserTypeComparison />
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Stats */}
         <div className="mb-8">
