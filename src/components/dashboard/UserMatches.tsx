@@ -14,30 +14,44 @@ import PropertyCard from '../property/PropertyCard';
 export const UserMatches = () => {
   const [matches, setMatches] = useState<PropertyMatch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileType, setProfileType] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchMatches = async () => {
+    const fetchUserProfile = async () => {
       if (!user) return;
       
-      setLoading(true);
       try {
-        console.log("Fetching matches for user:", user.id);
-        
-        // First get user demands (if buyer) or properties (if owner/agent/agency)
-        const { data: profileData } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('type')
           .eq('id', user.id)
           .single();
           
-        if (!profileData) throw new Error("User profile not found");
+        if (error) throw error;
+        
+        setProfileType(data.type);
+      } catch (error: any) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      if (!user || !profileType) return;
+      
+      setLoading(true);
+      try {
+        console.log("Fetching matches for user:", user.id, "with profile type:", profileType);
         
         let matchesData = [];
         
-        if (profileData.type === 'buyer') {
+        if (profileType === 'buyer') {
           // Get user's demand IDs
           const { data: demandsData, error: demandsError } = await supabase
             .from('property_demands')
@@ -149,7 +163,7 @@ export const UserMatches = () => {
     };
 
     fetchMatches();
-  }, [user, toast]);
+  }, [user, profileType, toast]);
 
   const handleViewProperty = (propertyId: string) => {
     navigate(`/property/${propertyId}`);

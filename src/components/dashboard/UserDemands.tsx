@@ -13,9 +13,32 @@ import { formatCurrency } from '@/lib/format';
 export const UserDemands = () => {
   const [demands, setDemands] = useState<PropertyDemand[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileType, setProfileType] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('type')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        setProfileType(data.type);
+      } catch (error: any) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   useEffect(() => {
     const fetchDemands = async () => {
@@ -94,7 +117,7 @@ export const UserDemands = () => {
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Suas Buscas</CardTitle>
-        {user?.user_metadata?.type === 'buyer' && (
+        {profileType === 'buyer' && (
           <Button size="sm" onClick={handleAddDemand}>Nova Busca</Button>
         )}
       </CardHeader>
@@ -159,7 +182,7 @@ export const UserDemands = () => {
         ) : (
           <div className="text-center p-6 border rounded-md bg-muted/50">
             <p className="mb-4">Você ainda não possui buscas cadastradas.</p>
-            {user?.user_metadata?.type === 'buyer' && (
+            {profileType === 'buyer' && (
               <Button onClick={handleAddDemand}>Cadastrar Busca</Button>
             )}
           </div>

@@ -12,9 +12,32 @@ import { useNavigate } from 'react-router-dom';
 export const UserProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profileType, setProfileType] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('type')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        setProfileType(data.type);
+      } catch (error: any) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -96,7 +119,7 @@ export const UserProperties = () => {
     navigate(`/property/${property.id}`);
   };
 
-  const isPropertyManager = user?.user_metadata?.type === 'owner' || user?.user_metadata?.type === 'agent' || user?.user_metadata?.type === 'agency';
+  const isPropertyManager = profileType === 'owner' || profileType === 'agent' || profileType === 'agency';
 
   return (
     <Card className="w-full">
