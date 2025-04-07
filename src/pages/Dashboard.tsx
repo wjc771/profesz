@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import DashboardStats from '@/components/dashboard/DashboardStats';
@@ -6,9 +5,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserProperties from '@/components/dashboard/UserProperties';
 import UserDemands from '@/components/dashboard/UserDemands';
+import UserMatches from '@/components/dashboard/UserMatches';
 import { useToast } from '@/components/ui/use-toast';
 import { Profile, UserType } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -89,21 +90,101 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="space-y-6">
-          {/* Show UserProperties for owners, agents, and agencies */}
-          {(userProfile?.type === 'owner' || userProfile?.type === 'agent' || userProfile?.type === 'agency') && (
-            <UserProperties />
-          )}
-
-          {/* Show UserDemands for buyers */}
+          {/* Customized dashboard based on user type */}
           {userProfile?.type === 'buyer' && (
-            <UserDemands />
+            <Tabs defaultValue="demands" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="demands">Minhas Buscas</TabsTrigger>
+                <TabsTrigger value="matches">Meus Matches</TabsTrigger>
+              </TabsList>
+              <TabsContent value="demands">
+                <UserDemands />
+              </TabsContent>
+              <TabsContent value="matches">
+                <UserMatches />
+              </TabsContent>
+            </Tabs>
           )}
 
-          {/* For agents and agencies, show both properties and potential matches */}
-          {(userProfile?.type === 'agent' || userProfile?.type === 'agency') && (
-            <div className="mt-8">
-              {/* Add components for agent/agency-specific functionality */}
-            </div>
+          {/* Owner dashboard */}
+          {userProfile?.type === 'owner' && (
+            <Tabs defaultValue="properties" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="properties">Meus Imóveis</TabsTrigger>
+                <TabsTrigger value="matches">Interessados</TabsTrigger>
+              </TabsList>
+              <TabsContent value="properties">
+                <UserProperties />
+              </TabsContent>
+              <TabsContent value="matches">
+                <UserMatches />
+              </TabsContent>
+            </Tabs>
+          )}
+
+          {/* Agent dashboard */}
+          {userProfile?.type === 'agent' && (
+            <Tabs defaultValue="properties" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="properties">Imóveis</TabsTrigger>
+                <TabsTrigger value="matches">Matches</TabsTrigger>
+                <TabsTrigger value="clients">Clientes</TabsTrigger>
+              </TabsList>
+              <TabsContent value="properties">
+                <UserProperties />
+              </TabsContent>
+              <TabsContent value="matches">
+                <UserMatches />
+              </TabsContent>
+              <TabsContent value="clients">
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle>Meus Clientes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          )}
+
+          {/* Agency dashboard */}
+          {userProfile?.type === 'agency' && (
+            <Tabs defaultValue="properties" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="properties">Imóveis</TabsTrigger>
+                <TabsTrigger value="matches">Matches</TabsTrigger>
+                <TabsTrigger value="agents">Corretores</TabsTrigger>
+                <TabsTrigger value="analytics">Análises</TabsTrigger>
+              </TabsList>
+              <TabsContent value="properties">
+                <UserProperties />
+              </TabsContent>
+              <TabsContent value="matches">
+                <UserMatches />
+              </TabsContent>
+              <TabsContent value="agents">
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle>Equipe de Corretores</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="analytics">
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle>Análises de Mercado</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           )}
         </div>
       </div>
