@@ -20,43 +20,43 @@ import {
 const UserTypeComparison = () => {
   return (
     <div className="w-full overflow-auto">
-      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-        <h3 className="flex items-center gap-2 text-lg font-semibold mb-2">
-          <Info className="h-5 w-5 text-blue-500" />
+      <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded-md">
+        <h3 className="flex items-center gap-2 text-lg font-semibold mb-2 text-blue-800">
+          <Info className="h-5 w-5 text-blue-600" />
           Entendendo os tipos de usuário
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-blue-700">
           Abaixo você pode ver as diferenças entre os diferentes tipos de usuário e suas permissões no sistema.
           Cada tipo tem funcionalidades específicas para suas necessidades.
         </p>
       </div>
       
-      <Table>
-        <TableCaption>Comparação entre os diferentes tipos de usuários</TableCaption>
-        <TableHeader>
+      <Table className="border border-gray-200">
+        <TableCaption className="text-base font-medium">Comparação entre os diferentes tipos de usuários</TableCaption>
+        <TableHeader className="bg-gray-50">
           <TableRow>
-            <TableHead className="w-[200px]">Recurso</TableHead>
-            <TableHead>
+            <TableHead className="w-[200px] border-r">Recurso</TableHead>
+            <TableHead className="border-r">
               <div className="flex flex-col items-center">
-                <span>Comprador</span>
+                <span className="font-bold">Comprador</span>
                 <span className="text-xs text-muted-foreground">(Buyer)</span>
               </div>
             </TableHead>
-            <TableHead>
+            <TableHead className="border-r">
               <div className="flex flex-col items-center">
-                <span>Proprietário</span>
+                <span className="font-bold">Proprietário</span>
                 <span className="text-xs text-muted-foreground">(Owner)</span>
               </div>
             </TableHead>
-            <TableHead>
+            <TableHead className="border-r">
               <div className="flex flex-col items-center">
-                <span>Corretor</span>
+                <span className="font-bold">Corretor</span>
                 <span className="text-xs text-muted-foreground">(Agent)</span>
               </div>
             </TableHead>
             <TableHead>
               <div className="flex flex-col items-center">
-                <span>Imobiliária</span>
+                <span className="font-bold">Imobiliária</span>
                 <span className="text-xs text-muted-foreground">(Agency)</span>
               </div>
             </TableHead>
@@ -64,7 +64,7 @@ const UserTypeComparison = () => {
         </TableHeader>
         <TableBody>
           <TableRow>
-            <TableCell className="font-medium">
+            <TableCell className="font-medium border-r">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
@@ -76,13 +76,13 @@ const UserTypeComparison = () => {
                 </Tooltip>
               </TooltipProvider>
             </TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">
+            <TableCell className="font-medium border-r">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
@@ -94,13 +94,13 @@ const UserTypeComparison = () => {
                 </Tooltip>
               </TooltipProvider>
             </TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">
+            <TableCell className="font-medium border-r">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
@@ -112,13 +112,13 @@ const UserTypeComparison = () => {
                 </Tooltip>
               </TooltipProvider>
             </TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">
+            <TableCell className="font-medium border-r">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
@@ -130,13 +130,13 @@ const UserTypeComparison = () => {
                 </Tooltip>
               </TooltipProvider>
             </TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">
+            <TableCell className="font-medium border-r">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
@@ -148,13 +148,13 @@ const UserTypeComparison = () => {
                 </Tooltip>
               </TooltipProvider>
             </TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">
+            <TableCell className="font-medium border-r">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
@@ -166,13 +166,13 @@ const UserTypeComparison = () => {
                 </Tooltip>
               </TooltipProvider>
             </TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
           </TableRow>
           <TableRow>
-            <TableCell className="font-medium">
+            <TableCell className="font-medium border-r">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger className="text-left flex items-center underline decoration-dotted">
@@ -184,10 +184,10 @@ const UserTypeComparison = () => {
                 </Tooltip>
               </TooltipProvider>
             </TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><X className="h-5 w-5 text-red-500" /></TableCell>
-            <TableCell><Check className="h-5 w-5 text-green-500" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></TableCell>
+            <TableCell className="text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></TableCell>
           </TableRow>
         </TableBody>
       </Table>
