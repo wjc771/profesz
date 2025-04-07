@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -21,6 +21,7 @@ import DemandManagement from "./pages/DemandManagement";
 import DemandForm from "./pages/DemandForm";
 import MatchManagement from "./pages/MatchManagement";
 import { AuthProvider, AuthRequired } from "./hooks/useAuth";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -32,8 +33,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<AuthRequired><Index /></AuthRequired>} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/home" element={<LandingPage />} />
+            <Route path="/dashboard" element={<AuthRequired><Dashboard /></AuthRequired>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verification-pending" element={<VerificationPending />} />
