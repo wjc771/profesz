@@ -49,76 +49,74 @@ export const UserDemands = () => {
       
       setLoading(true);
       try {
-        // Check if we have any demands in the database
-        const { data: demandsCount, error: countError } = await supabase
-          .from('property_demands')
-          .select('id', { count: 'exact', head: true });
-        
-        if (countError) throw countError;
-        
-        // If we have no demands, use mock data
-        if (demandsCount === null || demandsCount.length === 0) {
-          console.log("No demands found in database, using mock data");
-          setUseMockData(true);
-          setDemands(mockDemands);
-          setLoading(false);
-          return;
-        }
-        
         console.log("Fetching property demands for user:", user.id);
         
-        const { data, error } = await supabase
+        // First, try to get demands for this specific user
+        const { data: userDemands, error: userDemandsError } = await supabase
           .from('property_demands')
           .select('*')
           .eq('user_id', user.id);
+          
+        if (userDemandsError) throw userDemandsError;
         
-        if (error) throw error;
-        
-        // If user has no demands, use mock data
-        if (!data || data.length === 0) {
-          console.log("User has no demands, using mock data");
-          setUseMockData(true);
-          setDemands(mockDemands);
-          setLoading(false);
-          return;
+        // If user has demands, use them
+        if (userDemands && userDemands.length > 0) {
+          console.log(`Found ${userDemands.length} demands for user`);
+          
+          // Transform the database data to match the PropertyDemand type
+          const transformedData = userDemands.map(item => ({
+            id: item.id,
+            userId: item.user_id,
+            transactionType: item.transaction_type as TransactionType,
+            propertyTypes: item.property_types as PropertyType[],
+            priceRange: {
+              min: item.min_price,
+              max: item.max_price,
+            },
+            locationPreferences: {
+              cities: item.cities,
+              neighborhoods: item.neighborhoods || [],
+              states: item.states,
+            },
+            featureRequirements: {
+              bedrooms: item.min_bedrooms || 0,
+              bathrooms: item.min_bathrooms || 0,
+              parkingSpaces: item.min_parking_spaces || 0,
+              area: item.min_area || 0,
+              isFurnished: item.is_furnished,
+              hasPool: item.has_pool,
+              hasElevator: item.has_elevator,
+              hasGym: item.has_gym,
+              hasBalcony: item.has_balcony,
+              petsAllowed: item.pets_allowed,
+            },
+            createdAt: item.created_at,
+            updatedAt: item.updated_at,
+            isActive: item.is_active,
+          }));
+          
+          setDemands(transformedData);
+          setUseMockData(false);
+        } else {
+          // No specific demands for this user - check if there are ANY demands
+          const { count, error: countError } = await supabase
+            .from('property_demands')
+            .select('*', { count: 'exact', head: true });
+            
+          if (countError) throw countError;
+          
+          if (count && count > 0) {
+            // There are demands in the database, but not for this user
+            console.log("No demands for this user, but database has demands");
+            setDemands([]);
+            setUseMockData(false);
+          } else {
+            // No demands in database at all, use mock data
+            console.log("No demands in database, using mock data");
+            setDemands(mockDemands);
+            setUseMockData(true);
+          }
         }
-        
-        console.log("Property demands fetched:", data?.length || 0);
-        
-        // Transform the database data to match the PropertyDemand type
-        const transformedData = data?.map(item => ({
-          id: item.id,
-          userId: item.user_id,
-          transactionType: item.transaction_type as TransactionType,
-          propertyTypes: item.property_types as PropertyType[],
-          priceRange: {
-            min: item.min_price,
-            max: item.max_price,
-          },
-          locationPreferences: {
-            cities: item.cities,
-            neighborhoods: item.neighborhoods || [],
-            states: item.states,
-          },
-          featureRequirements: {
-            bedrooms: item.min_bedrooms || 0,
-            bathrooms: item.min_bathrooms || 0,
-            parkingSpaces: item.min_parking_spaces || 0,
-            area: item.min_area || 0,
-            isFurnished: item.is_furnished,
-            hasPool: item.has_pool,
-            hasElevator: item.has_elevator,
-            hasGym: item.has_gym,
-            hasBalcony: item.has_balcony,
-            petsAllowed: item.pets_allowed,
-          },
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
-          isActive: item.is_active,
-        })) || [];
-        
-        setDemands(transformedData);
-        setUseMockData(false);
       } catch (error: any) {
         console.error('Error fetching property demands:', error);
         toast({
@@ -129,8 +127,8 @@ export const UserDemands = () => {
         
         // If there's an error, use mock data
         console.log("Error fetching demands, using mock data");
-        setUseMockData(true);
         setDemands(mockDemands);
+        setUseMockData(true);
       } finally {
         setLoading(false);
       }
@@ -149,8 +147,7 @@ export const UserDemands = () => {
 
   // Only buyers should be able to add new demands
   const isBuyer = profileType === 'buyer';
-  console.log("Is buyer:", isBuyer, "Profile type:", profileType);
-
+  
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">

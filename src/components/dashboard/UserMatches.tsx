@@ -50,25 +50,10 @@ export const UserMatches = () => {
       
       setLoading(true);
       try {
-        // Check if we have any matches in the database
-        const { data: matchesCount, error: countError } = await supabase
-          .from('property_matches')
-          .select('id', { count: 'exact', head: true });
-        
-        if (countError) throw countError;
-        
-        // If we have no matches, use mock data
-        if (matchesCount === null || matchesCount.length === 0) {
-          console.log("No matches found in database, using mock data");
-          setUseMockData(true);
-          setMatches(mockMatches);
-          setLoading(false);
-          return;
-        }
+        let matchesData = [];
+        let hasMatchesForUser = false;
         
         console.log("Fetching matches for user:", user.id, "with profile type:", profileType);
-        
-        let matchesData = [];
         
         if (profileType === 'buyer') {
           // Get user's demand IDs
@@ -95,6 +80,7 @@ export const UserMatches = () => {
               
             if (matchesError) throw matchesError;
             matchesData = matchesResult || [];
+            hasMatchesForUser = matchesData.length > 0;
             console.log("Buyer matches fetched:", matchesData.length);
           }
         } else {
@@ -122,17 +108,33 @@ export const UserMatches = () => {
               
             if (matchesError) throw matchesError;
             matchesData = matchesResult || [];
+            hasMatchesForUser = matchesData.length > 0;
             console.log("Owner/Agent matches fetched:", matchesData.length);
           }
         }
         
-        // If user has no matches, use mock data
-        if (!matchesData || matchesData.length === 0) {
-          console.log("User has no matches, using mock data");
-          setUseMockData(true);
-          setMatches(mockMatches);
-          setLoading(false);
-          return;
+        // Check if we have any matches at all in the database
+        if (!hasMatchesForUser) {
+          const { count, error: countError } = await supabase
+            .from('property_matches')
+            .select('*', { count: 'exact', head: true });
+            
+          if (countError) throw countError;
+          
+          // If we have matches in db but not for this user, show empty
+          if (count && count > 0) {
+            console.log("Database has matches but none for this user");
+            setMatches([]);
+            setUseMockData(false);
+            setLoading(false);
+            return;
+          } else {
+            console.log("No matches in database, using mock data");
+            setMatches(mockMatches);
+            setUseMockData(true);
+            setLoading(false);
+            return;
+          }
         }
         
         // Transform the database data to match the PropertyMatch type
@@ -195,8 +197,8 @@ export const UserMatches = () => {
         
         // If there's an error, use mock data
         console.log("Error fetching matches, using mock data");
-        setUseMockData(true);
         setMatches(mockMatches);
+        setUseMockData(true);
       } finally {
         setLoading(false);
       }
