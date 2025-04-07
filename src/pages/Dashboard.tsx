@@ -7,17 +7,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserProperties from '@/components/dashboard/UserProperties';
 import UserDemands from '@/components/dashboard/UserDemands';
 import UserMatches from '@/components/dashboard/UserMatches';
+import UserTypeComparison from '@/components/UserTypeComparison';
 import { useToast } from '@/components/ui/use-toast';
 import { Profile, UserType } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, Search, Users, BarChart3 } from 'lucide-react';
+import { Building, Search, Users, BarChart3, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { mockProfiles } from '@/lib/mockData';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showComparison, setShowComparison] = useState(false);
+  const [useMockData, setUseMockData] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -56,7 +61,7 @@ const Dashboard = () => {
         console.error('Error fetching user profile:', error);
         toast({
           title: 'Erro ao carregar perfil',
-          description: error.message,
+          description: error.message || 'Falha ao carregar perfil',
           variant: 'destructive'
         });
       } finally {
@@ -66,6 +71,72 @@ const Dashboard = () => {
 
     fetchUserProfile();
   }, [user, toast]);
+
+  // Toggle mock data for testing purposes
+  const handleToggleMockData = () => {
+    setUseMockData(!useMockData);
+    if (!useMockData) {
+      // Find a mock profile of the same type as the real user for demonstration
+      const mockUserType = userProfile?.type || 'buyer';
+      const mockProfile = mockProfiles.find(p => p.type === mockUserType) || mockProfiles[0];
+      setUserProfile(mockProfile);
+      
+      toast({
+        title: 'Modo de Demonstração Ativado',
+        description: `Dados de demonstração carregados para usuário do tipo: ${mockProfile.type}`,
+        variant: 'default'
+      });
+    } else {
+      // Revert to real data
+      fetchUserProfile();
+      
+      toast({
+        title: 'Modo de Demonstração Desativado',
+        description: 'Usando dados reais do usuário',
+        variant: 'default'
+      });
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    setLoading(true);
+
+    try {
+      console.log("Fetching user profile for:", user.id);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Transform data from snake_case to camelCase
+      const transformedData: Profile = {
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        type: data.type as UserType,
+        phone: data.phone,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        subscriptionPlanId: data.subscription_plan_id as any,
+        avatarUrl: data.avatar_url,
+        creci: data.creci,
+        agencyName: data.agency_name
+      };
+
+      console.log("User profile fetched:", transformedData);
+      setUserProfile(transformedData);
+    } catch (error: any) {
+      console.error('Error fetching user profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!user || loading) {
     return (
@@ -222,20 +293,53 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <div className="container max-w-6xl py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Bem-vindo, {userProfile?.name || user.email}!
-            {userProfile?.type && (
-              <span className="ml-2 text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
-                {userProfile.type === 'buyer' ? 'Comprador' : 
-                 userProfile.type === 'owner' ? 'Proprietário' : 
-                 userProfile.type === 'agent' ? 'Corretor' : 
-                 userProfile.type === 'agency' ? 'Imobiliária' : ''}
-              </span>
-            )}
-          </p>
+        <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Bem-vindo, {userProfile?.name || user.email}!
+              {userProfile?.type && (
+                <span className="ml-2 text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  {userProfile.type === 'buyer' ? 'Comprador' : 
+                   userProfile.type === 'owner' ? 'Proprietário' : 
+                   userProfile.type === 'agent' ? 'Corretor' : 
+                   userProfile.type === 'agency' ? 'Imobiliária' : ''}
+                </span>
+              )}
+            </p>
+          </div>
+          <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowComparison(!showComparison)}
+              className="flex items-center gap-1"
+            >
+              <Info size={16} />
+              {showComparison ? 'Esconder' : 'Mostrar'} Comparação de Perfis
+            </Button>
+            <Button 
+              variant={useMockData ? "destructive" : "outline"}
+              size="sm" 
+              onClick={handleToggleMockData}
+            >
+              {useMockData ? 'Desativar' : 'Ativar'} Dados de Demonstração
+            </Button>
+          </div>
         </div>
+
+        {showComparison && (
+          <div className="mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Comparação de Tipos de Usuário</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UserTypeComparison />
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="mb-8">

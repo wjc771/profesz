@@ -8,11 +8,13 @@ import { Property } from '@/types/property';
 import { useToast } from '@/components/ui/use-toast';
 import PropertyCard from '../property/PropertyCard';
 import { useNavigate } from 'react-router-dom';
+import { mockProperties } from '@/lib/mockData';
 
 export const UserProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileType, setProfileType] = useState<string | null>(null);
+  const [useMockData, setUseMockData] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -47,6 +49,24 @@ export const UserProperties = () => {
       
       setLoading(true);
       try {
+        // Check if we have any properties in the database
+        const { data: propertyCount, error: countError } = await supabase
+          .from('properties')
+          .select('id', { count: 'exact', head: true });
+        
+        if (countError) throw countError;
+        
+        // If we have no properties, use mock data
+        if (propertyCount === null || propertyCount.length === 0) {
+          console.log("No properties found in database, using mock data");
+          setUseMockData(true);
+          // Filter mock properties based on owner id matching current user
+          // For demo, we'll just show all mock properties
+          setProperties(mockProperties);
+          setLoading(false);
+          return;
+        }
+        
         console.log("Fetching properties for user:", user.id);
         
         const { data, error } = await supabase
@@ -56,8 +76,16 @@ export const UserProperties = () => {
         
         if (error) throw error;
         
+        // If user has no properties, use mock data
+        if (!data || data.length === 0) {
+          console.log("User has no properties, using mock data");
+          setUseMockData(true);
+          setProperties(mockProperties);
+          setLoading(false);
+          return;
+        }
+        
         console.log("Properties fetched:", data?.length || 0);
-        console.log("Raw properties data:", data);
         
         // Transform the database data to match the Property type
         const transformedData = data?.map(item => ({
@@ -98,8 +126,8 @@ export const UserProperties = () => {
           isPremium: item.is_premium
         })) || [];
         
-        console.log("Transformed properties:", transformedData);
         setProperties(transformedData);
+        setUseMockData(false);
       } catch (error: any) {
         console.error('Error fetching properties:', error);
         toast({
@@ -107,6 +135,11 @@ export const UserProperties = () => {
           description: error.message,
           variant: 'destructive'
         });
+        
+        // If there's an error, use mock data
+        console.log("Error fetching properties, using mock data");
+        setUseMockData(true);
+        setProperties(mockProperties);
       } finally {
         setLoading(false);
       }
@@ -130,7 +163,14 @@ export const UserProperties = () => {
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Seus Imóveis</CardTitle>
+        <CardTitle>
+          Seus Imóveis 
+          {useMockData && (
+            <span className="ml-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
+              Dados de Demonstração
+            </span>
+          )}
+        </CardTitle>
         {isPropertyManager && (
           <Button size="sm" onClick={handleAddProperty}>Adicionar Imóvel</Button>
         )}

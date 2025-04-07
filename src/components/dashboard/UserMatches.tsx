@@ -8,13 +8,14 @@ import { PropertyMatch, Property } from '@/types/property';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
-import { formatCurrency } from '@/lib/format';
 import PropertyCard from '../property/PropertyCard';
+import { mockMatches } from '@/lib/mockData';
 
 export const UserMatches = () => {
   const [matches, setMatches] = useState<PropertyMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileType, setProfileType] = useState<string | null>(null);
+  const [useMockData, setUseMockData] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -49,6 +50,22 @@ export const UserMatches = () => {
       
       setLoading(true);
       try {
+        // Check if we have any matches in the database
+        const { data: matchesCount, error: countError } = await supabase
+          .from('property_matches')
+          .select('id', { count: 'exact', head: true });
+        
+        if (countError) throw countError;
+        
+        // If we have no matches, use mock data
+        if (matchesCount === null || matchesCount.length === 0) {
+          console.log("No matches found in database, using mock data");
+          setUseMockData(true);
+          setMatches(mockMatches);
+          setLoading(false);
+          return;
+        }
+        
         console.log("Fetching matches for user:", user.id, "with profile type:", profileType);
         
         let matchesData = [];
@@ -109,6 +126,15 @@ export const UserMatches = () => {
           }
         }
         
+        // If user has no matches, use mock data
+        if (!matchesData || matchesData.length === 0) {
+          console.log("User has no matches, using mock data");
+          setUseMockData(true);
+          setMatches(mockMatches);
+          setLoading(false);
+          return;
+        }
+        
         // Transform the database data to match the PropertyMatch type
         const transformedData = matchesData.map(item => ({
           id: item.id,
@@ -158,6 +184,7 @@ export const UserMatches = () => {
         }));
         
         setMatches(transformedData);
+        setUseMockData(false);
       } catch (error: any) {
         console.error('Error fetching matches:', error);
         toast({
@@ -165,6 +192,11 @@ export const UserMatches = () => {
           description: error.message,
           variant: 'destructive'
         });
+        
+        // If there's an error, use mock data
+        console.log("Error fetching matches, using mock data");
+        setUseMockData(true);
+        setMatches(mockMatches);
       } finally {
         setLoading(false);
       }
@@ -181,6 +213,19 @@ export const UserMatches = () => {
     if (!match.propertyId) return;
     
     try {
+      if (useMockData) {
+        // Just update the local state for mock data
+        setMatches(matches.map(m => 
+          m.id === match.id ? {...m, contacted: true} : m
+        ));
+        
+        toast({
+          title: 'Contato registrado (Modo Demo)',
+          description: 'Em modo de demonstração, não há alteração no banco de dados.'
+        });
+        return;
+      }
+      
       const { error } = await supabase
         .from('property_matches')
         .update({ contacted: true })
@@ -215,6 +260,11 @@ export const UserMatches = () => {
           {profileType === 'buyer' 
             ? 'Imóveis que Combinam com Você' 
             : 'Potenciais Compradores'}
+          {useMockData && (
+            <span className="ml-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
+              Dados de Demonstração
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>

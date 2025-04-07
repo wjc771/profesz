@@ -2,18 +2,20 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PropertyDemand, TransactionType, PropertyType } from '@/types/property';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/format';
+import { mockDemands } from '@/lib/mockData';
 
 export const UserDemands = () => {
   const [demands, setDemands] = useState<PropertyDemand[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileType, setProfileType] = useState<string | null>(null);
+  const [useMockData, setUseMockData] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -47,6 +49,22 @@ export const UserDemands = () => {
       
       setLoading(true);
       try {
+        // Check if we have any demands in the database
+        const { data: demandsCount, error: countError } = await supabase
+          .from('property_demands')
+          .select('id', { count: 'exact', head: true });
+        
+        if (countError) throw countError;
+        
+        // If we have no demands, use mock data
+        if (demandsCount === null || demandsCount.length === 0) {
+          console.log("No demands found in database, using mock data");
+          setUseMockData(true);
+          setDemands(mockDemands);
+          setLoading(false);
+          return;
+        }
+        
         console.log("Fetching property demands for user:", user.id);
         
         const { data, error } = await supabase
@@ -55,6 +73,15 @@ export const UserDemands = () => {
           .eq('user_id', user.id);
         
         if (error) throw error;
+        
+        // If user has no demands, use mock data
+        if (!data || data.length === 0) {
+          console.log("User has no demands, using mock data");
+          setUseMockData(true);
+          setDemands(mockDemands);
+          setLoading(false);
+          return;
+        }
         
         console.log("Property demands fetched:", data?.length || 0);
         
@@ -91,6 +118,7 @@ export const UserDemands = () => {
         })) || [];
         
         setDemands(transformedData);
+        setUseMockData(false);
       } catch (error: any) {
         console.error('Error fetching property demands:', error);
         toast({
@@ -98,6 +126,11 @@ export const UserDemands = () => {
           description: error.message,
           variant: 'destructive'
         });
+        
+        // If there's an error, use mock data
+        console.log("Error fetching demands, using mock data");
+        setUseMockData(true);
+        setDemands(mockDemands);
       } finally {
         setLoading(false);
       }
@@ -121,7 +154,14 @@ export const UserDemands = () => {
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Suas Buscas</CardTitle>
+        <CardTitle>
+          Suas Buscas
+          {useMockData && (
+            <span className="ml-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
+              Dados de Demonstração
+            </span>
+          )}
+        </CardTitle>
         {isBuyer && (
           <Button size="sm" onClick={handleAddDemand}>Nova Busca</Button>
         )}
