@@ -12,16 +12,17 @@ import { useToast } from '@/components/ui/use-toast';
 import { Profile, UserType } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, Search, Users, BarChart3, Info } from 'lucide-react';
+import { Building, Search, Users, BarChart3, Info, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { mockProfiles } from '@/lib/mockData';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showComparison, setShowComparison] = useState(false);
+  const [showComparison, setShowComparison] = useState(true); // Set to true by default
   const [useMockData, setUseMockData] = useState(false);
 
   useEffect(() => {
@@ -64,6 +65,12 @@ const Dashboard = () => {
           description: error.message || 'Falha ao carregar perfil',
           variant: 'destructive'
         });
+
+        // Use mock data if there's an error
+        setUseMockData(true);
+        // Find a mock profile to use
+        const mockProfile = mockProfiles[0];
+        setUserProfile(mockProfile);
       } finally {
         setLoading(false);
       }
@@ -133,6 +140,11 @@ const Dashboard = () => {
       setUserProfile(transformedData);
     } catch (error: any) {
       console.error('Error fetching user profile:', error);
+      // Use mock data if there's an error
+      setUseMockData(true);
+      // Find a mock profile to use
+      const mockProfile = mockProfiles[0];
+      setUserProfile(mockProfile);
     } finally {
       setLoading(false);
     }
@@ -310,7 +322,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
             <Button 
-              variant="outline" 
+              variant={showComparison ? "default" : "outline"} 
               size="sm" 
               onClick={() => setShowComparison(!showComparison)}
               className="flex items-center gap-1"
@@ -328,11 +340,22 @@ const Dashboard = () => {
           </div>
         </div>
 
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Importante</AlertTitle>
+          <AlertDescription>
+            Se você não está vendo dados, use o botão <strong>"Ativar Dados de Demonstração"</strong> para visualizar como o sistema funciona com dados de exemplo.
+          </AlertDescription>
+        </Alert>
+
         {showComparison && (
           <div className="mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Comparação de Tipos de Usuário</CardTitle>
+            <Card className="border-2 border-primary/20">
+              <CardHeader className="bg-primary/5">
+                <CardTitle className="flex items-center gap-2">
+                  <Info className="h-5 w-5 text-primary" />
+                  Comparação de Tipos de Usuário
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <UserTypeComparison />
