@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,7 @@ const Register = () => {
     setError(null);
 
     try {
+      console.log('Form submission with user type:', data.type);
       await signUp(data.email, data.password, data.name, data.type);
       // Navegação é feita dentro da função signUp
     } catch (err: any) {

@@ -75,6 +75,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error('Tipo de usuário inválido');
       }
       
+      // Log registration attempt for debugging
+      console.log('Attempting to register user with type:', userType);
+      
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
