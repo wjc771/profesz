@@ -10,8 +10,6 @@ import { useToast } from '@/components/ui/use-toast';
  * Mapeia os imóveis para os perfis existentes, baseado no tipo de usuário.
  */
 export const seedPropertiesFromMockData = async () => {
-  const { toast } = useToast();
-  
   try {
     // Busca todos os perfis existentes no banco
     const { data: profiles, error: profilesError } = await supabase
