@@ -89,6 +89,7 @@ function App() {
               <Route path="/demand/new" element={<DemandForm />} />
               <Route path="/demand/edit/:id" element={<DemandForm />} />
               <Route path="/demand-management" element={<DemandManagement />} />
+              <Route path="/demands" element={<DemandManagement />} />
               <Route path="/matches/:demandId" element={<MatchManagement />} />
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/verification-pending" element={<VerificationPending />} />

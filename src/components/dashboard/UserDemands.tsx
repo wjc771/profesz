@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,7 +53,6 @@ export const UserDemands = () => {
       try {
         console.log("Fetching property demands for user:", user.id);
         
-        // Get demands for this specific user
         const { data: userDemands, error: userDemandsError } = await supabase
           .from('property_demands')
           .select('*')
@@ -64,7 +62,6 @@ export const UserDemands = () => {
         
         console.log(`Found ${userDemands?.length || 0} demands for user`);
         
-        // Transform the database data to match the PropertyDemand type
         const transformedData = userDemands ? userDemands.map(item => ({
           id: item.id,
           userId: item.user_id,
@@ -121,7 +118,10 @@ export const UserDemands = () => {
     navigate(`/matches/${demand.id}`);
   };
 
-  // Only buyers should be able to add new demands
+  const handleManageDemands = () => {
+    navigate('/demands');
+  };
+
   const isBuyer = profileType === 'buyer';
   
   return (
@@ -130,9 +130,14 @@ export const UserDemands = () => {
         <CardTitle>
           Suas Buscas
         </CardTitle>
-        {isBuyer && (
-          <Button size="sm" onClick={handleAddDemand}>Nova Busca</Button>
-        )}
+        <div className="flex gap-2">
+          {isBuyer && (
+            <Button size="sm" onClick={handleAddDemand}>Nova Busca</Button>
+          )}
+          {demands.length > 0 && (
+            <Button size="sm" variant="outline" onClick={handleManageDemands}>Gerenciar Buscas</Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
