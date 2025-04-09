@@ -2,6 +2,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
+import { Toaster } from './components/ui/toaster';
 
 // Lazy loaded pages
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -17,7 +18,7 @@ const DemandManagement = lazy(() => import('./pages/DemandManagement'));
 const MatchManagement = lazy(() => import('./pages/MatchManagement'));
 const Subscription = lazy(() => import('./pages/Subscription'));
 const VerificationPending = lazy(() => import('./pages/VerificationPending'));
-const DatabaseSeed = lazy(() => import('./pages/DatabaseSeed')); // Nova página
+const DatabaseSeed = lazy(() => import('./pages/DatabaseSeed'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Loading component
@@ -48,10 +49,11 @@ function App() {
             <Route path="/matches/:demandId" element={<MatchManagement />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/verification-pending" element={<VerificationPending />} />
-            <Route path="/database-seed" element={<DatabaseSeed />} /> {/* Nova rota */}
+            <Route path="/database-seed" element={<DatabaseSeed />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        <Toaster />
       </AuthProvider>
     </BrowserRouter>
   );

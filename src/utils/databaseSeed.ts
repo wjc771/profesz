@@ -2,8 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { mockProperties } from '@/lib/mockData';
 import { Profile } from '@/types/profile';
-import { Property } from '@/types/property';
-import { useToast } from '@/components/ui/use-toast';
 
 /**
  * Função que insere os imóveis de demonstração no banco de dados Supabase.
@@ -98,52 +96,4 @@ export const seedPropertiesFromMockData = async () => {
       message: `Erro: ${error.message || 'Falha ao inserir imóveis'}`
     };
   }
-};
-
-/**
- * Componente para a página de seed do banco de dados.
- * Contém botões para popular diferentes tipos de dados.
- */
-export const DatabaseSeedPage = () => {
-  const { toast } = useToast();
-  
-  const handleSeedProperties = async () => {
-    const result = await seedPropertiesFromMockData();
-    
-    if (result.success) {
-      toast({
-        title: 'Sucesso!',
-        description: result.message,
-        variant: 'default',
-      });
-    } else {
-      toast({
-        title: 'Erro!',
-        description: result.message,
-        variant: 'destructive',
-      });
-    }
-  };
-  
-  return (
-    <div className="container max-w-4xl py-8">
-      <h1 className="text-3xl font-bold mb-8">Ferramenta de Seed do Banco de Dados</h1>
-      
-      <div className="space-y-6">
-        <div className="p-6 border rounded-lg bg-card">
-          <h2 className="text-2xl font-semibold mb-4">Imóveis</h2>
-          <p className="mb-4 text-muted-foreground">
-            Insere os imóveis de demonstração no banco de dados, atribuindo-os aos usuários existentes
-            do tipo proprietário, corretor ou imobiliária.
-          </p>
-          <button 
-            onClick={handleSeedProperties}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded"
-          >
-            Adicionar Imóveis ao Banco
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 };
