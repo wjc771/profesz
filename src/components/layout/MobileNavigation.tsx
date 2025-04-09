@@ -40,7 +40,6 @@ export function MobileNavigation() {
             <h2 className="text-lg font-semibold">Menu</h2>
           </div>
           <nav className="space-y-2">
-            {/* Changed "Início" to "Swipe" and updated the route */}
             <Link to={user ? "/swipe" : "/"}>
               <Button
                 variant="ghost"
@@ -86,7 +85,7 @@ export function MobileNavigation() {
                     className="w-full justify-start"
                   >
                     <Search className="mr-2 h-5 w-5" />
-                    Buscar Imóveis
+                    Perfil de Busca
                   </Button>
                 </Link>
                 <Link to="/subscription">
