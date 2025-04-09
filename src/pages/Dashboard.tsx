@@ -12,7 +12,6 @@ import { Profile, UserType } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building, Search, Users, BarChart3 } from 'lucide-react';
-import { mockProfiles } from '@/lib/mockData';
 import UserTypeComparison from '@/components/UserTypeComparison';
 
 const Dashboard = () => {
@@ -20,7 +19,6 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [useMockData, setUseMockData] = useState(true); // Enable mock data by default
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -55,14 +53,13 @@ const Dashboard = () => {
 
         console.log("User profile fetched:", transformedData);
         setUserProfile(transformedData);
-        setUseMockData(false); // Only disable mock data if we successfully fetched a profile
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
-        // Use mock data if there's an error
-        setUseMockData(true);
-        // Find a mock profile to use
-        const mockProfile = mockProfiles[0];
-        setUserProfile(mockProfile);
+        toast({
+          title: 'Erro ao carregar perfil',
+          description: 'Não foi possível carregar seu perfil',
+          variant: 'destructive'
+        });
       } finally {
         setLoading(false);
       }
@@ -70,51 +67,6 @@ const Dashboard = () => {
 
     fetchUserProfile();
   }, [user, toast]);
-
-  const fetchUserProfile = async () => {
-    if (!user) return;
-    setLoading(true);
-
-    try {
-      console.log("Fetching user profile for:", user.id);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      // Transform data from snake_case to camelCase
-      const transformedData: Profile = {
-        id: data.id,
-        email: data.email,
-        name: data.name,
-        type: data.type as UserType,
-        phone: data.phone,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        subscriptionPlanId: data.subscription_plan_id as any,
-        avatarUrl: data.avatar_url,
-        creci: data.creci,
-        agencyName: data.agency_name
-      };
-
-      console.log("User profile fetched:", transformedData);
-      setUserProfile(transformedData);
-    } catch (error: any) {
-      console.error('Error fetching user profile:', error);
-      // Use mock data if there's an error
-      setUseMockData(true);
-      // Find a mock profile to use
-      const mockProfile = mockProfiles[0];
-      setUserProfile(mockProfile);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!user || loading) {
     return (

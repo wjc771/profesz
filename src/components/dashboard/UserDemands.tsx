@@ -9,13 +9,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/format';
-import { mockDemands } from '@/lib/mockData';
 
 export const UserDemands = () => {
   const [demands, setDemands] = useState<PropertyDemand[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileType, setProfileType] = useState<string | null>(null);
-  const [useMockData, setUseMockData] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -37,11 +35,16 @@ export const UserDemands = () => {
         setProfileType(data.type);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
+        toast({
+          title: 'Erro ao carregar perfil',
+          description: 'Não foi possível carregar o seu tipo de perfil',
+          variant: 'destructive'
+        });
       }
     };
 
     fetchUserProfile();
-  }, [user]);
+  }, [user, toast]);
 
   useEffect(() => {
     const fetchDemands = async () => {
@@ -51,7 +54,7 @@ export const UserDemands = () => {
       try {
         console.log("Fetching property demands for user:", user.id);
         
-        // First, try to get demands for this specific user
+        // Get demands for this specific user
         const { data: userDemands, error: userDemandsError } = await supabase
           .from('property_demands')
           .select('*')
@@ -59,64 +62,41 @@ export const UserDemands = () => {
           
         if (userDemandsError) throw userDemandsError;
         
-        // If user has demands, use them
-        if (userDemands && userDemands.length > 0) {
-          console.log(`Found ${userDemands.length} demands for user`);
-          
-          // Transform the database data to match the PropertyDemand type
-          const transformedData = userDemands.map(item => ({
-            id: item.id,
-            userId: item.user_id,
-            transactionType: item.transaction_type as TransactionType,
-            propertyTypes: item.property_types as PropertyType[],
-            priceRange: {
-              min: item.min_price,
-              max: item.max_price,
-            },
-            locationPreferences: {
-              cities: item.cities,
-              neighborhoods: item.neighborhoods || [],
-              states: item.states,
-            },
-            featureRequirements: {
-              bedrooms: item.min_bedrooms || 0,
-              bathrooms: item.min_bathrooms || 0,
-              parkingSpaces: item.min_parking_spaces || 0,
-              area: item.min_area || 0,
-              isFurnished: item.is_furnished,
-              hasPool: item.has_pool,
-              hasElevator: item.has_elevator,
-              hasGym: item.has_gym,
-              hasBalcony: item.has_balcony,
-              petsAllowed: item.pets_allowed,
-            },
-            createdAt: item.created_at,
-            updatedAt: item.updated_at,
-            isActive: item.is_active,
-          }));
-          
-          setDemands(transformedData);
-          setUseMockData(false);
-        } else {
-          // No specific demands for this user - check if there are ANY demands
-          const { count, error: countError } = await supabase
-            .from('property_demands')
-            .select('*', { count: 'exact', head: true });
-            
-          if (countError) throw countError;
-          
-          if (count && count > 0) {
-            // There are demands in the database, but not for this user
-            console.log("No demands for this user, but database has demands");
-            setDemands([]);
-            setUseMockData(false);
-          } else {
-            // No demands in database at all, use mock data
-            console.log("No demands in database, using mock data");
-            setDemands(mockDemands);
-            setUseMockData(true);
-          }
-        }
+        console.log(`Found ${userDemands?.length || 0} demands for user`);
+        
+        // Transform the database data to match the PropertyDemand type
+        const transformedData = userDemands ? userDemands.map(item => ({
+          id: item.id,
+          userId: item.user_id,
+          transactionType: item.transaction_type as TransactionType,
+          propertyTypes: item.property_types as PropertyType[],
+          priceRange: {
+            min: item.min_price,
+            max: item.max_price,
+          },
+          locationPreferences: {
+            cities: item.cities,
+            neighborhoods: item.neighborhoods || [],
+            states: item.states,
+          },
+          featureRequirements: {
+            bedrooms: item.min_bedrooms || 0,
+            bathrooms: item.min_bathrooms || 0,
+            parkingSpaces: item.min_parking_spaces || 0,
+            area: item.min_area || 0,
+            isFurnished: item.is_furnished,
+            hasPool: item.has_pool,
+            hasElevator: item.has_elevator,
+            hasGym: item.has_gym,
+            hasBalcony: item.has_balcony,
+            petsAllowed: item.pets_allowed,
+          },
+          createdAt: item.created_at,
+          updatedAt: item.updated_at,
+          isActive: item.is_active,
+        })) : [];
+        
+        setDemands(transformedData);
       } catch (error: any) {
         console.error('Error fetching property demands:', error);
         toast({
@@ -124,11 +104,7 @@ export const UserDemands = () => {
           description: error.message,
           variant: 'destructive'
         });
-        
-        // If there's an error, use mock data
-        console.log("Error fetching demands, using mock data");
-        setDemands(mockDemands);
-        setUseMockData(true);
+        setDemands([]);
       } finally {
         setLoading(false);
       }
@@ -153,11 +129,6 @@ export const UserDemands = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>
           Suas Buscas
-          {useMockData && (
-            <span className="ml-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
-              Dados de Demonstração
-            </span>
-          )}
         </CardTitle>
         {isBuyer && (
           <Button size="sm" onClick={handleAddDemand}>Nova Busca</Button>

@@ -9,13 +9,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
 import PropertyCard from '../property/PropertyCard';
-import { mockMatches } from '@/lib/mockData';
 
 export const UserMatches = () => {
   const [matches, setMatches] = useState<PropertyMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileType, setProfileType] = useState<string | null>(null);
-  const [useMockData, setUseMockData] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -38,11 +36,16 @@ export const UserMatches = () => {
         setProfileType(data.type);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
+        toast({
+          title: 'Erro ao carregar perfil',
+          description: 'Não foi possível carregar o seu tipo de perfil',
+          variant: 'destructive'
+        });
       }
     };
 
     fetchUserProfile();
-  }, [user]);
+  }, [user, toast]);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -51,7 +54,6 @@ export const UserMatches = () => {
       setLoading(true);
       try {
         let matchesData = [];
-        let hasMatchesForUser = false;
         
         console.log("Fetching matches for user:", user.id, "with profile type:", profileType);
         
@@ -80,7 +82,6 @@ export const UserMatches = () => {
               
             if (matchesError) throw matchesError;
             matchesData = matchesResult || [];
-            hasMatchesForUser = matchesData.length > 0;
             console.log("Buyer matches fetched:", matchesData.length);
           }
         } else {
@@ -108,32 +109,7 @@ export const UserMatches = () => {
               
             if (matchesError) throw matchesError;
             matchesData = matchesResult || [];
-            hasMatchesForUser = matchesData.length > 0;
             console.log("Owner/Agent matches fetched:", matchesData.length);
-          }
-        }
-        
-        // Check if we have any matches at all in the database
-        if (!hasMatchesForUser) {
-          const { count, error: countError } = await supabase
-            .from('property_matches')
-            .select('*', { count: 'exact', head: true });
-            
-          if (countError) throw countError;
-          
-          // If we have matches in db but not for this user, show empty
-          if (count && count > 0) {
-            console.log("Database has matches but none for this user");
-            setMatches([]);
-            setUseMockData(false);
-            setLoading(false);
-            return;
-          } else {
-            console.log("No matches in database, using mock data");
-            setMatches(mockMatches);
-            setUseMockData(true);
-            setLoading(false);
-            return;
           }
         }
         
@@ -186,7 +162,6 @@ export const UserMatches = () => {
         }));
         
         setMatches(transformedData);
-        setUseMockData(false);
       } catch (error: any) {
         console.error('Error fetching matches:', error);
         toast({
@@ -194,11 +169,7 @@ export const UserMatches = () => {
           description: error.message,
           variant: 'destructive'
         });
-        
-        // If there's an error, use mock data
-        console.log("Error fetching matches, using mock data");
-        setMatches(mockMatches);
-        setUseMockData(true);
+        setMatches([]);
       } finally {
         setLoading(false);
       }
@@ -215,19 +186,6 @@ export const UserMatches = () => {
     if (!match.propertyId) return;
     
     try {
-      if (useMockData) {
-        // Just update the local state for mock data
-        setMatches(matches.map(m => 
-          m.id === match.id ? {...m, contacted: true} : m
-        ));
-        
-        toast({
-          title: 'Contato registrado (Modo Demo)',
-          description: 'Em modo de demonstração, não há alteração no banco de dados.'
-        });
-        return;
-      }
-      
       const { error } = await supabase
         .from('property_matches')
         .update({ contacted: true })
@@ -262,11 +220,6 @@ export const UserMatches = () => {
           {profileType === 'buyer' 
             ? 'Imóveis que Combinam com Você' 
             : 'Potenciais Compradores'}
-          {useMockData && (
-            <span className="ml-2 text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
-              Dados de Demonstração
-            </span>
-          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
