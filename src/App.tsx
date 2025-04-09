@@ -1,70 +1,57 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import VerificationPending from "./pages/VerificationPending";
-import Profile from "./pages/Profile";
-import UserSettings from "./pages/UserSettings";
-import Subscription from "./pages/Subscription";
-import LandingPage from "./pages/LandingPage";
-import PropertyPreferences from "./pages/PropertyPreferences";
-import PropertyManagement from "./pages/PropertyManagement";
-import PropertyForm from "./pages/PropertyForm";
-import PropertyDetails from "./pages/PropertyDetails";
-import DemandManagement from "./pages/DemandManagement";
-import DemandForm from "./pages/DemandForm";
-import MatchManagement from "./pages/MatchManagement";
-import { AuthProvider, AuthRequired } from "./hooks/useAuth";
-import Dashboard from "./pages/Dashboard";
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-const queryClient = new QueryClient();
+// Lazy loaded pages
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const PropertyForm = lazy(() => import('./pages/PropertyForm'));
+const PropertyDetails = lazy(() => import('./pages/PropertyDetails'));
+const PropertyManagement = lazy(() => import('./pages/PropertyManagement'));
+const DemandForm = lazy(() => import('./pages/DemandForm'));
+const DemandManagement = lazy(() => import('./pages/DemandManagement'));
+const MatchManagement = lazy(() => import('./pages/MatchManagement'));
+const Subscription = lazy(() => import('./pages/Subscription'));
+const VerificationPending = lazy(() => import('./pages/VerificationPending'));
+const DatabaseSeed = lazy(() => import('./pages/DatabaseSeed')); // Nova página
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/home" element={<LandingPage />} />
-            <Route path="/dashboard" element={<AuthRequired><Dashboard /></AuthRequired>} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/verification-pending" element={<VerificationPending />} />
-            <Route path="/profile" element={<AuthRequired><Profile /></AuthRequired>} />
-            <Route path="/settings" element={<AuthRequired><UserSettings /></AuthRequired>} />
-            <Route path="/subscription" element={<AuthRequired><Subscription /></AuthRequired>} />
-            <Route path="/property-preferences" element={<AuthRequired><PropertyPreferences /></AuthRequired>} />
-            
-            {/* Rotas CRUD para Propriedades */}
-            <Route path="/properties" element={<AuthRequired><PropertyManagement /></AuthRequired>} />
-            <Route path="/property/new" element={<AuthRequired><PropertyForm /></AuthRequired>} />
-            <Route path="/property/edit/:id" element={<AuthRequired><PropertyForm /></AuthRequired>} />
-            <Route path="/property/:id" element={<AuthRequired><PropertyDetails /></AuthRequired>} />
-            
-            {/* Rotas CRUD para Demandas */}
-            <Route path="/demands" element={<AuthRequired><DemandManagement /></AuthRequired>} />
-            <Route path="/demand/new" element={<AuthRequired><DemandForm /></AuthRequired>} />
-            <Route path="/demand/edit/:id" element={<AuthRequired><DemandForm /></AuthRequired>} />
-            
-            {/* Rota para Gerenciamento de Matches */}
-            <Route path="/matches" element={<AuthRequired><MatchManagement /></AuthRequired>} />
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+// Loading component
+const Loading = () => (
+  <div className="flex h-screen w-screen items-center justify-center">
+    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+  </div>
 );
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/property/new" element={<PropertyForm />} />
+          <Route path="/property/edit/:id" element={<PropertyForm />} />
+          <Route path="/property/:id" element={<PropertyDetails />} />
+          <Route path="/property-management" element={<PropertyManagement />} />
+          <Route path="/demand/new" element={<DemandForm />} />
+          <Route path="/demand/edit/:id" element={<DemandForm />} />
+          <Route path="/demand-management" element={<DemandManagement />} />
+          <Route path="/matches/:demandId" element={<MatchManagement />} />
+          <Route path="/subscription" element={<Subscription />} />
+          <Route path="/verification-pending" element={<VerificationPending />} />
+          <Route path="/database-seed" element={<DatabaseSeed />} /> {/* Nova rota */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
 
 export default App;
