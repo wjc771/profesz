@@ -1,6 +1,7 @@
 
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './hooks/useAuth';
 
 // Lazy loaded pages
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -29,27 +30,29 @@ const Loading = () => (
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/property/new" element={<PropertyForm />} />
-          <Route path="/property/edit/:id" element={<PropertyForm />} />
-          <Route path="/property/:id" element={<PropertyDetails />} />
-          <Route path="/property-management" element={<PropertyManagement />} />
-          <Route path="/demand/new" element={<DemandForm />} />
-          <Route path="/demand/edit/:id" element={<DemandForm />} />
-          <Route path="/demand-management" element={<DemandManagement />} />
-          <Route path="/matches/:demandId" element={<MatchManagement />} />
-          <Route path="/subscription" element={<Subscription />} />
-          <Route path="/verification-pending" element={<VerificationPending />} />
-          <Route path="/database-seed" element={<DatabaseSeed />} /> {/* Nova rota */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+      <AuthProvider>
+        <Suspense fallback={<Loading />}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/property/new" element={<PropertyForm />} />
+            <Route path="/property/edit/:id" element={<PropertyForm />} />
+            <Route path="/property/:id" element={<PropertyDetails />} />
+            <Route path="/property-management" element={<PropertyManagement />} />
+            <Route path="/demand/new" element={<DemandForm />} />
+            <Route path="/demand/edit/:id" element={<DemandForm />} />
+            <Route path="/demand-management" element={<DemandManagement />} />
+            <Route path="/matches/:demandId" element={<MatchManagement />} />
+            <Route path="/subscription" element={<Subscription />} />
+            <Route path="/verification-pending" element={<VerificationPending />} />
+            <Route path="/database-seed" element={<DatabaseSeed />} /> {/* Nova rota */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { mockProperties } from '@/lib/mockData';
-import { Profile, UserType } from '@/types/profile';
+import { Profile } from '@/types/profile';
 import { Property } from '@/types/property';
 import { useToast } from '@/components/ui/use-toast';
 
