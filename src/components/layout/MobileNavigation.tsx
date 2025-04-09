@@ -40,14 +40,14 @@ export function MobileNavigation() {
             <h2 className="text-lg font-semibold">Menu</h2>
           </div>
           <nav className="space-y-2">
-            {/* Updated the "Início" link to go to dashboard if user is logged in */}
-            <Link to={user ? "/dashboard" : "/"}>
+            {/* Changed "Início" to "Swipe" and updated the route */}
+            <Link to={user ? "/swipe" : "/"}>
               <Button
                 variant="ghost"
                 className="w-full justify-start"
               >
                 <Home className="mr-2 h-5 w-5" />
-                Início
+                Swipe
               </Button>
             </Link>
 

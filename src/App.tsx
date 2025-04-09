@@ -23,6 +23,7 @@ const DatabaseSeed = lazy(() => import('./pages/DatabaseSeed'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const PropertyPreferences = lazy(() => import('./pages/PropertyPreferences'));
 const Settings = lazy(() => import('./pages/Settings'));
+const Swipe = lazy(() => import('./pages/Swipe'));
 
 // Loading component
 const Loading = () => (
@@ -96,6 +97,7 @@ function App() {
               <Route path="/database-seed" element={<DatabaseSeed />} />
               <Route path="/property-preferences" element={<PropertyPreferences />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/swipe" element={<Swipe />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </InitCheck>
