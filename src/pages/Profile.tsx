@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,9 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
-import { mockProperties } from '@/lib/mockData';
-import PropertyCard from '@/components/property/PropertyCard';
-import { Property } from '@/types/property';
+import UserProperties from '@/components/dashboard/UserProperties';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, Upload } from 'lucide-react';
@@ -45,9 +42,6 @@ const Profile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
-  
-  // In a real app, these would come from the authenticated user
-  const userProperties = mockProperties.slice(0, 2);
   
   useEffect(() => {
     if (user) {
@@ -185,14 +179,6 @@ const Profile = () => {
     }
   };
 
-  const handleSelectProperty = (property: Property) => {
-    toast({
-      title: 'Imóvel selecionado',
-      description: `Você selecionou ${property.title}`,
-    });
-    // In the future, this would navigate to a property detail page
-  };
-
   if (loading) {
     return (
       <MainLayout>
@@ -288,6 +274,7 @@ const Profile = () => {
                         </div>
                       </div>
                     </div>
+                    
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome</Label>
                       <Input 
@@ -438,58 +425,7 @@ const Profile = () => {
           </div>
 
           <div className="md:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Seus Imóveis</CardTitle>
-                <CardDescription>
-                  Imóveis que você cadastrou na plataforma
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="active">
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="active">Ativos</TabsTrigger>
-                    <TabsTrigger value="inactive">Inativos</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="active" className="focus-visible:outline-none focus-visible:ring-0">
-                    {userProperties.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {userProperties.map((property) => (
-                          <PropertyCard 
-                            key={property.id} 
-                            property={property} 
-                            onSelect={() => handleSelectProperty(property)}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-6">
-                        <p className="text-muted-foreground mb-4">
-                          Você ainda não tem imóveis cadastrados.
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="mt-6">
-                      <Link to="/add-property">
-                        <Button className="w-full">
-                          Adicionar Novo Imóvel
-                        </Button>
-                      </Link>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="inactive" className="focus-visible:outline-none focus-visible:ring-0">
-                    <div className="text-center py-6">
-                      <p className="text-muted-foreground">
-                        Você não tem imóveis inativos no momento.
-                      </p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
+            <UserProperties />
           </div>
         </div>
       </div>

@@ -21,6 +21,8 @@ const Subscription = lazy(() => import('./pages/Subscription'));
 const VerificationPending = lazy(() => import('./pages/VerificationPending'));
 const DatabaseSeed = lazy(() => import('./pages/DatabaseSeed'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const PropertyPreferences = lazy(() => import('./pages/PropertyPreferences'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 // Loading component
 const Loading = () => (
@@ -91,6 +93,8 @@ function App() {
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/verification-pending" element={<VerificationPending />} />
               <Route path="/database-seed" element={<DatabaseSeed />} />
+              <Route path="/property-preferences" element={<PropertyPreferences />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </InitCheck>
