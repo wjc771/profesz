@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Property, PropertyDemand } from '@/types/property';
+import { Property, PropertyDemand, PropertyType, TransactionType } from '@/types/property';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -68,8 +68,8 @@ const Swipe = () => {
         const transformedData = data ? data.map(item => ({
           id: item.id,
           userId: item.user_id,
-          transactionType: item.transaction_type,
-          propertyTypes: item.property_types,
+          transactionType: item.transaction_type as TransactionType, // Cast to TransactionType
+          propertyTypes: item.property_types as PropertyType[], // Cast to PropertyType[]
           priceRange: {
             min: item.min_price,
             max: item.max_price,
@@ -155,8 +155,8 @@ const Swipe = () => {
           id: item.id,
           title: item.title,
           description: item.description,
-          type: item.type,
-          transactionType: item.transaction_type,
+          type: item.type as PropertyType, // Cast to PropertyType
+          transactionType: item.transaction_type as TransactionType, // Cast to TransactionType
           price: item.price,
           propertyTax: item.property_tax,
           location: {
