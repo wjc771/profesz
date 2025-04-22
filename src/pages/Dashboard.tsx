@@ -1,144 +1,29 @@
-
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { PlanIndicator } from "@/components/dashboard/PlanIndicator";
-import { useIsMobile } from "@/hooks/use-mobile";
-
-// Menu de navegação
-const navItems = [
-  { label: "Painel", to: "/dashboard" },
-  { label: "Planos de Aula", to: "/dashboard/planos" },
-  { label: "Avaliações", to: "/dashboard/avaliacoes" },
-  { label: "Materiais", to: "/dashboard/materiais" },
-  { label: "Comunicação", to: "/dashboard/comunicacao" },
-];
-
-// Ações rápidas para cards
-const quickActions = [
-  {
-    label: "Novo Plano",
-    description: "Crie um novo plano de aula facilmente",
-    to: "/dashboard/planos",
-    locked: false
-  },
-  {
-    label: "Nova Avaliação",
-    description: "Inicie uma avaliação para seus alunos",
-    to: "/dashboard/avaliacoes",
-    locked: true
-  },
-  {
-    label: "Material",
-    description: "Acesse e compartilhe materiais",
-    to: "/dashboard/materiais",
-    locked: true
-  },
-  {
-    label: "Comunicar",
-    description: "Envie avisos rapidamente",
-    to: "/dashboard/comunicacao",
-    locked: false
-  }
-];
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const isMobile = useIsMobile();
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [userName, setUserName] = useState("Usuário");
 
   useEffect(() => {
     if (user && user.email) setUserName(user.email.split("@")[0]);
   }, [user]);
 
-  // Fecha o nav ao mudar viewport
-  useEffect(() => {
-    if (!isMobile) setMobileNavOpen(false);
-  }, [isMobile]);
-
   // Menu topbar horizontal + hamburger para mobile
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header + topo */}
       <header className="w-full flex items-center justify-between px-4 py-2 border-b border-border bg-background sticky top-0 z-20 h-14 gap-2">
-        {/* Logo + plano */}
         <div className="flex items-center gap-3">
           <span className="bg-primary text-primary-foreground px-2 py-1 rounded-lg font-black text-lg">
             PX
           </span>
-          {!isMobile && <PlanIndicator plan="Plano Básico" />}
         </div>
-        {/* Menu desktop */}
-        {!isMobile ? (
-          <nav className="flex gap-4 items-center">
-            {navItems.map((item) => (
-              <a
-                key={item.to}
-                href={item.to}
-                className="font-medium hover:text-primary transition px-2"
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Abrir menu"
-            onClick={() => setMobileNavOpen(true)}
-            className="ml-auto"
-          >
-            <Menu />
-          </Button>
-        )}
-        {!isMobile && (
-          <div className="flex items-center gap-2">
-            <PlanIndicator plan="Plano Básico" />
-          </div>
-        )}
+        <DashboardNav userName={userName} />
+        <PlanIndicator plan="Plano Básico" />
       </header>
-
-      {/* Drawer menu mobile */}
-      {isMobile && mobileNavOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex">
-          <nav className="bg-background w-64 max-w-[80vw] h-full p-6 flex flex-col shadow-lg animate-slide-in-left relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-3 right-3"
-              onClick={() => setMobileNavOpen(false)}
-              aria-label="Fechar menu"
-            >
-              <X />
-            </Button>
-            <div className="mb-6">
-              <span className="bg-primary text-primary-foreground px-2 py-1 rounded-lg font-black text-xl">
-                PX
-              </span>
-              <span className="ml-3 font-bold text-lg">{userName}</span>
-              <div className="mt-2">
-                <PlanIndicator plan="Plano Básico" />
-              </div>
-            </div>
-            <div className="flex-1 flex flex-col gap-2">
-              {navItems.map((item) => (
-                <a
-                  key={item.to}
-                  href={item.to}
-                  className="py-2 px-3 rounded hover:bg-accent text-base font-medium transition"
-                  onClick={() => setMobileNavOpen(false)}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </nav>
-          <div className="flex-1" onClick={() => setMobileNavOpen(false)} />
-        </div>
-      )}
 
       {/* Conteúdo principal */}
       <main className="flex-1 flex flex-col items-center px-2 md:px-6 py-4 w-full max-w-5xl mx-auto">
@@ -155,28 +40,55 @@ export default function Dashboard() {
         {/* Ações rápidas como cards */}
         <section className="w-full mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action) => (
-              <a
-                key={action.label}
-                href={action.locked ? "#" : action.to}
-                className={
-                  "bg-card rounded-xl p-4 flex flex-col items-start gap-2 shadow hover:shadow-md transition group relative border " +
-                  (action.locked
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:border-primary")
-                }
-                tabIndex={action.locked ? -1 : 0}
-                aria-disabled={action.locked}
-              >
-                <span className="font-semibold text-base">
-                  {action.label}
-                </span>
-                <small className="text-muted-foreground">{action.description}</small>
-                {action.locked && (
-                  <span className="text-xs bg-muted text-muted-foreground rounded px-2 py-0.5 absolute top-2 right-2">Em breve</span>
-                )}
-              </a>
-            ))}
+            {/* Quick action cards */}
+            <a
+              href="/dashboard/planos"
+              className="bg-card rounded-xl p-4 flex flex-col items-start gap-2 shadow hover:shadow-md transition group relative border hover:border-primary"
+              tabIndex={0}
+            >
+              <span className="font-semibold text-base flex items-center gap-2">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" className="text-primary"><path d="M7 17V3h10v14M7 7h10M17 21H7M12 17v4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"/></svg>
+                Gerador de Planos
+              </span>
+              <small className="text-muted-foreground">Crie planos de aula automaticamente para suas necessidades</small>
+            </a>
+            <a
+              href="/dashboard/avaliacoes"
+              className="bg-card rounded-xl p-4 flex flex-col items-start gap-2 shadow hover:shadow-md transition group relative border hover:border-primary opacity-60 cursor-not-allowed"
+              tabIndex={-1}
+              aria-disabled
+            >
+              <span className="font-semibold text-base flex items-center gap-2">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" className="text-muted-foreground"><path d="M5 6h14M5 12h9m-9 6h6" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"/></svg>
+                Avaliações
+              </span>
+              <small className="text-muted-foreground">Avalie o desempenho dos alunos (em breve)</small>
+              <span className="text-xs bg-muted text-muted-foreground rounded px-2 py-0.5 absolute top-2 right-2">Em breve</span>
+            </a>
+            <a
+              href="/dashboard/materiais"
+              className="bg-card rounded-xl p-4 flex flex-col items-start gap-2 shadow hover:shadow-md transition group relative border hover:border-primary opacity-60 cursor-not-allowed"
+              tabIndex={-1}
+              aria-disabled
+            >
+              <span className="font-semibold text-base flex items-center gap-2">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" className="text-muted-foreground"><path d="M3 7l9-4 9 4v6c0 5-4 9-9 9s-9-4-9-9V7z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"/></svg>
+                Materiais
+              </span>
+              <small className="text-muted-foreground">Acesse e compartilhe materiais (em breve)</small>
+              <span className="text-xs bg-muted text-muted-foreground rounded px-2 py-0.5 absolute top-2 right-2">Em breve</span>
+            </a>
+            <a
+              href="/dashboard/comunicacao"
+              className="bg-card rounded-xl p-4 flex flex-col items-start gap-2 shadow hover:shadow-md transition group relative border hover:border-primary"
+              tabIndex={0}
+            >
+              <span className="font-semibold text-base flex items-center gap-2">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" className="text-primary"><path d="M21 15a2 2 0 0 1-2 2h-6l-4 4v-4H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"/></svg>
+                Comunicação
+              </span>
+              <small className="text-muted-foreground">Envie avisos rapidamente</small>
+            </a>
           </div>
         </section>
 
@@ -198,7 +110,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Dicas rápidas e limpas */}
+        {/* Dicas rápidas */}
         <section className="w-full mb-2">
           <div className="bg-secondary rounded-xl shadow p-4">
             <ul className="list-disc space-y-1 ml-5 text-muted-foreground text-sm">
@@ -208,6 +120,8 @@ export default function Dashboard() {
             </ul>
           </div>
         </section>
+
+        {/* Area de futuro - cards de recursos por plano estarão aqui */}
       </main>
     </div>
   );
