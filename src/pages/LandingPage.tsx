@@ -302,28 +302,53 @@ const LandingPage = () => {
                   name: "ProfeXpress Inicial",
                   price: "R$ 0,00",
                   description: "Acesso limitado ao gerador de planos de aula (3 por mês), banco de questões básico (25 questões/mês), 1 template de comunicação.",
-                  cta: "Começar Grátis"
+                  features: [],
+                  limits: {
+                    activeListings: 3,
+                    activeSearches: 25,
+                    matchesPerMonth: 1,
+                    contactsPerMonth: null
+                  }
                 },
                 {
                   id: "essencial",
                   name: "ProfeXpress Essencial",
                   price: "R$ X/mês",
                   description: "Acesso completo ao gerador de planos, banco de questões avançado (100 questões/mês), assistente de feedback básico, adaptador de materiais (5 por mês), comunicador inteligente (10 templates), curador básico.",
-                  cta: "Assinar ou Teste Grátis por 7 dias"
+                  features: [],
+                  recommended: true,
+                  limits: {
+                    activeListings: 100,
+                    activeSearches: 100,
+                    matchesPerMonth: 10,
+                    contactsPerMonth: 10
+                  }
                 },
                 {
                   id: "maestro",
                   name: "ProfeXpress Maestro",
                   price: "R$ XX/mês",
                   description: "Todos os recursos do Essencial + geradores ilimitados, feedback avançado, adaptação completa de materiais, organizador administrativo e suporte prioritário.",
-                  cta: "Potencialize seu Ensino"
+                  features: [],
+                  limits: {
+                    activeListings: -1,
+                    activeSearches: -1,
+                    matchesPerMonth: -1,
+                    contactsPerMonth: -1
+                  }
                 },
                 {
                   id: "institucional",
                   name: "ProfeXpress Institucional",
                   price: "Sob consulta",
                   description: "Todos os recursos do Maestro + customização, integração com sistemas escolares, painel administrativo, treinamento e suporte dedicado.",
-                  cta: "Solicite uma Demonstração"
+                  features: [],
+                  limits: {
+                    activeListings: -1,
+                    activeSearches: -1,
+                    matchesPerMonth: -1,
+                    contactsPerMonth: -1
+                  }
                 }
               ]}
               currentPlanId={undefined}

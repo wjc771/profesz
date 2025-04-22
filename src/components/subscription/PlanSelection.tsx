@@ -40,6 +40,16 @@ const PlanSelection = ({
     return Info;
   };
 
+  // Ensure each plan has limits object defined to prevent runtime errors
+  const safeGetLimits = (plan: Plan) => {
+    return plan.limits || { 
+      activeListings: null, 
+      activeSearches: null, 
+      matchesPerMonth: null,
+      contactsPerMonth: null
+    };
+  };
+
   return (
     <div className={`grid gap-6 ${compact ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
       {plans.map((plan) => (
@@ -67,46 +77,46 @@ const PlanSelection = ({
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Anúncios:</span>
-                    <span className="font-medium">{formatLimit(plan.limits.activeListings)}</span>
+                    <span className="font-medium">{formatLimit(safeGetLimits(plan).activeListings)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Buscas:</span>
-                    <span className="font-medium">{formatLimit(plan.limits.activeSearches)}</span>
+                    <span className="font-medium">{formatLimit(safeGetLimits(plan).activeSearches)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Matches/mês:</span>
-                    <span className="font-medium">{formatLimit(plan.limits.matchesPerMonth)}</span>
+                    <span className="font-medium">{formatLimit(safeGetLimits(plan).matchesPerMonth)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Contatos/mês:</span>
-                    <span className="font-medium">{formatLimit(plan.limits.contactsPerMonth)}</span>
+                    <span className="font-medium">{formatLimit(safeGetLimits(plan).contactsPerMonth)}</span>
                   </div>
                   
-                  {plan.limits.photosPerListing !== undefined && (
+                  {safeGetLimits(plan).photosPerListing !== undefined && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Fotos/imóvel:</span>
-                      <span className="font-medium">{formatLimit(plan.limits.photosPerListing)}</span>
+                      <span className="font-medium">{formatLimit(safeGetLimits(plan).photosPerListing)}</span>
                     </div>
                   )}
                   
-                  {plan.limits.videosPerListing !== undefined && (
+                  {safeGetLimits(plan).videosPerListing !== undefined && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Vídeos/imóvel:</span>
-                      <span className="font-medium">{formatLimit(plan.limits.videosPerListing)}</span>
+                      <span className="font-medium">{formatLimit(safeGetLimits(plan).videosPerListing)}</span>
                     </div>
                   )}
                   
-                  {plan.limits.highlightsPerWeek !== undefined && (
+                  {safeGetLimits(plan).highlightsPerWeek !== undefined && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Destaques/sem:</span>
-                      <span className="font-medium">{formatLimit(plan.limits.highlightsPerWeek)}</span>
+                      <span className="font-medium">{formatLimit(safeGetLimits(plan).highlightsPerWeek)}</span>
                     </div>
                   )}
                   
-                  {plan.limits.teamMembers !== undefined && (
+                  {safeGetLimits(plan).teamMembers !== undefined && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Usuários:</span>
-                      <span className="font-medium">{formatLimit(plan.limits.teamMembers)}</span>
+                      <span className="font-medium">{formatLimit(safeGetLimits(plan).teamMembers)}</span>
                     </div>
                   )}
                 </div>
