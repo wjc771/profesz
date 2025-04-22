@@ -5,30 +5,27 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 import UserProperties from '@/components/dashboard/UserProperties';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserType } from '@/types/profile';
+import { mockProfiles } from '@/lib/mockData';
 
-// Define interface for profile data structure
-interface UserProfile {
+// Estendendo o tipo do perfil para incluir os campos adicionais
+interface ExtendedProfile {
   id: string;
   name: string | null;
   email: string;
   phone: string | null;
   type: UserType;
-  avatar_url: string | null;
-  updated_at: string;
-  created_at: string;
-  school_name?: string | null;
-  creci?: string;
-  agency_name?: string;
+  avatarUrl: string | null;
+  updatedAt: string;
+  createdAt: string;
+  schoolName?: string | null;
 }
 
 const ProfilePage = () => {
@@ -40,8 +37,6 @@ const ProfilePage = () => {
   const [phone, setPhone] = useState('');
   const [type, setType] = useState<UserType>('professor');
   const [schoolName, setSchoolName] = useState('');
-  const [creci, setCreci] = useState('');
-  const [agencyName, setAgencyName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -50,8 +45,6 @@ const ProfilePage = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
-    } else {
-      setLoading(false);
     }
   }, [user]);
 
@@ -60,44 +53,23 @@ const ProfilePage = () => {
     try {
       if (!user) return;
       
-      // Mock profile data since we don't have a profiles table set up yet
-      const mockProfile: UserProfile = {
-        id: user.id,
-        name: user.name || '',
-        email: user.email,
-        phone: '',
-        type: (user.type as UserType) || 'professor',
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        school_name: ''
-      };
+      // Use the mock data instead of Supabase query
+      const mockProfile = mockProfiles.find(p => p.id === user.id);
+      const userMetadata = user.user_metadata || {};
       
-      setName(mockProfile.name || '');
-      setEmail(mockProfile.email || '');
-      setPhone(mockProfile.phone || '');
-      setType(mockProfile.type || 'professor');
-      setSchoolName(mockProfile.school_name || '');
-      setAvatarUrl(mockProfile.avatar_url || '');
-      
-      // For real implementation when DB is set up:
-      // const { data, error } = await supabase
-      //   .from('profiles')
-      //   .select('*')
-      //   .eq('id', user.id)
-      //   .single();
-      
-      // if (error) throw error;
-      
-      // if (data) {
-      //   const profileData = data as UserProfile;
-      //   setName(profileData.name || '');
-      //   setEmail(profileData.email || '');
-      //   setPhone(profileData.phone || '');
-      //   setType(profileData.type || 'professor');
-      //   setSchoolName(profileData.school_name || '');
-      //   setAvatarUrl(profileData.avatar_url || '');
-      // }
+      if (mockProfile) {
+        setName(mockProfile.name || '');
+        setEmail(mockProfile.email || '');
+        setPhone(mockProfile.phone || '');
+        setType(mockProfile.type);
+        setAvatarUrl(mockProfile.avatarUrl || '');
+        setSchoolName(mockProfile.schoolName || '');
+      } else {
+        // Fallback to user metadata if available
+        setName(userMetadata.name || '');
+        setEmail(user.email || '');
+        setType((userMetadata.type as UserType) || 'professor');
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -117,24 +89,7 @@ const ProfilePage = () => {
     try {
       if (!user) return;
       
-      const updates = {
-        id: user.id,
-        name,
-        phone,
-        type,
-        school_name: type === 'instituicao' ? schoolName : null,
-        updated_at: new Date().toISOString(),
-      };
-      
-      // For when backend is set up:
-      // const { error } = await supabase
-      //   .from('profiles')
-      //   .update(updates)
-      //   .eq('id', user.id);
-        
-      // if (error) throw error;
-      
-      // For now, just simulate success
+      // Just simulate a save operation, would normally update Supabase
       setTimeout(() => {
         toast({
           title: 'Perfil atualizado',
@@ -142,7 +97,6 @@ const ProfilePage = () => {
         });
         
         setIsEditing(false);
-        setIsSubmitting(false);
       }, 1000);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -151,6 +105,7 @@ const ProfilePage = () => {
         title: 'Erro',
         description: 'Não foi possível atualizar seu perfil. Tente novamente mais tarde.',
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -165,44 +120,18 @@ const ProfilePage = () => {
       
       if (!user) throw new Error('Usuário não autenticado');
       
-      // For now, simulate avatar upload with a delay
+      // Simulate file upload - would normally upload to Supabase Storage
       setTimeout(() => {
-        setAvatarUrl('/placeholder.svg');
-        setUploading(false);
+        // Create a local object URL just for demonstration
+        const objectUrl = URL.createObjectURL(event.target.files![0]);
+        setAvatarUrl(objectUrl);
         
         toast({
           title: 'Avatar atualizado',
           description: 'Sua foto de perfil foi atualizada com sucesso.',
         });
+        setUploading(false);
       }, 1500);
-      
-      // For when storage is set up:
-      // const file = event.target.files[0];
-      // const fileExt = file.name.split('.').pop();
-      // const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      // const filePath = `avatars/${fileName}`;
-      
-      // Upload da imagem para o storage
-      // const { error: uploadError } = await supabase.storage
-      //   .from('avatars')
-      //   .upload(filePath, file, { upsert: true });
-        
-      // if (uploadError) throw uploadError;
-      
-      // Obter URL pública da imagem
-      // const { data } = supabase.storage
-      //   .from('avatars')
-      //   .getPublicUrl(filePath);
-        
-      // Atualizar avatar_url do perfil
-      // const { error: updateError } = await supabase
-      //   .from('profiles')
-      //   .update({ avatar_url: data.publicUrl })
-      //   .eq('id', user.id);
-        
-      // if (updateError) throw updateError;
-      
-      // setAvatarUrl(data.publicUrl);
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -229,7 +158,7 @@ const ProfilePage = () => {
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Seu Perfil</h1>
           <p className="text-muted-foreground">
-            Gerencie suas informações e configurações
+            Gerencie suas informações e visualize seus materiais
           </p>
         </div>
 
@@ -270,10 +199,12 @@ const ProfilePage = () => {
                       </p>
                     </div>
                     {type === 'instituicao' && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Nome da Instituição</p>
-                        <p className="font-medium">{schoolName || 'Não informado'}</p>
-                      </div>
+                      <>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Nome da Instituição</p>
+                          <p className="font-medium">{schoolName || 'Não informado'}</p>
+                        </div>
+                      </>
                     )}
                   </div>
                 ) : (
@@ -335,7 +266,7 @@ const ProfilePage = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="type">Tipo de usuário</Label>
-                      <Select value={type} onValueChange={(value) => setType(value as UserType)}>
+                      <Select value={type} onValueChange={value => setType(value as UserType)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
@@ -347,14 +278,16 @@ const ProfilePage = () => {
                     </div>
                     
                     {type === 'instituicao' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="schoolName">Nome da Instituição</Label>
-                        <Input 
-                          id="schoolName" 
-                          value={schoolName} 
-                          onChange={e => setSchoolName(e.target.value)} 
-                        />
-                      </div>
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="schoolName">Nome da Instituição</Label>
+                          <Input 
+                            id="schoolName" 
+                            value={schoolName} 
+                            onChange={e => setSchoolName(e.target.value)} 
+                          />
+                        </div>
+                      </>
                     )}
                     
                     <div className="flex space-x-2">
@@ -412,9 +345,7 @@ const ProfilePage = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between">
-                      <p className="font-medium">
-                        {type === 'professor' ? 'Plano Professor' : 'Plano Institucional'}
-                      </p>
+                      <p className="font-medium">Plano Inicial</p>
                       <Link to="/subscription">
                         <Button variant="link" className="p-0 h-auto">
                           Fazer upgrade
@@ -422,26 +353,16 @@ const ProfilePage = () => {
                       </Link>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {type === 'professor' ? '2 de 2 materiais utilizados' : '5 de 10 professores alocados'}
+                      2 de 5 materiais utilizados
                     </p>
                     <div className="w-full h-2 bg-muted rounded-full mt-2">
-                      <div className="bg-primary h-2 rounded-full" style={{width: type === 'professor' ? '100%' : '50%'}}></div>
+                      <div className="bg-primary h-2 rounded-full" style={{ width: '40%' }}></div>
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {type === 'professor' ? (
-                      <>
-                        <p>• Até 2 materiais didáticos</p>
-                        <p>• Planos de aula básicos</p>
-                        <p>• Compartilhamento limitado</p>
-                      </>
-                    ) : (
-                      <>
-                        <p>• Até 10 professores</p>
-                        <p>• Biblioteca compartilhada</p>
-                        <p>• Dashboard institucional</p>
-                      </>
-                    )}
+                    <p>• 5 materiais por mês</p>
+                    <p>• Acesso básico aos recursos</p>
+                    <p>• Compartilhamento limitado</p>
                   </div>
                 </div>
               </CardContent>

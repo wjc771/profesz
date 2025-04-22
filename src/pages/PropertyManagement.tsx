@@ -6,154 +6,147 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
-import { Property } from '@/types/property';
 import { useAuth } from '@/hooks/useAuth';
+import { mockProfiles } from '@/lib/mockData';
+
+// Updated interface for educational materials
+interface EducationalMaterial {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  subject: string;
+  gradeLevel: string;
+  price: number;
+  authorId: string;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+  isPremium: boolean;
+}
 
 const PropertyManagement = () => {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [materials, setMaterials] = useState<EducationalMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+  const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchProperties = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*');
+  useEffect(() => {
+    // Mock data fetch
+    const fetchMaterials = async () => {
+      setLoading(true);
       
-      if (error) throw error;
-      
-      // Transform the database data to match the Property type
-      const transformedData = data.map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        type: item.type as any,
-        transactionType: item.transaction_type as any,
-        price: item.price,
-        propertyTax: item.property_tax,
-        location: {
-          address: item.address,
-          neighborhood: item.neighborhood,
-          city: item.city,
-          state: item.state,
-          zipCode: item.zip_code,
-          lat: item.lat,
-          lng: item.lng
-        },
-        features: {
-          bedrooms: item.bedrooms,
-          bathrooms: item.bathrooms,
-          parkingSpaces: item.parking_spaces,
-          area: item.area,
-          hasPool: item.has_pool,
-          isFurnished: item.is_furnished,
-          hasElevator: item.has_elevator,
-          petsAllowed: item.pets_allowed,
-          hasGym: item.has_gym,
-          hasBalcony: item.has_balcony,
-          condominium: item.condominium
-        },
-        images: item.images || [],
-        ownerId: item.owner_id,
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-        isActive: item.is_active,
-        isPremium: item.is_premium
-      }));
-      
-      setProperties(transformedData);
-    } catch (error: any) {
-      console.error('Error fetching properties:', error);
-      toast({
-        title: 'Erro ao carregar imóveis',
-        description: error.message,
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Get user profile to check type
-  const getUserProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('type')
-        .eq('id', user.id)
-        .single();
+      try {
+        // Mock educational materials data
+        const mockMaterials: EducationalMaterial[] = [
+          {
+            id: "material1",
+            title: "Plano de Aula: Matemática Fundamental",
+            description: "Um plano de aula completo para ensino de conceitos básicos de matemática",
+            type: "plano_aula",
+            subject: "Matemática",
+            gradeLevel: "Fundamental",
+            price: 39.90,
+            authorId: "p1",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            isActive: true,
+            isPremium: true
+          },
+          {
+            id: "material2",
+            title: "Atividade: Células e Tecidos",
+            description: "Atividade completa sobre células e tecidos para ensino médio",
+            type: "atividade",
+            subject: "Biologia",
+            gradeLevel: "Médio",
+            price: 29.90,
+            authorId: "p2",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            isActive: true,
+            isPremium: false
+          }
+        ];
         
-      if (error) throw error;
-      
-      // If user is not an owner, redirect to dashboard
-      if (data.type !== 'owner') {
+        setMaterials(mockMaterials);
+      } catch (error: any) {
+        console.error('Error fetching materials:', error);
         toast({
-          title: 'Acesso restrito',
-          description: 'Apenas proprietários podem gerenciar imóveis',
+          title: 'Erro ao carregar materiais',
+          description: error.message,
           variant: 'destructive'
         });
-        navigate('/dashboard');
+      } finally {
+        setLoading(false);
       }
-    } catch (error: any) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
+    };
 
-  useEffect(() => {
+    // Get user profile to check type
+    const getUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        // Use mock data instead of Supabase query
+        const mockProfile = mockProfiles.find(profile => profile.id === user.id);
+        
+        if (!mockProfile) {
+          toast({
+            title: 'Perfil não encontrado',
+            description: 'Perfil de usuário não encontrado',
+            variant: 'destructive'
+          });
+          navigate('/dashboard');
+        }
+      } catch (error: any) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
     if (user) {
       getUserProfile();
-      fetchProperties();
+      fetchMaterials();
     }
-  }, [user]);
+  }, [user, navigate, toast]);
 
-  const handleCreateProperty = () => {
-    navigate('/property/new');
+  const handleCreateMaterial = () => {
+    navigate('/material/new');
   };
 
-  const handleEditProperty = (id: string) => {
-    navigate(`/property/edit/${id}`);
+  const handleEditMaterial = (id: string) => {
+    navigate(`/material/edit/${id}`);
   };
 
-  const handleDeleteProperty = async () => {
-    if (!selectedPropertyId) return;
+  const handleDeleteMaterial = async () => {
+    if (!selectedMaterialId) return;
     
     try {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', selectedPropertyId);
+      // Simulated delete operation without Supabase
+      setMaterials(materials.filter(material => material.id !== selectedMaterialId));
       
-      if (error) throw error;
-      
-      setProperties(properties.filter(property => property.id !== selectedPropertyId));
       toast({
-        title: 'Imóvel excluído',
-        description: 'O imóvel foi excluído com sucesso.'
+        title: 'Material excluído',
+        description: 'O material foi excluído com sucesso.'
       });
     } catch (error: any) {
-      console.error('Error deleting property:', error);
+      console.error('Error deleting material:', error);
       toast({
-        title: 'Erro ao excluir imóvel',
+        title: 'Erro ao excluir material',
         description: error.message,
         variant: 'destructive'
       });
     } finally {
       setConfirmDialogOpen(false);
-      setSelectedPropertyId(null);
+      setSelectedMaterialId(null);
     }
   };
 
   const confirmDelete = (id: string) => {
-    setSelectedPropertyId(id);
+    setSelectedMaterialId(id);
     setConfirmDialogOpen(true);
   };
 
@@ -161,54 +154,50 @@ const PropertyManagement = () => {
     <MainLayout>
       <div className="container max-w-6xl py-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gerenciamento de Imóveis</h1>
-          <Button onClick={handleCreateProperty}>Adicionar Imóvel</Button>
+          <h1 className="text-3xl font-bold">Gerenciamento de Materiais</h1>
+          <Button onClick={handleCreateMaterial}>Adicionar Material</Button>
         </div>
 
         {loading ? (
           <div className="flex justify-center p-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : properties.length > 0 ? (
+        ) : materials.length > 0 ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Título</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Transação</TableHead>
+                  <TableHead>Disciplina</TableHead>
                   <TableHead>Preço</TableHead>
-                  <TableHead>Localização</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {properties.map((property) => (
-                  <TableRow key={property.id}>
-                    <TableCell className="font-medium">{property.title}</TableCell>
+                {materials.map((material) => (
+                  <TableRow key={material.id}>
+                    <TableCell className="font-medium">{material.title}</TableCell>
                     <TableCell>
-                      {property.type === 'apartment' ? 'Apartamento' :
-                       property.type === 'house' ? 'Casa' :
-                       property.type === 'commercial' ? 'Comercial' :
-                       property.type === 'land' ? 'Terreno' : 'Outro'}
+                      {material.type === 'plano_aula' ? 'Plano de Aula' : 
+                       material.type === 'atividade' ? 'Atividade' : 
+                       material.type === 'material_apoio' ? 'Material de Apoio' : 
+                       material.type === 'avaliacao' ? 'Avaliação' : material.type}
                     </TableCell>
+                    <TableCell>{material.subject}</TableCell>
+                    <TableCell>{formatCurrency(material.price)}</TableCell>
                     <TableCell>
-                      {property.transactionType === 'sale' ? 'Venda' : 'Aluguel'}
-                    </TableCell>
-                    <TableCell>{formatCurrency(property.price)}</TableCell>
-                    <TableCell>{`${property.location.city}, ${property.location.state}`}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${property.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {property.isActive ? 'Ativo' : 'Inativo'}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${material.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {material.isActive ? 'Ativo' : 'Inativo'}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEditProperty(property.id)}>
+                        <Button variant="outline" size="sm" onClick={() => handleEditMaterial(material.id)}>
                           Editar
                         </Button>
-                        <Button variant="destructive" size="sm" onClick={() => confirmDelete(property.id)}>
+                        <Button variant="destructive" size="sm" onClick={() => confirmDelete(material.id)}>
                           Excluir
                         </Button>
                       </div>
@@ -220,11 +209,11 @@ const PropertyManagement = () => {
           </div>
         ) : (
           <div className="text-center py-12 bg-muted rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">Nenhum imóvel cadastrado</h3>
+            <h3 className="text-xl font-semibold mb-2">Nenhum material cadastrado</h3>
             <p className="text-muted-foreground mb-4">
-              Clique no botão "Adicionar Imóvel" para cadastrar um novo imóvel.
+              Clique no botão "Adicionar Material" para cadastrar um novo material didático.
             </p>
-            <Button onClick={handleCreateProperty}>Adicionar Imóvel</Button>
+            <Button onClick={handleCreateMaterial}>Adicionar Material</Button>
           </div>
         )}
 
@@ -234,12 +223,12 @@ const PropertyManagement = () => {
             <DialogHeader>
               <DialogTitle>Confirmar exclusão</DialogTitle>
             </DialogHeader>
-            <p>Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.</p>
+            <p>Tem certeza que deseja excluir este material? Esta ação não pode ser desfeita.</p>
             <DialogFooter>
               <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button variant="destructive" onClick={handleDeleteProperty}>
+              <Button variant="destructive" onClick={handleDeleteMaterial}>
                 Excluir
               </Button>
             </DialogFooter>

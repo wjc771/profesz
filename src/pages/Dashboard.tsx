@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import DashboardStats from '@/components/dashboard/DashboardStats';
@@ -27,7 +28,7 @@ const Dashboard = () => {
         id: user.id || 'mock-id',
         email: user.email || 'mock@example.com',
         name: 'Usuário ProfeXpress',
-        type: 'professor',
+        type: 'professor' as UserType,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -120,7 +121,7 @@ const Dashboard = () => {
 
         {/* Stats */}
         <div className="mb-8">
-          <DashboardStats userType={userProfile?.type || 'buyer'} />
+          <DashboardStats userType={userProfile?.type || 'professor'} />
         </div>
         <div className="space-y-6">{renderDashboardContent()}</div>
       </div>

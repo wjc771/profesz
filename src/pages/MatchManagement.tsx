@@ -6,97 +6,100 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { PropertyMatch, PropertyType, TransactionType } from '@/types/property';
+
+interface MaterialMatch {
+  id: string;
+  materialId: string;
+  teacherId: string;
+  score: number;
+  createdAt: string;
+  viewed: boolean;
+  contacted: boolean;
+  material?: {
+    id: string;
+    title: string;
+    type: string;
+    category: string;
+    gradeLevel: string;
+    author: string;
+    subject: string
+  };
+}
 
 const MatchManagement = () => {
-  const [matches, setMatches] = useState<PropertyMatch[]>([]);
+  const [matches, setMatches] = useState<MaterialMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const fetchMatches = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('property_matches')
-        .select(`
-          *,
-          property:property_id (
-            id, title, type, transaction_type, price, 
-            address, city, state, neighborhood
-          )
-        `);
-      
-      if (error) throw error;
-      
-      // Transform the data to match the PropertyMatch type
-      const transformedData: PropertyMatch[] = data.map(item => ({
-        id: item.id,
-        propertyId: item.property_id,
-        demandId: item.demand_id,
-        score: item.score,
-        createdAt: item.created_at,
-        viewed: item.viewed,
-        contacted: item.contacted,
-        property: item.property ? {
-          id: item.property.id,
-          title: item.property.title,
-          type: item.property.type as PropertyType,
-          transactionType: item.property.transaction_type as TransactionType,
-          price: item.property.price,
-          location: {
-            address: item.property.address,
-            neighborhood: item.property.neighborhood,
-            city: item.property.city,
-            state: item.property.state,
-            zipCode: '',
-            lat: null,
-            lng: null
-          },
-          description: '',
-          features: {
-            bedrooms: 0,
-            bathrooms: 0,
-            parkingSpaces: 0,
-            area: 0
-          },
-          images: [],
-          ownerId: '',
-          createdAt: '',
-          updatedAt: '',
-          isActive: true
-        } : undefined
-      }));
-      
-      setMatches(transformedData);
-    } catch (error: any) {
-      console.error('Error fetching matches:', error);
-      toast({
-        title: 'Erro ao carregar matches',
-        description: error.message,
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    // Simulated data fetch with mock data
+    const fetchMatches = async () => {
+      setLoading(true);
+      
+      try {
+        // Mock data instead of Supabase query
+        const mockMatches: MaterialMatch[] = [
+          {
+            id: "m1",
+            materialId: "material1",
+            teacherId: "teacher1",
+            score: 95,
+            createdAt: new Date().toISOString(),
+            viewed: false,
+            contacted: false,
+            material: {
+              id: "material1",
+              title: "Plano de Aula: Fundamentos de Matemática",
+              type: "lesson_plan",
+              category: "mathematics",
+              gradeLevel: "fundamental",
+              author: "Prof. Carlos Silva",
+              subject: "Matemática"
+            }
+          },
+          {
+            id: "m2",
+            materialId: "material2",
+            teacherId: "teacher2",
+            score: 78,
+            createdAt: new Date().toISOString(),
+            viewed: true,
+            contacted: false,
+            material: {
+              id: "material2",
+              title: "Atividade: Células e Tecidos",
+              type: "activity",
+              category: "biology",
+              gradeLevel: "médio",
+              author: "Profa. Ana Costa",
+              subject: "Biologia"
+            }
+          }
+        ];
+        
+        setMatches(mockMatches);
+      } catch (error: any) {
+        console.error('Error fetching matches:', error);
+        toast({
+          title: 'Erro ao carregar matches',
+          description: error.message,
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchMatches();
-  }, []);
+  }, [toast]);
 
   const handleMarkAsViewed = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('property_matches')
-        .update({ viewed: true })
-        .eq('id', id);
-      
-      if (error) throw error;
-      
+      // Simulated API call without Supabase
+      // Update local state only for demonstration
       setMatches(matches.map(match => 
         match.id === id ? { ...match, viewed: true } : match
       ));
@@ -116,13 +119,8 @@ const MatchManagement = () => {
 
   const handleMarkAsContacted = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('property_matches')
-        .update({ contacted: true })
-        .eq('id', id);
-      
-      if (error) throw error;
-      
+      // Simulated API call without Supabase
+      // Update local state only for demonstration
       setMatches(matches.map(match => 
         match.id === id ? { ...match, contacted: true } : match
       ));
@@ -144,14 +142,10 @@ const MatchManagement = () => {
     if (!selectedMatchId) return;
     
     try {
-      const { error } = await supabase
-        .from('property_matches')
-        .delete()
-        .eq('id', selectedMatchId);
-      
-      if (error) throw error;
-      
+      // Simulated delete without Supabase
+      // Update local state only for demonstration
       setMatches(matches.filter(match => match.id !== selectedMatchId));
+      
       toast({
         title: 'Match excluído',
         description: 'O match foi excluído com sucesso.'
@@ -174,13 +168,13 @@ const MatchManagement = () => {
     setConfirmDialogOpen(true);
   };
 
-  const viewPropertyDetails = (propertyId: string | undefined) => {
-    if (propertyId) {
-      navigate(`/property/${propertyId}`);
+  const viewMaterialDetails = (materialId: string | undefined) => {
+    if (materialId) {
+      navigate(`/material/${materialId}`);
     } else {
       toast({
-        title: 'Propriedade não disponível',
-        description: 'Os detalhes desta propriedade não estão disponíveis.',
+        title: 'Material não disponível',
+        description: 'Os detalhes deste material não estão disponíveis.',
         variant: 'destructive'
       });
     }
@@ -202,7 +196,7 @@ const MatchManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Imóvel</TableHead>
+                  <TableHead>Material</TableHead>
                   <TableHead>Score</TableHead>
                   <TableHead>Criado em</TableHead>
                   <TableHead>Status</TableHead>
@@ -213,12 +207,12 @@ const MatchManagement = () => {
                 {matches.map((match) => (
                   <TableRow key={match.id}>
                     <TableCell>
-                      {match.property ? (
-                        <div className="cursor-pointer hover:underline" onClick={() => viewPropertyDetails(match.propertyId)}>
-                          {match.property.title}
+                      {match.material ? (
+                        <div className="cursor-pointer hover:underline" onClick={() => viewMaterialDetails(match.materialId)}>
+                          {match.material.title}
                         </div>
                       ) : (
-                        <span className="text-gray-500">Imóvel não disponível</span>
+                        <span className="text-gray-500">Material não disponível</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -269,7 +263,7 @@ const MatchManagement = () => {
           <div className="text-center py-12 bg-muted rounded-lg">
             <h3 className="text-xl font-semibold mb-2">Nenhum match encontrado</h3>
             <p className="text-muted-foreground mb-4">
-              Os matches são gerados automaticamente quando há correspondência entre imóveis e demandas.
+              Os matches são gerados automaticamente quando há correspondência entre materiais e perfis de professores.
             </p>
           </div>
         )}

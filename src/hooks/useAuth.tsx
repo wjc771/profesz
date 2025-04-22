@@ -1,15 +1,17 @@
+
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
+import { UserType } from '@/types/profile';
 
 type AuthContextType = {
   session: Session | null;
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string, userType: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, userType: UserType) => Promise<void>;
   signOut: () => Promise<void>;
   checkCurrentUser: () => Promise<User | null>;
 };
@@ -49,7 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       toast({
         title: 'Login realizado com sucesso',
-        description: 'Bem-vindo de volta ao MatchImobiliário!'
+        description: 'Bem-vindo de volta ao ProfeXpress!'
       });
       
       navigate('/dashboard');
@@ -63,9 +65,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, userType: string) => {
+  const signUp = async (email: string, password: string, name: string, userType: UserType) => {
     try {
-      const validTypes = ['professor', 'instituicao'];
+      const validTypes: UserType[] = ['professor', 'instituicao'];
       if (!validTypes.includes(userType)) {
         throw new Error('Tipo de usuário inválido');
       }

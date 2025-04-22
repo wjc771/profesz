@@ -5,8 +5,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { seedPropertiesFromMockData } from '@/utils/databaseSeed';
 import MainLayout from '@/components/layout/MainLayout';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { mockProfiles } from '@/lib/mockData';
 
 const DatabaseSeed = () => {
   const { user } = useAuth();
@@ -23,17 +23,10 @@ const DatabaseSeed = () => {
       }
       
       try {
-        // Verifica se o usuário atual tem perfil do tipo "owner" ou superior
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('type')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) throw error;
+        // Use mock data instead of Supabase query
+        const mockProfile = mockProfiles.find(profile => profile.id === user.id);
         
-        // Apenas admin poderia fazer isso numa aplicação real
-        // Como isso é uma ferramenta de demonstração, permitimos qualquer tipo de usuário
+        // For demo purposes, allow any user type
         setIsAuthorized(true);
         
       } catch (error) {
@@ -93,16 +86,16 @@ const DatabaseSeed = () => {
         
         <div className="space-y-6">
           <div className="p-6 border rounded-lg bg-card">
-            <h2 className="text-2xl font-semibold mb-4">Imóveis</h2>
+            <h2 className="text-2xl font-semibold mb-4">Materiais Didáticos</h2>
             <p className="mb-4 text-muted-foreground">
-              Insere os imóveis de demonstração no banco de dados, atribuindo-os aos usuários existentes
-              do tipo proprietário, corretor ou imobiliária.
+              Insere os materiais didáticos de demonstração no banco de dados, atribuindo-os aos usuários existentes
+              do tipo professor ou instituição.
             </p>
             <Button
               onClick={handleSeedProperties}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              Adicionar Imóveis ao Banco
+              Adicionar Materiais ao Banco
             </Button>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
+import { mockProfiles } from "@/lib/mockData";
 
 export default function Header() {
   const { user, signOut } = useAuth();
@@ -52,15 +53,17 @@ export default function Header() {
     try {
       if (!user) return;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      // Instead of querying Supabase, use mockProfiles
+      const mockProfile = mockProfiles.find(profile => profile.id === user.id) || {
+        id: user.id,
+        email: user.email,
+        name: user.email?.split('@')[0] || 'Usuário',
+        type: 'professor',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       
-      if (error) throw error;
-      
-      setProfileData(data);
+      setProfileData(mockProfile);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -75,17 +78,17 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-10">
           <Link to={user ? "/dashboard" : "/"} className="font-bold text-xl flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground p-1 rounded">MI</span>
-            MatchImobiliário
+            <span className="bg-primary text-primary-foreground p-1 rounded">PE</span>
+            ProfeXpress
           </Link>
 
           {!isMobile && (
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <Link to={user ? "/swipe" : "/"}>
+                  <Link to={user ? "/dashboard" : "/"}>
                     <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                      Swipe
+                      Explorar
                     </NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
@@ -95,13 +98,6 @@ export default function Header() {
                       <Link to="/dashboard">
                         <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
                           Dashboard
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                    <NavigationMenuItem>
-                      <Link to="/property-preferences">
-                        <NavigationMenuLink className="group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50">
-                          Perfil de Busca
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
@@ -139,7 +135,7 @@ export default function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={profileData?.avatar_url || ""} />
+                        <AvatarImage src={profileData?.avatarUrl || ""} />
                         <AvatarFallback className="text-xs">
                           {profileData?.name ? profileData.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'}
                         </AvatarFallback>
@@ -163,12 +159,6 @@ export default function Header() {
                       <DropdownMenuItem className="cursor-pointer">
                         <Building className="mr-2 h-4 w-4" />
                         <span>Dashboard</span>
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link to="/property-preferences">
-                      <DropdownMenuItem className="cursor-pointer">
-                        <Search className="mr-2 h-4 w-4" />
-                        <span>Perfil de Busca</span>
                       </DropdownMenuItem>
                     </Link>
                     <DropdownMenuSeparator />
