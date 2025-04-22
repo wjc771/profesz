@@ -1,22 +1,16 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import DashboardSidebar from "@/components/layout/DashboardSidebar";
-import { PlanIndicator } from "@/components/dashboard/PlanIndicator";
-import { UserCircle, Bell, MessageSquare, Layers, Star, Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PlanIndicator } from "@/components/dashboard/PlanIndicator";
+import { Bell, UserCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const quickActions = [
-  { label: "Novo Plano de Aula", icon: "book", to: "/dashboard/planos", locked: false },
-  { label: "Novo Material", icon: "layers", to: "/dashboard/materiais", locked: true },
-  { label: "Nova Avaliação", icon: "star", to: "/dashboard/avaliacoes", locked: true },
-  { label: "Comunicar", icon: "message-square", to: "/dashboard/comunicacao", locked: false }
-];
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [userName, setUserName] = useState<string>("Usuário");
 
   useEffect(() => {
@@ -25,115 +19,139 @@ const Dashboard = () => {
     }
   }, [user]);
 
+  // Dados simples para os cards principais
+  const quickActions = [
+    { label: "Novo Plano", icon: "book", to: "/dashboard/planos", locked: false },
+    { label: "Nova Avaliação", icon: "star", to: "/dashboard/avaliacoes", locked: true },
+    { label: "Material", icon: "layers", to: "/dashboard/materiais", locked: true },
+    { label: "Comunicar", icon: "message-square", to: "/dashboard/comunicacao", locked: false }
+  ];
+
+  // Ícones do lucide-react: apenas os permitidos!
+  const iconMap: Record<string, JSX.Element> = {
+    book: <span className="inline align-middle">{/* Book icon */}
+      <svg width="20" height="20"><use href="#lucide-book" /></svg>
+    </span>,
+    star: <span className="inline align-middle">
+      <svg width="20" height="20"><use href="#lucide-star" /></svg>
+    </span>,
+    layers: <span className="inline align-middle">
+      <svg width="20" height="20"><use href="#lucide-layers" /></svg>
+    </span>,
+    "message-square": <span className="inline align-middle">
+      <svg width="20" height="20"><use href="#lucide-message-square" /></svg>
+    </span>
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="w-full border-b border-border bg-background flex items-center justify-between px-0 md:px-8 h-16">
+      <header className="w-full border-b border-border bg-background flex items-center justify-between px-4 md:px-12 h-16">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 font-black text-xl text-primary pl-4 md:pl-0">
+          <span className="flex items-center gap-2 font-black text-xl text-primary">
             <span className="bg-primary text-primary-foreground px-2 py-1 rounded-lg">PX</span>
             <span className="hidden md:inline">ProfeXpress</span>
           </span>
           <PlanIndicator plan="Plano Básico" />
         </div>
-        <nav aria-label="Menu principal" className="flex items-center gap-2 md:gap-4 mx-auto">
+        <nav className="flex items-center gap-2">
           <Button size="icon" variant="ghost" aria-label="Notificações">
             <Bell />
-            <span className="sr-only">Notificações</span>
           </Button>
           <Button size="icon" variant="ghost" aria-label="Perfil do usuário">
             <UserCircle />
-            <span className="sr-only">Perfil</span>
           </Button>
         </nav>
-        <div className="pr-4 md:pr-0">
-          <span className="text-xs text-muted-foreground">Bem-vindo(a), {userName}!</span>
-        </div>
       </header>
-      <div className="flex-1 flex flex-col md:flex-row bg-muted/30">
-        <DashboardSidebar />
-        <main className="flex-1 flex flex-col pt-6 px-2 md:px-8 pb-8" tabIndex={-1}>
-          <section aria-labelledby="atividades-recentes" className="mb-8">
-            <h2 id="atividades-recentes" className="font-bold text-lg mb-2">Atividades recentes</h2>
-            <div className="rounded-lg border border-border bg-card p-4 min-h-[64px] flex items-center text-muted-foreground">
-              Nenhuma atividade recente encontrada ainda.
-            </div>
-          </section>
 
-          <section aria-labelledby="favoritos-mais-usados" className="mb-8">
-            <h2 id="favoritos-mais-usados" className="font-bold text-lg mb-2">Recursos favoritos e mais usados</h2>
-            <div className="flex flex-wrap gap-3">
-              <div className="rounded-lg border border-border bg-card p-3 min-w-[140px] flex items-center gap-2 aria-disabled:opacity-60">
-                <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs">Planos de Aula</span>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-3 min-w-[140px] flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs">Materiais</span>
-                <span className="ml-2 text-muted-foreground"><svg aria-label="Recurso bloqueado" width="16" height="16" fill="none"><g><circle cx="8" cy="8" r="7" stroke="#EA384C" strokeWidth="2"/><rect x="6" y="7" width="4" height="5" rx="1" fill="#EA384C"/><rect x="6.5" y="4" width="3" height="3" rx="1.5" stroke="#EA384C" strokeWidth="1"/></g></svg></span>
-              </div>
-            </div>
-          </section>
+      <main className="flex-1 w-full max-w-5xl mx-auto py-4 md:py-12 px-2 md:px-8">
+        {/* Boas-vindas */}
+        <section className="mb-4 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-bold mb-1 mobile-heading">
+            Olá, {userName} 👋
+          </h1>
+          <p className="text-muted-foreground mobile-text">
+            Bem-vindo ao seu painel educativo. Aqui você encontra suas principais ferramentas e recursos favoritos.
+          </p>
+        </section>
 
-          <section aria-labelledby="status-uso" className="mb-8">
-            <h2 id="status-uso" className="font-bold text-lg mb-2">Status do uso</h2>
-            <div className="rounded-lg border border-border bg-card p-4 flex flex-col gap-2">
-              <span aria-live="polite">Tokens restantes: <b>980</b> / 1000</span>
-              <span aria-live="polite">Créditos de IA: <b>5</b> / 10</span>
-              <Button variant="outline" size="sm" className="mt-2 w-fit">Ver detalhes do plano</Button>
-            </div>
-          </section>
+        {/* Quick Actions em carrossel horizontal no mobile */}
+        <section className="mb-5">
+          <div className={`flex gap-3 overflow-x-auto pb-2 ${isMobile ? "" : "justify-start"}`}>
+            {quickActions.map(({ label, icon, to, locked }) => (
+              <Button
+                asChild
+                key={label}
+                variant={locked ? "outline" : "default"}
+                className={
+                  `flex flex-col items-center justify-center p-4 min-w-[120px] rounded-xl
+                  text-xs font-semibold shadow-sm transition-transform duration-200 hover:scale-105
+                  ${locked ? "opacity-50 cursor-not-allowed" : ""}`
+                }
+                aria-disabled={locked}
+                disabled={locked}
+              >
+                <a href={to}>
+                  <div className="mb-1">
+                    {/* SVG sprite icons: você pode substituir por import, mas só quatros estão disponíveis */}
+                    {icon === "book" && <svg id="lucide-book" width="20" height="20" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24"><path d="M2 19a2 2 0 0 1 2-2h14V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2Z"/><path d="M22 19V5a2 2 0 0 0-2-2h-7"/><path d="M2 19v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2Z"/></svg>}
+                    {icon === "star" && <svg id="lucide-star" width="20" height="20" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>}
+                    {icon === "layers" && <svg id="lucide-layers" width="20" height="20" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></svg>}
+                    {icon === "message-square" && <svg id="lucide-message-square" width="20" height="20" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" /></svg>}
+                  </div>
+                  <span>{label}</span>
+                  {locked && (
+                    <span className="ml-1 text-muted-foreground">(em breve)</span>
+                  )}
+                </a>
+              </Button>
+            ))}
+          </div>
+        </section>
 
-          <section aria-labelledby="dicas-contextuais" className="mb-8">
-            <h2 id="dicas-contextuais" className="font-bold text-lg mb-2">Dicas rápidas</h2>
-            <ul className="list-disc ml-6 text-muted-foreground text-sm">
-              <li>Use recursos favoritos para acesso rápido.</li>
+        {/* Cards principais, responsivos e clean */}
+        <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 mb-6">
+          <div className="bg-card rounded-xl shadow-sm p-4 flex flex-col gap-2 min-h-[120px]">
+            <h2 className="font-semibold text-base mb-2">Atividades recentes</h2>
+            <small className="text-muted-foreground">Nenhuma atividade recente ainda.</small>
+          </div>
+          <div className="bg-card rounded-xl shadow-sm p-4 flex flex-col gap-2 min-h-[120px]">
+            <h2 className="font-semibold text-base mb-2">Recursos favoritos</h2>
+            <small className="text-muted-foreground">Você ainda não adicionou favoritos.</small>
+          </div>
+          <div className="bg-card rounded-xl shadow-sm p-4 flex flex-col gap-2 min-h-[120px] col-span-1 md:col-span-2 xl:col-span-1">
+            <h2 className="font-semibold text-base mb-2">Status do plano</h2>
+            <span className="text-muted-foreground">Tokens restantes: <b>980</b> | Créditos de IA: <b>5</b></span>
+          </div>
+        </section>
+
+        {/* Dicas rápidas - clean e compacta */}
+        <section className="mb-4 md:mb-8">
+          <div className="bg-secondary rounded-xl shadow p-4 flex flex-col gap-2">
+            <h2 className="font-semibold text-base mb-1">Dicas rápidas</h2>
+            <ul className="list-disc ml-5 text-muted-foreground text-sm space-y-1">
+              <li>Use favoritos para acessar recursos rapidamente.</li>
               <li>Complete seu perfil para recomendações personalizadas.</li>
-              <li>Planeje suas aulas e receba insights automáticos.</li>
+              <li>Planeje suas aulas e receba sugestões inteligentes.</li>
             </ul>
-          </section>
+          </div>
+        </section>
 
-          <section aria-labelledby="notificacoes-importantes" className="mb-8">
-            <h2 id="notificacoes-importantes" className="font-bold text-lg mb-2">Notificações importantes</h2>
-            <div className="rounded-lg border border-border bg-card p-4 text-muted-foreground">
-              Nenhuma notificação nova.
-            </div>
-          </section>
+        {/* Notificações importantes - oculto no mobile se vazio */}
+        <section className={`${isMobile ? "hidden" : "mb-4"}`}>
+          <div className="bg-card rounded-xl shadow-sm p-4 text-muted-foreground">
+            Nenhuma notificação nova.
+          </div>
+        </section>
 
-          <section aria-labelledby="acesso-rapido">
-            <h2 id="acesso-rapido" className="font-bold text-lg mb-2">Acesso rápido</h2>
-            <div className="flex flex-wrap gap-4 mb-2">
-              {quickActions.map(({ label, icon, to, locked }) => (
-                <Button
-                  asChild
-                  key={label}
-                  variant={locked ? "outline" : "default"}
-                  className={
-                    `flex items-center gap-2` +
-                    (locked ? " opacity-50 cursor-not-allowed" : "")
-                  }
-                  aria-disabled={locked}
-                  disabled={locked}
-                >
-                  <a href={to}>
-                    <span className="sr-only">{label}</span>
-                    {icon === "book" && <span aria-hidden="true"><svg width="18" height="18" className="inline align-middle"><Book /></svg></span>}
-                    {icon === "layers" && <span aria-hidden="true"><svg width="18" height="18" className="inline align-middle"><Layers /></svg></span>}
-                    {icon === "star" && <span aria-hidden="true"><svg width="18" height="18" className="inline align-middle"><Star /></svg></span>}
-                    {icon === "message-square" && <span aria-hidden="true"><svg width="18" height="18" className="inline align-middle"><MessageSquare /></svg></span>}
-                    <span>{label}</span>
-                    {locked && (
-                      <span className="ml-1" aria-label="Bloqueado">
-                        <svg aria-label="Recurso bloqueado" width="16" height="16" fill="none"><g><circle cx="8" cy="8" r="7" stroke="#EA384C" strokeWidth="2"/><rect x="6" y="7" width="4" height="5" rx="1" fill="#EA384C"/><rect x="6.5" y="4" width="3" height="3" rx="1.5" stroke="#EA384C" strokeWidth="1"/></g></svg>
-                      </span>
-                    )}
-                  </a>
-                </Button>
-              ))}
-            </div>
-            <div className="mt-2 text-xs text-muted-foreground">
+        {/* Projetos recentes - oculto no mobile por minimalismo */}
+        {!isMobile && (
+          <section className="mb-4">
+            <div className="text-xs text-muted-foreground">
               <b>Projetos recentes:</b> (em breve: listagem dos últimos planos/materiais criados)
             </div>
           </section>
-        </main>
-      </div>
+        )}
+      </main>
     </div>
   );
 };
