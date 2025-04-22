@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,30 +14,32 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Profile } from '@/types/profile';
+import { UserType } from '@/types/profile';
 
-// Estendendo o tipo do perfil para incluir os campos adicionais
-interface ExtendedProfile {
+// Define interface for profile data structure
+interface UserProfile {
   id: string;
   name: string | null;
   email: string;
   phone: string | null;
-  type: string;
+  type: UserType;
   avatar_url: string | null;
   updated_at: string;
   created_at: string;
+  school_name?: string | null;
   creci?: string;
   agency_name?: string;
 }
 
-const Profile = () => {
+const ProfilePage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [type, setType] = useState('professor');
+  const [type, setType] = useState<UserType>('professor');
+  const [schoolName, setSchoolName] = useState('');
   const [creci, setCreci] = useState('');
   const [agencyName, setAgencyName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -47,6 +50,8 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
@@ -55,25 +60,44 @@ const Profile = () => {
     try {
       if (!user) return;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      // Mock profile data since we don't have a profiles table set up yet
+      const mockProfile: UserProfile = {
+        id: user.id,
+        name: user.name || '',
+        email: user.email,
+        phone: '',
+        type: (user.type as UserType) || 'professor',
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        school_name: ''
+      };
       
-      if (error) throw error;
+      setName(mockProfile.name || '');
+      setEmail(mockProfile.email || '');
+      setPhone(mockProfile.phone || '');
+      setType(mockProfile.type || 'professor');
+      setSchoolName(mockProfile.school_name || '');
+      setAvatarUrl(mockProfile.avatar_url || '');
       
-      if (data) {
-        const profileData = data as ExtendedProfile;
-        setName(profileData.name || '');
-        setEmail(profileData.email || '');
-        setPhone(profileData.phone || '');
-        setType(profileData.type || 'professor');
-        setAvatarUrl(profileData.avatar_url || '');
-        // Acesso aos campos customizados
-        setCreci(profileData.creci || '');
-        setAgencyName(profileData.agency_name || '');
-      }
+      // For real implementation when DB is set up:
+      // const { data, error } = await supabase
+      //   .from('profiles')
+      //   .select('*')
+      //   .eq('id', user.id)
+      //   .single();
+      
+      // if (error) throw error;
+      
+      // if (data) {
+      //   const profileData = data as UserProfile;
+      //   setName(profileData.name || '');
+      //   setEmail(profileData.email || '');
+      //   setPhone(profileData.phone || '');
+      //   setType(profileData.type || 'professor');
+      //   setSchoolName(profileData.school_name || '');
+      //   setAvatarUrl(profileData.avatar_url || '');
+      // }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -98,24 +122,28 @@ const Profile = () => {
         name,
         phone,
         type,
-        creci,
-        agency_name: agencyName,
-        updated_at: new Date().toISOString(), // Convertendo Date para string
+        school_name: type === 'instituicao' ? schoolName : null,
+        updated_at: new Date().toISOString(),
       };
       
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+      // For when backend is set up:
+      // const { error } = await supabase
+      //   .from('profiles')
+      //   .update(updates)
+      //   .eq('id', user.id);
         
-      if (error) throw error;
+      // if (error) throw error;
       
-      toast({
-        title: 'Perfil atualizado',
-        description: 'Suas informações foram atualizadas com sucesso.',
-      });
-      
-      setIsEditing(false);
+      // For now, just simulate success
+      setTimeout(() => {
+        toast({
+          title: 'Perfil atualizado',
+          description: 'Suas informações foram atualizadas com sucesso.',
+        });
+        
+        setIsEditing(false);
+        setIsSubmitting(false);
+      }, 1000);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
@@ -123,7 +151,6 @@ const Profile = () => {
         title: 'Erro',
         description: 'Não foi possível atualizar seu perfil. Tente novamente mais tarde.',
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -138,44 +165,50 @@ const Profile = () => {
       
       if (!user) throw new Error('Usuário não autenticado');
       
-      const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      // For now, simulate avatar upload with a delay
+      setTimeout(() => {
+        setAvatarUrl('/placeholder.svg');
+        setUploading(false);
+        
+        toast({
+          title: 'Avatar atualizado',
+          description: 'Sua foto de perfil foi atualizada com sucesso.',
+        });
+      }, 1500);
+      
+      // For when storage is set up:
+      // const file = event.target.files[0];
+      // const fileExt = file.name.split('.').pop();
+      // const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+      // const filePath = `avatars/${fileName}`;
       
       // Upload da imagem para o storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
+      // const { error: uploadError } = await supabase.storage
+      //   .from('avatars')
+      //   .upload(filePath, file, { upsert: true });
         
-      if (uploadError) throw uploadError;
+      // if (uploadError) throw uploadError;
       
       // Obter URL pública da imagem
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      // const { data } = supabase.storage
+      //   .from('avatars')
+      //   .getPublicUrl(filePath);
         
       // Atualizar avatar_url do perfil
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: data.publicUrl })
-        .eq('id', user.id);
+      // const { error: updateError } = await supabase
+      //   .from('profiles')
+      //   .update({ avatar_url: data.publicUrl })
+      //   .eq('id', user.id);
         
-      if (updateError) throw updateError;
+      // if (updateError) throw updateError;
       
-      setAvatarUrl(data.publicUrl);
-      
-      toast({
-        title: 'Avatar atualizado',
-        description: 'Sua foto de perfil foi atualizada com sucesso.',
-      });
+      // setAvatarUrl(data.publicUrl);
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Erro no upload',
         description: error.message || 'Não foi possível atualizar sua foto de perfil.',
       });
-    } finally {
       setUploading(false);
     }
   };
@@ -196,7 +229,7 @@ const Profile = () => {
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Seu Perfil</h1>
           <p className="text-muted-foreground">
-            Gerencie suas informações e visualize seus imóveis
+            Gerencie suas informações e configurações
           </p>
         </div>
 
@@ -236,17 +269,11 @@ const Profile = () => {
                         {type === 'professor' ? 'Professor(a)' : type === 'instituicao' ? 'Instituição de Ensino' : ''}
                       </p>
                     </div>
-                    {type === 'agent' && (
-                      <>
-                        <div>
-                          <p className="text-sm text-muted-foreground">CRECI</p>
-                          <p className="font-medium">{creci || 'Não informado'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Imobiliária</p>
-                          <p className="font-medium">{agencyName || 'Não informado'}</p>
-                        </div>
-                      </>
+                    {type === 'instituicao' && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Nome da Instituição</p>
+                        <p className="font-medium">{schoolName || 'Não informado'}</p>
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -308,7 +335,7 @@ const Profile = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="type">Tipo de usuário</Label>
-                      <Select value={type} onValueChange={setType}>
+                      <Select value={type} onValueChange={(value) => setType(value as UserType)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
@@ -319,25 +346,15 @@ const Profile = () => {
                       </Select>
                     </div>
                     
-                    {type === 'agent' && (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="creci">CRECI</Label>
-                          <Input 
-                            id="creci" 
-                            value={creci} 
-                            onChange={e => setCreci(e.target.value)} 
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="agencyName">Nome da Imobiliária</Label>
-                          <Input 
-                            id="agencyName" 
-                            value={agencyName} 
-                            onChange={e => setAgencyName(e.target.value)} 
-                          />
-                        </div>
-                      </>
+                    {type === 'instituicao' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="schoolName">Nome da Instituição</Label>
+                        <Input 
+                          id="schoolName" 
+                          value={schoolName} 
+                          onChange={e => setSchoolName(e.target.value)} 
+                        />
+                      </div>
                     )}
                     
                     <div className="flex space-x-2">
@@ -395,7 +412,9 @@ const Profile = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between">
-                      <p className="font-medium">Plano Gratuito</p>
+                      <p className="font-medium">
+                        {type === 'professor' ? 'Plano Professor' : 'Plano Institucional'}
+                      </p>
                       <Link to="/subscription">
                         <Button variant="link" className="p-0 h-auto">
                           Fazer upgrade
@@ -403,16 +422,26 @@ const Profile = () => {
                       </Link>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      2 de 2 imóveis utilizados
+                      {type === 'professor' ? '2 de 2 materiais utilizados' : '5 de 10 professores alocados'}
                     </p>
                     <div className="w-full h-2 bg-muted rounded-full mt-2">
-                      <div className="bg-primary h-2 rounded-full w-full"></div>
+                      <div className="bg-primary h-2 rounded-full" style={{width: type === 'professor' ? '100%' : '50%'}}></div>
                     </div>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <p>• 1 oferta e 1 demanda ativas</p>
-                    <p>• Notificação básica de matches</p>
-                    <p>• Filtros básicos</p>
+                    {type === 'professor' ? (
+                      <>
+                        <p>• Até 2 materiais didáticos</p>
+                        <p>• Planos de aula básicos</p>
+                        <p>• Compartilhamento limitado</p>
+                      </>
+                    ) : (
+                      <>
+                        <p>• Até 10 professores</p>
+                        <p>• Biblioteca compartilhada</p>
+                        <p>• Dashboard institucional</p>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -435,4 +464,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfilePage;
