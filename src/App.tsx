@@ -11,7 +11,7 @@ const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile'));
-const PropertyForm = lazy(() => import('./pages/PropertyForm'));
+// const PropertyForm = lazy(() => import('./pages/PropertyForm')); // REMOVIDO!
 const PropertyDetails = lazy(() => import('./pages/PropertyDetails'));
 const PropertyManagement = lazy(() => import('./pages/PropertyManagement'));
 const DemandForm = lazy(() => import('./pages/DemandForm'));
@@ -83,8 +83,8 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/property/new" element={<PropertyForm />} />
-              <Route path="/property/edit/:id" element={<PropertyForm />} />
+              {/* <Route path="/property/new" element={<PropertyForm />} /> */}
+              {/* <Route path="/property/edit/:id" element={<PropertyForm />} /> */}
               <Route path="/property/:id" element={<PropertyDetails />} />
               <Route path="/property-management" element={<PropertyManagement />} />
               <Route path="/demand/new" element={<DemandForm />} />
