@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,7 +51,7 @@ const Settings = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
             <p className="text-muted-foreground">
-              Gerencie suas preferências de conta {user?.type === 'professor' ? 'de Professor(a)' : user?.type === 'instituicao' ? 'de Instituição de Ensino' : ''}
+              Gerencie suas preferências de conta {user?.subscriptionPlanId ? (user?.subscriptionPlanId === 'professor' ? 'de Professor(a)' : user?.subscriptionPlanId === 'instituicao' ? 'de Instituição de Ensino' : '') : ''}
             </p>
           </div>
 
