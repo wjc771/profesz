@@ -1,6 +1,4 @@
 
-// Ajuste nos tipos para novo contexto ProfeXpress
-
 export type UserType = 'professor' | 'instituicao';
 
 export type SubscriptionPlanType = 'inicial' | 'essencial' | 'maestro' | 'institucional';
@@ -15,9 +13,9 @@ export interface Profile {
   updatedAt: string;
   subscriptionPlanId?: SubscriptionPlanType;
   avatarUrl?: string | null;
-  // Campos extras para instituição
   schoolName?: string | null;
 }
+
 export interface SessionUser {
   id: string;
   email: string;
