@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 const loginSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
   password: z.string().min(1, { message: 'Senha é obrigatória' }),
+  type: z.enum(['professor', 'instituicao']).optional()
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -46,7 +46,6 @@ const Login = () => {
 
     try {
       await signIn(data.email, data.password);
-      // Navegação é feita dentro da função signIn
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Falha ao fazer login. Verifique suas credenciais e tente novamente.');
@@ -59,9 +58,9 @@ const Login = () => {
     <div className="container flex items-center justify-center min-h-screen py-10">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Bem-vindo de volta</CardTitle>
+          <CardTitle className="text-2xl font-bold">Bem-vindo de volta ao ProfeXpress</CardTitle>
           <CardDescription>
-            Entre com sua conta para continuar
+            Entre com seu email cadastrado para acessar o ProfeXpress
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -123,7 +122,7 @@ const Login = () => {
           </Form>
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-card px-2 text-muted-foreground">Ou continue com</span>
@@ -136,7 +135,7 @@ const Login = () => {
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
-            Não tem uma conta?{' '}
+            Ainda não tem conta?{' '}
             <Link to="/register" className="text-primary hover:underline">
               Cadastre-se
             </Link>

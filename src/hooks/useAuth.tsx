@@ -1,4 +1,3 @@
-
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +24,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Configurar o listener de estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -34,7 +32,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Verificar se já existe uma sessão ativa
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -68,14 +65,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, name: string, userType: string) => {
     try {
-      // Validate user type to ensure it's one of the allowed values
-      const validTypes = ['owner', 'buyer', 'agent', 'agency'];
-      
+      const validTypes = ['professor', 'instituicao'];
       if (!validTypes.includes(userType)) {
         throw new Error('Tipo de usuário inválido');
       }
       
-      // Log registration attempt for debugging
       console.log('Attempting to register user with type:', userType);
       
       const { error } = await supabase.auth.signUp({ 

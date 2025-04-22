@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import DashboardStats from '@/components/dashboard/DashboardStats';
@@ -23,32 +22,19 @@ const Dashboard = () => {
     const fetchUserProfile = async () => {
       if (!user) return;
 
-      try {
-        console.log("Fetching user profile would happen here");
-        
-        // Mock user profile during restructuring
-        const mockProfile: Profile = {
-          id: user.id || 'mock-id',
-          email: user.email || 'mock@example.com',
-          name: 'Mock User',
-          type: 'buyer' as UserType,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+      // Adaptação exemplo para tipos ProfeXpress
+      const mockProfile: Profile = {
+        id: user.id || 'mock-id',
+        email: user.email || 'mock@example.com',
+        name: 'Usuário ProfeXpress',
+        type: 'professor',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-        setUserProfile(mockProfile);
-      } catch (error: any) {
-        console.error('Error fetching user profile:', error);
-        toast({
-          title: 'Erro ao carregar perfil',
-          description: 'Não foi possível carregar seu perfil',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
-      }
+      setUserProfile(mockProfile);
+      setLoading(false);
     };
-
     fetchUserProfile();
   }, [user, toast]);
 
@@ -62,143 +48,48 @@ const Dashboard = () => {
     );
   }
 
-  // Render specific dashboard content based on user type
+  // Conteúdo adaptado para professor e instituição
   const renderDashboardContent = () => {
     if (!userProfile) return null;
 
-    console.log("Rendering dashboard for user type:", userProfile.type);
-    
     switch (userProfile.type) {
-      case 'buyer':
+      case 'professor':
         return (
-          <Tabs defaultValue="demands" className="w-full">
+          <Tabs defaultValue="recursos" className="w-full">
             <TabsList className="mb-4">
-              <TabsTrigger value="demands" className="flex items-center gap-2">
-                <Search size={16} />
-                Minhas Buscas
-              </TabsTrigger>
-              <TabsTrigger value="matches" className="flex items-center gap-2">
-                <Building size={16} />
-                Meus Matches
-              </TabsTrigger>
+              <TabsTrigger value="recursos">Meus Materiais</TabsTrigger>
+              <TabsTrigger value="planos">Planos de Aula</TabsTrigger>
             </TabsList>
-            <TabsContent value="demands">
-              <UserDemands />
+            <TabsContent value="recursos">
+              <UserProperties /> {/* pode ser reusado para materiais ou criar novo */}
             </TabsContent>
-            <TabsContent value="matches">
-              <UserMatches />
+            <TabsContent value="planos">
+              <UserDemands /> {/* pode representar planos/aulas ou implementar novo */}
             </TabsContent>
           </Tabs>
         );
-        
-      case 'owner':
+      case 'instituicao':
         return (
-          <Tabs defaultValue="properties" className="w-full">
+          <Tabs defaultValue="organizacao" className="w-full">
             <TabsList className="mb-4">
-              <TabsTrigger value="properties" className="flex items-center gap-2">
-                <Building size={16} />
-                Meus Imóveis
-              </TabsTrigger>
-              <TabsTrigger value="matches" className="flex items-center gap-2">
-                <Search size={16} />
-                Interessados
-              </TabsTrigger>
+              <TabsTrigger value="organizacao">Organização</TabsTrigger>
+              <TabsTrigger value="professores">Professores</TabsTrigger>
             </TabsList>
-            <TabsContent value="properties">
+            <TabsContent value="organizacao">
               <UserProperties />
             </TabsContent>
-            <TabsContent value="matches">
-              <UserMatches />
-            </TabsContent>
-          </Tabs>
-        );
-        
-      case 'agent':
-        return (
-          <Tabs defaultValue="properties" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="properties" className="flex items-center gap-2">
-                <Building size={16} />
-                Imóveis
-              </TabsTrigger>
-              <TabsTrigger value="matches" className="flex items-center gap-2">
-                <Search size={16} />
-                Matches
-              </TabsTrigger>
-              <TabsTrigger value="clients" className="flex items-center gap-2">
-                <Users size={16} />
-                Clientes
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="properties">
-              <UserProperties />
-            </TabsContent>
-            <TabsContent value="matches">
-              <UserMatches />
-            </TabsContent>
-            <TabsContent value="clients">
-              <Card className="w-full">
+            <TabsContent value="professores">
+              <Card>
                 <CardHeader>
-                  <CardTitle>Meus Clientes</CardTitle>
+                  <CardTitle>Equipe docente</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
+                  <p className="text-center text-muted-foreground">Funcionalidade disponível no ProfeXpress Institucional</p>
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
         );
-        
-      case 'agency':
-        return (
-          <Tabs defaultValue="properties" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="properties" className="flex items-center gap-2">
-                <Building size={16} />
-                Imóveis
-              </TabsTrigger>
-              <TabsTrigger value="matches" className="flex items-center gap-2">
-                <Search size={16} />
-                Matches
-              </TabsTrigger>
-              <TabsTrigger value="agents" className="flex items-center gap-2">
-                <Users size={16} />
-                Corretores
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2">
-                <BarChart3 size={16} />
-                Análises
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="properties">
-              <UserProperties />
-            </TabsContent>
-            <TabsContent value="matches">
-              <UserMatches />
-            </TabsContent>
-            <TabsContent value="agents">
-              <Card className="w-full">
-                <CardHeader>
-                  <CardTitle>Equipe de Corretores</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="analytics">
-              <Card className="w-full">
-                <CardHeader>
-                  <CardTitle>Análises de Mercado</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-center text-muted-foreground">Funcionalidade disponível no plano Profissional</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        );
-      
       default:
         return <p>Tipo de perfil não reconhecido</p>;
     }
@@ -212,16 +103,17 @@ const Dashboard = () => {
           <p className="text-muted-foreground">
             Bem-vindo, {userProfile?.name || user.email}!
             {userProfile?.type && (
-              <span className="ml-2 text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
-                {userProfile.type === 'buyer' ? 'Comprador' : 
-                 userProfile.type === 'owner' ? 'Proprietário' : 
-                 userProfile.type === 'agent' ? 'Corretor' : 
-                 userProfile.type === 'agency' ? 'Imobiliária' : ''}
+              <span className="ml-2 text-sm bg-primary/10 text-primary px-2 py-1 rounded-full capitalize">
+                {userProfile.type === 'professor'
+                  ? 'Professor(a)'
+                  : userProfile.type === 'instituicao'
+                  ? 'Instituição'
+                  : ''}
               </span>
             )}
           </p>
         </div>
-
+        
         <div className="mb-8">
           <UserTypeComparison />
         </div>
@@ -230,11 +122,7 @@ const Dashboard = () => {
         <div className="mb-8">
           <DashboardStats userType={userProfile?.type || 'buyer'} />
         </div>
-
-        {/* Main Content */}
-        <div className="space-y-6">
-          {renderDashboardContent()}
-        </div>
+        <div className="space-y-6">{renderDashboardContent()}</div>
       </div>
     </MainLayout>
   );

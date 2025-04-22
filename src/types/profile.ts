@@ -1,7 +1,9 @@
 
-export type UserType = 'buyer' | 'owner' | 'agent' | 'agency';
+// Ajuste nos tipos para novo contexto ProfeXpress
 
-export type SubscriptionPlanType = 'free' | 'personal' | 'professional' | 'custom';
+export type UserType = 'professor' | 'instituicao';
+
+export type SubscriptionPlanType = 'inicial' | 'essencial' | 'maestro' | 'institucional';
 
 export interface Profile {
   id: string;
@@ -13,14 +15,9 @@ export interface Profile {
   updatedAt: string;
   subscriptionPlanId?: SubscriptionPlanType;
   avatarUrl?: string | null;
-  
-  // Agent specific fields
-  creci?: string | null;
-  
-  // Agency specific fields
-  agencyName?: string | null;
+  // Campos extras para instituição
+  schoolName?: string | null;
 }
-
 export interface SessionUser {
   id: string;
   email: string;

@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Profile } from '@/types/profile';
 
 // Estendendo o tipo do perfil para incluir os campos adicionais
 interface ExtendedProfile {
@@ -35,7 +36,7 @@ const Profile = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [type, setType] = useState('buyer');
+  const [type, setType] = useState('professor');
   const [creci, setCreci] = useState('');
   const [agencyName, setAgencyName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -67,7 +68,7 @@ const Profile = () => {
         setName(profileData.name || '');
         setEmail(profileData.email || '');
         setPhone(profileData.phone || '');
-        setType(profileData.type || 'buyer');
+        setType(profileData.type || 'professor');
         setAvatarUrl(profileData.avatar_url || '');
         // Acesso aos campos customizados
         setCreci(profileData.creci || '');
@@ -231,7 +232,9 @@ const Profile = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Tipo de usuário</p>
-                      <p className="font-medium capitalize">{type || 'Comprador'}</p>
+                      <p className="font-medium capitalize">
+                        {type === 'professor' ? 'Professor(a)' : type === 'instituicao' ? 'Instituição de Ensino' : ''}
+                      </p>
                     </div>
                     {type === 'agent' && (
                       <>
@@ -310,9 +313,8 @@ const Profile = () => {
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="buyer">Comprador</SelectItem>
-                          <SelectItem value="owner">Proprietário</SelectItem>
-                          <SelectItem value="agent">Corretor</SelectItem>
+                          <SelectItem value="professor">Professor(a)</SelectItem>
+                          <SelectItem value="instituicao">Instituição de Ensino</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

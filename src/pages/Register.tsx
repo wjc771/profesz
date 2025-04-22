@@ -30,7 +30,7 @@ const registerSchema = z.object({
     .regex(/^(?=.*[a-zA-Z])(?=.*[0-9])/, {
       message: 'Senha deve conter pelo menos uma letra e um número',
     }),
-  type: z.enum(['owner', 'buyer', 'agent', 'agency']).default('buyer'),
+  type: z.enum(['professor', 'instituicao']).default('professor'),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Você precisa aceitar os termos e condições',
   }),
@@ -84,7 +84,7 @@ const Register = () => {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">Crie sua conta</CardTitle>
           <CardDescription>
-            Comece a conectar imóveis com o MatchImobiliário
+            Cadastre-se para usar o ProfeXpress
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -100,10 +100,10 @@ const Register = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome completo</FormLabel>
+                    <FormLabel>{form.watch("type") === "professor" ? "Nome completo" : "Nome da instituição"}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Seu nome"
+                        placeholder={form.watch("type") === "professor" ? "Seu nome" : "Nome da escola/faculdade"}
                         autoComplete="name"
                         {...field}
                       />
@@ -112,6 +112,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+              {/* email */}
               <FormField
                 control={form.control}
                 name="email"
@@ -130,7 +131,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              
+              {/* senha */}
               <FormField
                 control={form.control}
                 name="password"
@@ -152,12 +153,13 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+              {/* tipo */}
               <FormField
                 control={form.control}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quem você é?</FormLabel>
+                    <FormLabel>Você é:</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
                       defaultValue={field.value}
@@ -168,17 +170,15 @@ const Register = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="buyer">Comprador/Inquilino</SelectItem>
-                        <SelectItem value="owner">Proprietário</SelectItem>
-                        <SelectItem value="agent">Corretor</SelectItem>
-                        <SelectItem value="agency">Imobiliária</SelectItem>
+                        <SelectItem value="professor">Professor(a)</SelectItem>
+                        <SelectItem value="instituicao">Instituição de Ensino</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+              {/* termos */}
               <FormField
                 control={form.control}
                 name="acceptTerms"
@@ -227,7 +227,7 @@ const Register = () => {
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
-            Já tem uma conta?{' '}
+            Já possui cadastro?{' '}
             <Link to="/login" className="text-primary hover:underline">
               Entrar
             </Link>
