@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,29 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 
+// Opções para nível de ensino e disciplinas
+const educationLevels = [
+  { label: 'Ensino Fundamental', value: 'fundamental' },
+  { label: 'Ensino Médio', value: 'medio' },
+  { label: 'Ensino Superior', value: 'superior' },
+  { label: 'Técnico', value: 'tecnico' },
+];
+
+const subjects = [
+  'Matemática',
+  'Português',
+  'História',
+  'Geografia',
+  'Ciências',
+  'Biologia',
+  'Física',
+  'Química',
+  'Literatura',
+  'Redação',
+  'Inglês',
+  'Educação Física'
+];
+
 const registerSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
   email: z.string().email({ message: 'Email inválido' }),
@@ -31,6 +54,10 @@ const registerSchema = z.object({
       message: 'Senha deve conter pelo menos uma letra e um número',
     }),
   type: z.enum(['professor', 'instituicao']).default('professor'),
+  educationLevel: z.enum(['fundamental', 'medio', 'superior', 'tecnico'], {
+    required_error: 'Selecione o nível de ensino',
+  }),
+  subjects: z.array(z.string()).min(1, { message: 'Selecione ao menos uma disciplina' }),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Você precisa aceitar os termos e condições',
   }),
@@ -43,18 +70,22 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const location = useLocation();
-  
+  const navigate = useNavigate();
+
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: '',
       email: '',
       password: '',
-      type: 'buyer',
+      type: 'professor', // valor padrão corrigido
+      educationLevel: undefined,
+      subjects: [],
       acceptTerms: false,
     },
   });
 
+  // Recebe email pré-preenchido
   useEffect(() => {
     const emailFromLanding = location.state?.email;
     if (emailFromLanding) {
@@ -67,15 +98,27 @@ const Register = () => {
     setError(null);
 
     try {
-      console.log('Form submission with user type:', data.type);
+      // Os campos extras podem ser enviados como parte do 'options.data'
       await signUp(data.email, data.password, data.name, data.type);
-      // Navegação é feita dentro da função signUp
+      // Aqui normalmente você teria que criar/atualizar perfil com educationLevel, subjects etc.
+      // Redireciona para onboarding
+      navigate('/onboarding', { state: { firstLogin: true } });
     } catch (err: any) {
-      console.error('Registration error:', err);
       setError(err.message || 'Falha ao criar conta. Este email pode já estar em uso.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Ajuda no multi-select de disciplinas
+  const handleSubjectChange = (subject: string) => {
+    const current = form.getValues('subjects');
+    if (current.includes(subject)) {
+      form.setValue('subjects', current.filter(s => s !== subject));
+    } else {
+      form.setValue('subjects', [...current, subject]);
+    }
+    form.trigger('subjects');
   };
 
   return (
@@ -95,15 +138,16 @@ const Register = () => {
           )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              {/* Nome */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{form.watch("type") === "professor" ? "Nome completo" : "Nome da instituição"}</FormLabel>
+                    <FormLabel>Nome completo</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={form.watch("type") === "professor" ? "Seu nome" : "Nome da escola/faculdade"}
+                        placeholder="Seu nome"
                         autoComplete="name"
                         {...field}
                       />
@@ -112,7 +156,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* email */}
+              {/* Email */}
               <FormField
                 control={form.control}
                 name="email"
@@ -131,7 +175,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* senha */}
+              {/* Senha */}
               <FormField
                 control={form.control}
                 name="password"
@@ -153,7 +197,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* tipo */}
+              {/* Tipo de usuário */}
               <FormField
                 control={form.control}
                 name="type"
@@ -178,7 +222,57 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* termos */}
+              {/* Nível de ensino */}
+              <FormField
+                control={form.control}
+                name="educationLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nível de ensino</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o nível de ensino" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {educationLevels.map(level => (
+                          <SelectItem key={level.value} value={level.value}>
+                            {level.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Disciplinas (múltipla escolha) */}
+              <FormField
+                control={form.control}
+                name="subjects"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Disciplinas</FormLabel>
+                    <div className="grid gap-1 grid-cols-2 mb-1">
+                      {subjects.map(subject => (
+                        <label key={subject} className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox
+                            checked={form.getValues('subjects').includes(subject)}
+                            onCheckedChange={() => handleSubjectChange(subject)}
+                          />
+                          <span className="text-sm">{subject}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Aceite */}
               <FormField
                 control={form.control}
                 name="acceptTerms"
@@ -206,6 +300,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Criando conta...' : 'Criar conta'}
               </Button>
