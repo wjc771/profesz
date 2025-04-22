@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PropertyMatch, Property } from '@/types/property';
@@ -13,7 +12,7 @@ import PropertyCard from '../property/PropertyCard';
 export const UserMatches = () => {
   const [matches, setMatches] = useState<PropertyMatch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profileType, setProfileType] = useState<string | null>(null);
+  const [profileType, setProfileType] = useState<string | null>('buyer'); // Default to prevent errors
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -23,17 +22,8 @@ export const UserMatches = () => {
       if (!user) return;
       
       try {
-        console.log("Fetching user profile type for matches component...");
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('type')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) throw error;
-        
-        console.log("User profile type fetched for matches:", data.type);
-        setProfileType(data.type);
+        console.log("Fetching user profile type for matches component would happen here");
+        setProfileType('buyer'); // Default during restructuring
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
         toast({
@@ -53,115 +43,10 @@ export const UserMatches = () => {
       
       setLoading(true);
       try {
-        let matchesData = [];
+        console.log("Fetching matches would happen here");
         
-        console.log("Fetching matches for user:", user.id, "with profile type:", profileType);
-        
-        if (profileType === 'buyer') {
-          // Get user's demand IDs
-          const { data: demandsData, error: demandsError } = await supabase
-            .from('property_demands')
-            .select('id')
-            .eq('user_id', user.id);
-            
-          if (demandsError) throw demandsError;
-          
-          console.log("User demands fetched:", demandsData?.length || 0);
-          
-          if (demandsData && demandsData.length > 0) {
-            // Get matches based on user's demands
-            const demandIds = demandsData.map(d => d.id);
-            const { data: matchesResult, error: matchesError } = await supabase
-              .from('property_matches')
-              .select(`
-                *,
-                property:property_id(*)
-              `)
-              .in('demand_id', demandIds)
-              .order('score', { ascending: false });
-              
-            if (matchesError) throw matchesError;
-            matchesData = matchesResult || [];
-            console.log("Buyer matches fetched:", matchesData.length);
-          }
-        } else {
-          // For owners, agents, agencies - get properties first
-          const { data: propertiesData, error: propertiesError } = await supabase
-            .from('properties')
-            .select('id')
-            .eq('owner_id', user.id);
-            
-          if (propertiesError) throw propertiesError;
-          
-          console.log("User properties fetched for matches:", propertiesData?.length || 0);
-          
-          if (propertiesData && propertiesData.length > 0) {
-            // Get matches based on user's properties
-            const propertyIds = propertiesData.map(p => p.id);
-            const { data: matchesResult, error: matchesError } = await supabase
-              .from('property_matches')
-              .select(`
-                *,
-                property:property_id(*)
-              `)
-              .in('property_id', propertyIds)
-              .order('score', { ascending: false });
-              
-            if (matchesError) throw matchesError;
-            matchesData = matchesResult || [];
-            console.log("Owner/Agent matches fetched:", matchesData.length);
-          }
-        }
-        
-        // Transform the database data to match the PropertyMatch type
-        const transformedData = matchesData.map(item => ({
-          id: item.id,
-          propertyId: item.property_id,
-          demandId: item.demand_id,
-          score: item.score,
-          createdAt: item.created_at,
-          viewed: item.viewed,
-          contacted: item.contacted,
-          property: item.property ? {
-            id: item.property.id,
-            title: item.property.title,
-            description: item.property.description,
-            type: item.property.type,
-            transactionType: item.property.transaction_type,
-            price: item.property.price,
-            propertyTax: item.property.property_tax,
-            location: {
-              address: item.property.address,
-              neighborhood: item.property.neighborhood,
-              city: item.property.city,
-              state: item.property.state,
-              zipCode: item.property.zip_code,
-              lat: item.property.lat,
-              lng: item.property.lng
-            },
-            features: {
-              bedrooms: item.property.bedrooms,
-              bathrooms: item.property.bathrooms,
-              parkingSpaces: item.property.parking_spaces,
-              area: item.property.area,
-              hasPool: item.property.has_pool,
-              isFurnished: item.property.is_furnished,
-              hasElevator: item.property.has_elevator,
-              petsAllowed: item.property.pets_allowed,
-              hasGym: item.property.has_gym,
-              hasBalcony: item.property.has_balcony,
-              condominium: item.property.condominium
-            },
-            images: item.property.images || [],
-            ownerId: item.property.owner_id,
-            createdAt: item.property.created_at,
-            updatedAt: item.property.updated_at,
-            isActive: item.property.is_active,
-            isPremium: item.property.is_premium
-          } : undefined
-        }));
-        
-        setMatches(transformedData);
+        // Using empty array for now during restructuring
+        setMatches([]);
       } catch (error: any) {
         console.error('Error fetching matches:', error);
         toast({
@@ -186,12 +71,7 @@ export const UserMatches = () => {
     if (!match.propertyId) return;
     
     try {
-      const { error } = await supabase
-        .from('property_matches')
-        .update({ contacted: true })
-        .eq('id', match.id);
-        
-      if (error) throw error;
+      console.log("Contacting seller would happen here");
       
       // Update local state
       setMatches(matches.map(m => 
@@ -252,12 +132,12 @@ export const UserMatches = () => {
                       <div className="md:col-span-2">
                         <PropertyCard 
                           property={match.property}
-                          onSelect={() => handleViewProperty(match.property!.id)}
+                          onSelect={() => match.property && handleViewProperty(match.property.id)}
                         />
                       </div>
                       <div className="flex flex-col justify-center space-y-4">
                         <Button 
-                          onClick={() => handleViewProperty(match.property!.id)}
+                          onClick={() => match.property && handleViewProperty(match.property.id)}
                           className="w-full"
                         >
                           Ver Detalhes

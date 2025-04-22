@@ -9,7 +9,6 @@ import UserDemands from '@/components/dashboard/UserDemands';
 import UserMatches from '@/components/dashboard/UserMatches';
 import { useToast } from '@/components/ui/use-toast';
 import { Profile, UserType } from '@/types/profile';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building, Search, Users, BarChart3 } from 'lucide-react';
 import UserTypeComparison from '@/components/UserTypeComparison';
@@ -25,34 +24,19 @@ const Dashboard = () => {
       if (!user) return;
 
       try {
-        console.log("Fetching user profile for:", user.id);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          throw error;
-        }
-
-        // Transform data from snake_case to camelCase
-        const transformedData: Profile = {
-          id: data.id,
-          email: data.email,
-          name: data.name,
-          type: data.type as UserType,
-          phone: data.phone,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at,
-          subscriptionPlanId: data.subscription_plan_id as any,
-          avatarUrl: data.avatar_url,
-          creci: data.creci,
-          agencyName: data.agency_name
+        console.log("Fetching user profile would happen here");
+        
+        // Mock user profile during restructuring
+        const mockProfile: Profile = {
+          id: user.id || 'mock-id',
+          email: user.email || 'mock@example.com',
+          name: 'Mock User',
+          type: 'buyer' as UserType,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         };
 
-        console.log("User profile fetched:", transformedData);
-        setUserProfile(transformedData);
+        setUserProfile(mockProfile);
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
         toast({

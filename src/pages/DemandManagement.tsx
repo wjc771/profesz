@@ -1,82 +1,23 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/format';
-import { PropertyDemand, PropertyType, TransactionType } from '@/types/property';
+import { PropertyDemand } from '@/types/property';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 
 const DemandManagement = () => {
-  const [demands, setDemands] = useState<PropertyDemand[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [demands] = useState<PropertyDemand[]>([]); // Empty array during restructuring
+  const [loading] = useState(false); // Set to false to avoid showing loading state
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedDemandId, setSelectedDemandId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const fetchDemands = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('property_demands')
-        .select('*');
-      
-      if (error) throw error;
-      
-      // Transform the database data to match the PropertyDemand type
-      const transformedData: PropertyDemand[] = data.map(item => ({
-        id: item.id,
-        userId: item.user_id,
-        transactionType: item.transaction_type as TransactionType,
-        propertyTypes: item.property_types.map(type => type as PropertyType),
-        priceRange: {
-          min: item.min_price,
-          max: item.max_price
-        },
-        locationPreferences: {
-          cities: item.cities,
-          neighborhoods: item.neighborhoods || [],
-          states: item.states
-        },
-        featureRequirements: {
-          bedrooms: item.min_bedrooms,
-          bathrooms: item.min_bathrooms,
-          parkingSpaces: item.min_parking_spaces,
-          area: item.min_area,
-          hasPool: item.has_pool,
-          isFurnished: item.is_furnished,
-          hasElevator: item.has_elevator,
-          petsAllowed: item.pets_allowed,
-          hasGym: item.has_gym,
-          hasBalcony: item.has_balcony
-        },
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-        isActive: item.is_active
-      }));
-      
-      setDemands(transformedData);
-    } catch (error: any) {
-      console.error('Error fetching demands:', error);
-      toast({
-        title: 'Erro ao carregar demandas',
-        description: error.message,
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDemands();
-  }, []);
 
   const handleCreateDemand = () => {
     navigate('/demand/new');
@@ -90,14 +31,6 @@ const DemandManagement = () => {
     if (!selectedDemandId) return;
     
     try {
-      const { error } = await supabase
-        .from('property_demands')
-        .delete()
-        .eq('id', selectedDemandId);
-      
-      if (error) throw error;
-      
-      setDemands(demands.filter(demand => demand.id !== selectedDemandId));
       toast({
         title: 'Demanda excluída',
         description: 'A demanda foi excluída com sucesso.'

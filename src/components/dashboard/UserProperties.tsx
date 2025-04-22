@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Property } from '@/types/property';
@@ -12,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 export const UserProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profileType, setProfileType] = useState<string | null>(null);
+  const [profileType, setProfileType] = useState<string | null>('buyer'); // Default to prevent errors
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -22,16 +21,8 @@ export const UserProperties = () => {
       if (!user) return;
       try {
         console.log("Fetching user profile type for properties component...");
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('type')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) throw error;
-        
-        console.log("User profile type fetched:", data.type);
-        setProfileType(data.type);
+        // Since we're restructuring, use a default profile type
+        setProfileType('buyer');
       } catch (error: any) {
         console.error('Error fetching user profile:', error);
         toast({
@@ -51,58 +42,10 @@ export const UserProperties = () => {
       
       setLoading(true);
       try {
-        console.log("Fetching properties for user:", user.id);
+        console.log("Fetching properties would happen here in the actual app");
         
-        // Get properties for this specific user
-        const { data: userProperties, error: userPropsError } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('owner_id', user.id);
-          
-        if (userPropsError) throw userPropsError;
-        
-        console.log(`Found ${userProperties?.length || 0} properties for user`);
-        
-        // Transform the database data to match the Property type
-        const transformedData = userProperties ? userProperties.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          type: item.type as any,
-          transactionType: item.transaction_type as any,
-          price: item.price,
-          propertyTax: item.property_tax,
-          location: {
-            address: item.address,
-            neighborhood: item.neighborhood,
-            city: item.city,
-            state: item.state,
-            zipCode: item.zip_code,
-            lat: item.lat,
-            lng: item.lng
-          },
-          features: {
-            bedrooms: item.bedrooms,
-            bathrooms: item.bathrooms,
-            parkingSpaces: item.parking_spaces,
-            area: item.area,
-            hasPool: item.has_pool,
-            isFurnished: item.is_furnished,
-            hasElevator: item.has_elevator,
-            petsAllowed: item.pets_allowed,
-            hasGym: item.has_gym,
-            hasBalcony: item.has_balcony,
-            condominium: item.condominium
-          },
-          images: item.images || [],
-          ownerId: item.owner_id,
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
-          isActive: item.is_active,
-          isPremium: item.is_premium
-        })) : [];
-        
-        setProperties(transformedData);
+        // Using empty array for now during restructuring
+        setProperties([]);
       } catch (error: any) {
         console.error('Error fetching properties:', error);
         toast({

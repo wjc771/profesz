@@ -1,12 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import PropertySwiper from '@/components/property/PropertySwiper';
 import PropertyCard from '@/components/property/PropertyCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Property } from '@/types/property';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,78 +13,10 @@ import { useAuth } from '@/hooks/useAuth';
 const Index = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [properties] = useState<Property[]>([]); // Empty array during restructuring
   const [likedProperties, setLikedProperties] = useState<Property[]>([]);
   const [activeTab, setActiveTab] = useState('discover');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('properties')
-          .select('*')
-          .eq('is_active', true);
-        
-        if (error) throw error;
-        
-        // Transform the database data to match the Property type
-        const transformedData = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          type: item.type as any,
-          transactionType: item.transaction_type as any,
-          price: item.price,
-          propertyTax: item.property_tax,
-          location: {
-            address: item.address,
-            neighborhood: item.neighborhood,
-            city: item.city,
-            state: item.state,
-            zipCode: item.zip_code,
-            lat: item.lat,
-            lng: item.lng
-          },
-          features: {
-            bedrooms: item.bedrooms,
-            bathrooms: item.bathrooms,
-            parkingSpaces: item.parking_spaces,
-            area: item.area,
-            hasPool: item.has_pool,
-            isFurnished: item.is_furnished,
-            hasElevator: item.has_elevator,
-            petsAllowed: item.pets_allowed,
-            hasGym: item.has_gym,
-            hasBalcony: item.has_balcony,
-            condominium: item.condominium
-          },
-          images: item.images || [],
-          ownerId: item.owner_id,
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
-          isActive: item.is_active,
-          isPremium: item.is_premium
-        }));
-        
-        setProperties(transformedData);
-      } catch (error: any) {
-        console.error('Error fetching properties:', error);
-        toast({
-          title: 'Erro ao carregar imóveis',
-          description: error.message,
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      fetchProperties();
-    }
-  }, [user, toast]);
+  const [loading] = useState(false); // Set to false to avoid showing loading state
 
   const handleLikeProperty = (property: Property) => {
     setLikedProperties(prev => [...prev, property]);
