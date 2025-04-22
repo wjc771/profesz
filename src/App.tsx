@@ -20,6 +20,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Swipe = lazy(() => import('./pages/Swipe'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
+const PlanoDeAula = lazy(() => import('./pages/PlanoDeAula'));
 
 // Loading component
 const Loading = () => (
@@ -69,6 +70,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/plano-de-aula" element={<PlanoDeAula />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/property/:id" element={<PropertyDetails />} />
               <Route path="/property-management" element={<PropertyManagement />} />

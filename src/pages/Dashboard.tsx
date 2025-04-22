@@ -42,7 +42,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Quick action cards */}
             <a
-              href="/dashboard/planos"
+              href="/plano-de-aula"
               className="bg-card rounded-xl p-4 flex flex-col items-start gap-2 shadow hover:shadow-md transition group relative border hover:border-primary"
               tabIndex={0}
             >
