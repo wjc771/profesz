@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Property, PropertyDemand } from '@/types/property';
+import { Property } from '@/types/property';
 import PropertySwiper from '@/components/property/PropertySwiper';
 import PropertyCard from '@/components/property/PropertyCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,25 +14,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const mockProperties: Property[] = [
   {
     id: "prop1",
-    title: "Apartamento Modelo",
-    description: "Um lindo apartamento no centro da cidade",
-    type: "apartment",
-    transactionType: "sale",
-    price: 450000,
+    title: "Plano de Aula: Frações",
+    description: "Um plano de aula completo para o ensino de frações para o 4º ano do ensino fundamental",
+    type: "plan",
+    transactionType: "free",
+    price: 0,
     location: {
-      address: "Rua das Flores, 123",
+      address: "Escola Municipal",
       neighborhood: "Centro",
       city: "São Paulo",
       state: "SP",
       zipCode: "01001-000",
     },
     features: {
-      bedrooms: 2,
-      bathrooms: 1,
-      parkingSpaces: 1,
-      area: 70,
+      bedrooms: 0,
+      bathrooms: 0,
+      parkingSpaces: 0,
+      area: 0,
       hasPool: false,
-      isFurnished: true,
+      isFurnished: false,
     },
     images: ["/placeholder.svg"],
     ownerId: "owner1",
@@ -42,24 +42,24 @@ const mockProperties: Property[] = [
   },
   {
     id: "prop2",
-    title: "Casa Espaçosa",
-    description: "Uma casa ampla em condomínio fechado",
-    type: "house",
-    transactionType: "rent",
-    price: 3500,
+    title: "Material Didático: História do Brasil",
+    description: "Material didático completo sobre o período colonial brasileiro",
+    type: "material",
+    transactionType: "premium",
+    price: 0,
     location: {
-      address: "Av. dos Ipês, 456",
+      address: "Colégio Estadual",
       neighborhood: "Jardins",
       city: "São Paulo",
       state: "SP",
       zipCode: "04567-000",
     },
     features: {
-      bedrooms: 3,
-      bathrooms: 2,
-      parkingSpaces: 2,
-      area: 120,
-      hasPool: true,
+      bedrooms: 0,
+      bathrooms: 0,
+      parkingSpaces: 0,
+      area: 0,
+      hasPool: false,
       isFurnished: false,
     },
     images: ["/placeholder.svg"],
@@ -77,7 +77,6 @@ const Swipe = () => {
   const [likedProperties, setLikedProperties] = useState<Property[]>([]);
   const [activeTab, setActiveTab] = useState('discover');
   const [loading, setLoading] = useState(false);
-  const [profileType, setProfileType] = useState<string>('professor');
 
   const handleLikeProperty = (property: Property) => {
     setLikedProperties(prev => [...prev, property]);
@@ -94,7 +93,7 @@ const Swipe = () => {
 
   const handleSelectProperty = (property: Property) => {
     toast({
-      title: 'Imóvel selecionado',
+      title: 'Material selecionado',
       description: `Você selecionou ${property.title}`,
     });
   };

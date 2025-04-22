@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardSidebar from "@/components/layout/DashboardSidebar";
 import { PlanIndicator } from "@/components/dashboard/PlanIndicator";
-import { UserCircle, Bell, Book, Layers, Star, MessageSquare } from "lucide-react";
+import { UserCircle, Bell, MessageSquare, Layers, Star, Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
