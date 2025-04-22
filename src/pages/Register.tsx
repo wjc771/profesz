@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,12 +20,12 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 
-// Opções para nível de ensino e disciplinas
 const educationLevels = [
   { label: 'Ensino Fundamental', value: 'fundamental' },
   { label: 'Ensino Médio', value: 'medio' },
   { label: 'Ensino Superior', value: 'superior' },
   { label: 'Técnico', value: 'tecnico' },
+  { label: 'Concurso', value: 'concurso' },
 ];
 
 const subjects = [
@@ -54,10 +53,11 @@ const registerSchema = z.object({
       message: 'Senha deve conter pelo menos uma letra e um número',
     }),
   type: z.enum(['professor', 'instituicao']).default('professor'),
-  educationLevel: z.enum(['fundamental', 'medio', 'superior', 'tecnico'], {
+  educationLevel: z.enum(['fundamental', 'medio', 'superior', 'tecnico', 'concurso'], {
     required_error: 'Selecione o nível de ensino',
   }),
   subjects: z.array(z.string()).min(1, { message: 'Selecione ao menos uma disciplina' }),
+  manualSubject: z.string().optional(),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Você precisa aceitar os termos e condições',
   }),
@@ -78,14 +78,14 @@ const Register = () => {
       name: '',
       email: '',
       password: '',
-      type: 'professor', // valor padrão corrigido
+      type: 'professor',
       educationLevel: undefined,
       subjects: [],
+      manualSubject: '',
       acceptTerms: false,
     },
   });
 
-  // Recebe email pré-preenchido
   useEffect(() => {
     const emailFromLanding = location.state?.email;
     if (emailFromLanding) {
@@ -98,11 +98,8 @@ const Register = () => {
     setError(null);
 
     try {
-      // Os campos extras podem ser enviados como parte do 'options.data'
       await signUp(data.email, data.password, data.name, data.type);
-      // Aqui normalmente você teria que criar/atualizar perfil com educationLevel, subjects etc.
-      // Redireciona para onboarding
-      navigate('/onboarding', { state: { firstLogin: true } });
+      navigate('/onboarding', { state: { firstLogin: true, name: data.name } });
     } catch (err: any) {
       setError(err.message || 'Falha ao criar conta. Este email pode já estar em uso.');
     } finally {
@@ -110,7 +107,6 @@ const Register = () => {
     }
   };
 
-  // Ajuda no multi-select de disciplinas
   const handleSubjectChange = (subject: string) => {
     const current = form.getValues('subjects');
     if (current.includes(subject)) {
@@ -123,7 +119,7 @@ const Register = () => {
 
   return (
     <div className="container flex items-center justify-center min-h-screen py-10">
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-md mx-auto" aria-label="Cadastro de usuário">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">Crie sua conta</CardTitle>
           <CardDescription>
@@ -132,13 +128,12 @@ const Register = () => {
         </CardHeader>
         <CardContent>
           {error && (
-            <Alert variant="destructive" className="mb-4">
+            <Alert variant="destructive" className="mb-4" role="alert">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              {/* Nome */}
               <FormField
                 control={form.control}
                 name="name"
@@ -156,7 +151,6 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* Email */}
               <FormField
                 control={form.control}
                 name="email"
@@ -175,7 +169,6 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* Senha */}
               <FormField
                 control={form.control}
                 name="password"
@@ -197,7 +190,6 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* Tipo de usuário */}
               <FormField
                 control={form.control}
                 name="type"
@@ -222,7 +214,6 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* Nível de ensino */}
               <FormField
                 control={form.control}
                 name="educationLevel"
@@ -250,7 +241,6 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* Disciplinas (múltipla escolha) */}
               <FormField
                 control={form.control}
                 name="subjects"
@@ -263,6 +253,7 @@ const Register = () => {
                           <Checkbox
                             checked={form.getValues('subjects').includes(subject)}
                             onCheckedChange={() => handleSubjectChange(subject)}
+                            aria-label={`Selecionar disciplina ${subject}`}
                           />
                           <span className="text-sm">{subject}</span>
                         </label>
@@ -272,7 +263,22 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-              {/* Aceite */}
+              <FormField
+                control={form.control}
+                name="manualSubject"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Outra disciplina (opcional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Digite outra disciplina"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="acceptTerms"
@@ -282,6 +288,7 @@ const Register = () => {
                       <Checkbox 
                         checked={field.value} 
                         onCheckedChange={field.onChange}
+                        aria-label="Aceitar termos"
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
@@ -300,13 +307,11 @@ const Register = () => {
                   </FormItem>
                 )}
               />
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading} aria-busy={isLoading}>
                 {isLoading ? 'Criando conta...' : 'Criar conta'}
               </Button>
             </form>
           </Form>
-          
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border"></div>

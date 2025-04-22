@@ -1,4 +1,3 @@
-
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -20,6 +19,7 @@ const DatabaseSeed = lazy(() => import('./pages/DatabaseSeed'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Swipe = lazy(() => import('./pages/Swipe'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
 
 // Loading component
 const Loading = () => (
@@ -80,6 +80,7 @@ function App() {
               <Route path="/database-seed" element={<DatabaseSeed />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/swipe" element={<Swipe />} />
+              <Route path="/onboarding" element={<Onboarding />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </InitCheck>
