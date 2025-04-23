@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { MobileNavigation } from "./MobileNavigation";
 import { useEffect, useState } from "react";
-import { LogIn, LogOut, UserCircle, Building, Search, Heart, Cog } from "lucide-react";
+import { LogIn, LogOut, UserCircle, Building, Search, Heart, Cog, Moon, Sun } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -22,12 +22,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { mockProfiles } from "@/lib/mockData";
+import { initializeTheme } from "@/lib/theme";
 
 export default function Header() {
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
   const [isScrolled, setIsScrolled] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    initializeTheme();
+    const storedTheme = localStorage.getItem('theme-preference') as 'light' | 'dark' | 'system' | null;
+    setTheme(storedTheme === 'dark' ? 'dark' : 'light');
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme-preference', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme-preference', 'light');
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -52,7 +73,6 @@ export default function Header() {
     try {
       if (!user) return;
       
-      // Instead of querying Supabase, use mockProfiles
       const mockProfile = mockProfiles.find(profile => profile.id === user.id) || {
         id: user.id,
         email: user.email,
@@ -129,6 +149,15 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleTheme} 
+                className="mr-1"
+              >
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </Button>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
