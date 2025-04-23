@@ -1,10 +1,9 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
-import { DashboardNav } from "@/components/dashboard/DashboardNav";
-import { PlanIndicator } from "@/components/dashboard/PlanIndicator";
 import { TabNavigation } from "@/components/dashboard/TabNavigation";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlanUsageStats } from "@/components/dashboard/PlanUsageStats";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 
@@ -46,8 +45,10 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <main className="flex-1 flex flex-col items-center px-2 md:px-6 py-4 w-full max-w-6xl mx-auto">
-        {/* Tab Navigation */}
         <TabNavigation />
+        
+        {/* Plan Usage Stats */}
+        <PlanUsageStats />
         
         {/* Progress Chart */}
         <Card className="w-full mb-6">

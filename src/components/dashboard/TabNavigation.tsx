@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
@@ -34,7 +33,7 @@ export function TabNavigation() {
     },
     {
       id: "planos",
-      label: "Planos",
+      label: "Planos Aula",
       icon: Book,
       route: "/dashboard/planos",
       available: true,
