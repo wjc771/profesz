@@ -1,10 +1,9 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { MobileNavigation } from "./MobileNavigation";
 import { useEffect, useState } from "react";
-import { LogIn, LogOut, UserCircle, Building, Search, Heart, Cog, Moon, Sun } from "lucide-react";
+import { LogIn, LogOut, UserCircle, Building, Search, Heart, Cog, Moon, Sun, Settings } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -99,7 +98,7 @@ export default function Header() {
         <div className="flex items-center gap-6 md:gap-10">
           <Link to={user ? "/dashboard" : "/"} className="font-bold text-xl flex items-center gap-2">
             <span className="bg-primary text-primary-foreground p-1 rounded">PX</span>
-            ProfeXpress
+            <span className="hidden md:inline">ProfeXpress</span>
           </Link>
 
           {!isMobile && (
@@ -148,16 +147,23 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleTheme}
+            className="mr-1"
+            title={theme === 'light' ? 'Alternar para modo escuro' : 'Alternar para modo claro'}
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </Button>
+
           {user ? (
             <>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleTheme} 
-                className="mr-1"
-              >
-                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-              </Button>
+              <Link to="/settings">
+                <Button variant="ghost" size="icon" className="mr-1" title="Configurações">
+                  <Settings size={20} />
+                </Button>
+              </Link>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
