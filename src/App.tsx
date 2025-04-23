@@ -23,6 +23,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Swipe = lazy(() => import('./pages/Swipe'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const PlanoDeAula = lazy(() => import('./pages/PlanoDeAula'));
+const QuestoesPage = lazy(() => import('./pages/QuestoesPage'));
 
 // New dashboard tab pages
 const PlanosPage = lazy(() => import('./pages/dashboard/PlanosPage'));
@@ -100,6 +101,9 @@ function App() {
               <Route path="/dashboard/avaliacoes/criar" element={<PageLayout element={<CriarAvaliacoesPage />} />} />
               <Route path="/dashboard/materiais" element={<PageLayout element={<MateriaisPage />} />} />
               <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
+              
+              {/* Nova rota para a página de questões */}
+              <Route path="/questoes" element={<PageLayout element={<QuestoesPage />} />} />
               
               <Route path="/plano-de-aula" element={<PageLayout element={<PlanoDeAula />} />} />
               <Route path="/profile" element={<PageLayout element={<Profile />} />} />
