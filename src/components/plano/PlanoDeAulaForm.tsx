@@ -1,175 +1,365 @@
 
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Book, Check, AlertCircle, FileText } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { SubscriptionPlanType } from "@/types/profile";
+import { PlanoFormHeader } from "./PlanoFormHeader";
+import { PlanoFormStepper } from "./PlanoFormStepper";
+import { InfoStep } from "./steps/InfoStep";
+import { ObjetivosStep } from "./steps/ObjetivosStep";
+import { ConteudoStep } from "./steps/ConteudoStep";
+import { EstruturaStep } from "./steps/EstruturaStep";
+import { AvaliacaoStep } from "./steps/AvaliacaoStep";
+import { RecursosStep } from "./steps/RecursosStep";
+import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
-const planosLimites = {
-  inicial: 3,
-  essencial: 30,
-  maestro: -1,
-  institucional: -1,
-};
+// Define the form schema for the lesson plan
+const formSchema = z.object({
+  // Basic Info
+  titulo: z.string().min(3, { message: "Título deve ter pelo menos 3 caracteres" }),
+  disciplina: z.string().min(2, { message: "Selecione uma disciplina" }),
+  nivelEnsino: z.string().min(2, { message: "Selecione um nível de ensino" }),
+  serieAno: z.string().min(1, { message: "Selecione uma série/ano" }),
+  duracaoAula: z.string().min(1, { message: "Informe a duração da aula" }),
+  
+  // Objectives
+  objetivos: z.array(z.string()).min(1, { message: "Adicione pelo menos um objetivo" }),
+  habilidadesBNCC: z.array(z.string()).optional(),
+  
+  // Content and Methodology
+  tema: z.string().min(3, { message: "Informe o tema central" }),
+  topicos: z.array(z.string()).min(1, { message: "Adicione pelo menos um tópico" }),
+  abordagem: z.string().min(2, { message: "Selecione uma abordagem pedagógica" }),
+  recursos: z.array(z.string()).min(1, { message: "Adicione pelo menos um recurso" }),
+  
+  // Structure
+  introducao: z.string().min(10, { message: "Descreva a introdução da aula" }),
+  desenvolvimento: z.string().min(10, { message: "Descreva o desenvolvimento da aula" }),
+  fechamento: z.string().min(10, { message: "Descreva o fechamento da aula" }),
+  diferenciacaoAlunos: z.string().optional(),
+  
+  // Evaluation
+  metodoAvaliacao: z.string().min(2, { message: "Selecione um método de avaliação" }),
+  atividadesSala: z.string().min(10, { message: "Descreva as atividades em sala" }),
+  atividadesCasa: z.string().optional(),
+  rubricas: z.string().optional(),
+  
+  // Additional Resources
+  materiaisComplementares: z.array(z.string()).optional(),
+});
 
-const getPlanoLabel = (plano: string) => {
-  switch (plano) {
-    case "inicial":
-      return "Inicial";
-    case "essencial":
-      return "Essencial";
-    case "maestro":
-      return "Maestro";
-    case "institucional":
-      return "Institucional";
-    default:
-      return "Plano desconhecido";
-  }
-};
+type PlanoFormValues = z.infer<typeof formSchema>;
 
-const getRecursosPlano = (plano: string) => {
-  switch (plano) {
-    case "inicial":
-      return [
-        { name: "Limite de 3 planos/mês", included: true },
-        { name: "Interface básica", included: true },
-        { name: "Sem alinhamento BNCC", included: false },
-      ];
-    case "essencial":
-      return [
-        { name: "Limite de 30 planos/mês", included: true },
-        { name: "Interface completa", included: true },
-        { name: "Alinhamento BNCC básico", included: true },
-      ];
-    case "maestro":
-      return [
-        { name: "Uso ilimitado", included: true },
-        { name: "Alinhamento BNCC completo", included: true },
-        { name: "Histórico de planos", included: true },
-        { name: "Templates personalizados", included: true },
-      ];
-    case "institucional":
-      return [
-        { name: "Todos os recursos", included: true },
-        { name: "Integração com currículo institucional", included: true },
-      ];
-    default:
-      return [];
-  }
-};
+interface PlanoDeAulaFormProps {
+  plano: SubscriptionPlanType;
+  usageCount: number;
+  usageLimit: number;
+}
 
-export function PlanoDeAulaForm({ plano = "inicial" }: { plano: string }) {
-  const [tema, setTema] = useState("");
-  const [serie, setSerie] = useState("");
-  const [objetivos, setObjetivos] = useState("");
-  const [planosGerados, setPlanosGerados] = useState<{ tema: string; serie: string; objetivos: string; conteudo: string; }[]>([]);
-
-  const limite = planosLimites[plano as keyof typeof planosLimites];
-  const atingiuLimite = limite > 0 && planosGerados.length >= limite;
-
-  const handleGerarPlano = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (atingiuLimite) return;
-    // Simular um plano gerado simples
-    setPlanosGerados([
-      {
-        tema,
-        serie,
-        objetivos,
-        conteudo: `Plano de aula de ${tema} para ${serie}\n\nObjetivos: ${objetivos}\n\nConteúdo programático e sugestões...`,
-      },
-      ...planosGerados,
-    ]);
-    setTema("");
-    setSerie("");
-    setObjetivos("");
+export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFormProps) {
+  const { user } = useAuth();
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const totalSteps = 6;
+  
+  const form = useForm<PlanoFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      titulo: "",
+      disciplina: "",
+      nivelEnsino: "",
+      serieAno: "",
+      duracaoAula: "50",
+      objetivos: [],
+      habilidadesBNCC: [],
+      tema: "",
+      topicos: [],
+      abordagem: "",
+      recursos: [],
+      introducao: "",
+      desenvolvimento: "",
+      fechamento: "",
+      diferenciacaoAlunos: "",
+      metodoAvaliacao: "",
+      atividadesSala: "",
+      atividadesCasa: "",
+      rubricas: "",
+      materiaisComplementares: [],
+    },
+  });
+  
+  const currentStepIsValid = () => {
+    switch (step) {
+      case 1:
+        return form.getValues("titulo") && 
+               form.getValues("disciplina") && 
+               form.getValues("nivelEnsino") && 
+               form.getValues("serieAno") && 
+               form.getValues("duracaoAula");
+      case 2:
+        return form.getValues("objetivos").length > 0;
+      case 3:
+        return form.getValues("tema") && 
+               form.getValues("topicos").length > 0 && 
+               form.getValues("abordagem") && 
+               form.getValues("recursos").length > 0;
+      case 4:
+        return form.getValues("introducao") && 
+               form.getValues("desenvolvimento") && 
+               form.getValues("fechamento");
+      case 5:
+        return form.getValues("metodoAvaliacao") && 
+               form.getValues("atividadesSala");
+      case 6:
+        return true; // Optional step
+      default:
+        return false;
+    }
   };
-
+  
+  const nextStep = () => {
+    if (step < totalSteps) {
+      setStep(step + 1);
+    }
+  };
+  
+  const prevStep = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+  
+  const onSubmit = async (values: PlanoFormValues) => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para criar um plano de aula",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Transform form data to database structure
+      const lessonPlanData = {
+        title: values.titulo,
+        description: values.tema,
+        content: {
+          disciplina: values.disciplina,
+          nivelEnsino: values.nivelEnsino,
+          serieAno: values.serieAno,
+          duracaoAula: values.duracaoAula,
+          objetivos: values.objetivos,
+          habilidadesBNCC: values.habilidadesBNCC || [],
+          tema: values.tema,
+          topicos: values.topicos,
+          abordagem: values.abordagem,
+          recursos: values.recursos,
+          estrutura: {
+            introducao: values.introducao,
+            desenvolvimento: values.desenvolvimento,
+            fechamento: values.fechamento,
+            diferenciacaoAlunos: values.diferenciacaoAlunos || "",
+          },
+          avaliacao: {
+            metodo: values.metodoAvaliacao,
+            atividadesSala: values.atividadesSala,
+            atividadesCasa: values.atividadesCasa || "",
+            rubricas: values.rubricas || "",
+          },
+          materiaisComplementares: values.materiaisComplementares || [],
+        },
+        subject: values.disciplina,
+        grade_level: values.nivelEnsino,
+        user_id: user.id,
+        is_public: false,
+      };
+      
+      // Insert new lesson plan
+      const { data, error } = await supabase
+        .from('lesson_plans')
+        .insert(lessonPlanData)
+        .select('id')
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Update usage count in user_activity
+      const { data: activityData, error: activityError } = await supabase
+        .from('user_activity')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('activity_type', 'planos_de_aula')
+        .single();
+      
+      if (activityError && activityError.code === 'PGRST116') {
+        // Not found, insert new record
+        await supabase
+          .from('user_activity')
+          .insert({
+            user_id: user.id,
+            activity_type: 'planos_de_aula',
+            activity_count: 1,
+            last_activity_at: new Date().toISOString(),
+          });
+      } else if (!activityError) {
+        // Update existing record
+        await supabase
+          .from('user_activity')
+          .update({
+            activity_count: activityData.activity_count + 1,
+            last_activity_at: new Date().toISOString(),
+          })
+          .eq('id', activityData.id);
+      }
+      
+      toast({
+        title: "Plano de Aula Criado",
+        description: "Seu plano de aula foi criado com sucesso!",
+      });
+      
+      // Reset form
+      form.reset();
+      setStep(1);
+      
+    } catch (error: any) {
+      console.error('Error saving lesson plan:', error);
+      toast({
+        title: "Erro ao criar plano de aula",
+        description: error.message || "Ocorreu um erro ao salvar seu plano de aula. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="mb-8 border rounded-xl p-4 bg-card shadow-sm">
-        <div className="flex items-center gap-2 mb-2">
-          <Book className="text-primary" />
-          <h1 className="font-bold text-xl">
-            Gerador de Planos de Aula ({getPlanoLabel(plano)})
-          </h1>
-        </div>
-        <div className="flex flex-wrap gap-3 mt-1 mb-3">
-          {getRecursosPlano(plano).map((r, i) =>
-            r.included ? (
-              <span key={i} className="px-2 py-1 flex items-center text-xs font-medium rounded bg-green-100 text-green-800 gap-1">
-                <Check className="h-3 w-3" /> {r.name}
-              </span>
-            ) : (
-              <span key={i} className="px-2 py-1 flex items-center text-xs font-medium rounded bg-muted text-muted-foreground gap-1 opacity-70 line-through">
-                <AlertCircle className="h-3 w-3" /> {r.name}
-              </span>
-            )
-          )}
-        </div>
-        <form className="space-y-4" onSubmit={handleGerarPlano}>
-          <div>
-            <Label>Tema</Label>
-            <Input
-              value={tema}
-              onChange={(e) => setTema(e.target.value)}
-              required
-              placeholder="Ex: Meio Ambiente"
-              disabled={atingiuLimite}
-            />
-          </div>
-          <div>
-            <Label>Série/ano</Label>
-            <Input
-              value={serie}
-              onChange={(e) => setSerie(e.target.value)}
-              required
-              placeholder="Ex: 5º ano"
-              disabled={atingiuLimite}
-            />
-          </div>
-          <div>
-            <Label>Objetivos</Label>
-            <Textarea
-              value={objetivos}
-              onChange={(e) => setObjetivos(e.target.value)}
-              required
-              placeholder="Descreva os objetivos da aula..."
-              disabled={atingiuLimite}
-            />
-          </div>
-          {atingiuLimite && (
-            <p className="text-red-500 text-sm">
-              Você atingiu o limite do seu plano ({limite} planos/mês).
-            </p>
-          )}
-          <Button type="submit" disabled={atingiuLimite} className="w-full">
-            Gerar plano
+    <div className="max-w-3xl mx-auto">
+      <PlanoFormHeader 
+        plano={plano} 
+        usageCount={usageCount} 
+        usageLimit={usageLimit < 0 ? null : usageLimit} 
+      />
+      
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mb-6">
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" size="sm" className="w-full">
+            {isOpen ? 'Ocultar opções iniciais' : 'Mostrar opções iniciais'}
           </Button>
-        </form>
-      </div>
-      <div>
-        <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
-          <FileText className="text-muted-foreground" /> Planos gerados
-        </h2>
-        {planosGerados.length === 0 ? (
-          <p className="text-muted-foreground mb-5">Nenhum plano gerado ainda.</p>
-        ) : (
-          <ul className="flex flex-col gap-4">
-            {planosGerados.map((plano, idx) => (
-              <li key={idx} className="p-4 border rounded-xl bg-card relative">
-                <div className="mb-1 font-semibold">{plano.tema} – {plano.serie}</div>
-                <div className="text-sm whitespace-pre-line mb-2">{plano.conteudo}</div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" className="text-xs px-2">Editar</Button>
-                  <Button variant="secondary" size="sm" className="text-xs px-2">Exportar</Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Opções Iniciais</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <div>
+                  <h3 className="font-medium mb-2">Método de Criação</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" className="justify-start h-auto py-2">
+                      <div className="text-left">
+                        <div className="font-medium">Criar do zero</div>
+                        <div className="text-xs text-muted-foreground">Começar com um formulário em branco</div>
+                      </div>
+                    </Button>
+                    <Button variant="outline" className="justify-start h-auto py-2" disabled={plano === "inicial"}>
+                      <div className="text-left">
+                        <div className="font-medium">Usar modelo</div>
+                        <div className="text-xs text-muted-foreground">Comece com um modelo pré-existente</div>
+                      </div>
+                    </Button>
+                  </div>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                
+                <div>
+                  <h3 className="font-medium mb-2">Contexto de Aplicação</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button variant="outline" className="justify-start h-auto py-2">
+                      <div className="text-left">
+                        <div className="font-medium">Classe Inteira</div>
+                      </div>
+                    </Button>
+                    <Button variant="outline" className="justify-start h-auto py-2" disabled={plano === "inicial"}>
+                      <div className="text-left">
+                        <div className="font-medium">Grupos</div>
+                      </div>
+                    </Button>
+                    <Button variant="outline" className="justify-start h-auto py-2" disabled={["inicial", "essencial"].includes(plano)}>
+                      <div className="text-left">
+                        <div className="font-medium">Aluno Individual</div>
+                      </div>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card className="overflow-hidden">
+            <Tabs value={`step-${step}`} className="w-full">
+              <TabsContent value="step-1" className="m-0">
+                <InfoStep form={form} plano={plano} />
+              </TabsContent>
+              
+              <TabsContent value="step-2" className="m-0">
+                <ObjetivosStep form={form} plano={plano} />
+              </TabsContent>
+              
+              <TabsContent value="step-3" className="m-0">
+                <ConteudoStep form={form} plano={plano} />
+              </TabsContent>
+              
+              <TabsContent value="step-4" className="m-0">
+                <EstruturaStep form={form} plano={plano} />
+              </TabsContent>
+              
+              <TabsContent value="step-5" className="m-0">
+                <AvaliacaoStep form={form} plano={plano} />
+              </TabsContent>
+              
+              <TabsContent value="step-6" className="m-0">
+                <RecursosStep form={form} plano={plano} />
+              </TabsContent>
+            </Tabs>
+          </Card>
+          
+          {step === totalSteps && (
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Criando..." : "Criar Plano de Aula"}
+              </Button>
+            </div>
+          )}
+        </form>
+      </Form>
+      
+      <PlanoFormStepper
+        currentStep={step}
+        totalSteps={totalSteps}
+        onBack={prevStep}
+        onNext={step === totalSteps ? form.handleSubmit(onSubmit) : nextStep}
+        canAdvance={currentStepIsValid()}
+        isLastStep={step === totalSteps}
+      />
     </div>
   );
 }
