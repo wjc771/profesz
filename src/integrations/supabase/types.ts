@@ -454,7 +454,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_user_activity: {
+        Args: { user_id: string; activity_type: string }
+        Returns: {
+          activity_count: number
+          activity_type: string
+          created_at: string
+          id: string
+          last_activity_at: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       subscription_plan_type:
