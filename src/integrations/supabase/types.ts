@@ -9,7 +9,446 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      adapted_materials: {
+        Row: {
+          adaptation_type: string
+          adapted_content: string
+          created_at: string
+          id: string
+          is_public: boolean | null
+          original_content: string
+          target_audience: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          adaptation_type: string
+          adapted_content: string
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          original_content: string
+          target_audience: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          adaptation_type?: string
+          adapted_content?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          original_content?: string
+          target_audience?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adapted_materials_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_tools: {
+        Row: {
+          content: Json
+          created_at: string
+          description: string
+          id: string
+          is_public: boolean | null
+          title: string
+          tool_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          description: string
+          id?: string
+          is_public?: boolean | null
+          title: string
+          tool_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          description?: string
+          id?: string
+          is_public?: boolean | null
+          title?: string
+          tool_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_tools_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          is_public: boolean | null
+          target_audience: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          target_audience: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          target_audience?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      educational_resources: {
+        Row: {
+          created_at: string
+          description: string
+          grade_level: string
+          id: string
+          is_premium: boolean | null
+          resource_type: string
+          subject: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          grade_level: string
+          id?: string
+          is_premium?: boolean | null
+          resource_type: string
+          subject: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          grade_level?: string
+          id?: string
+          is_premium?: boolean | null
+          resource_type?: string
+          subject?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      feedback_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          is_public: boolean | null
+          scenario: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          scenario: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          scenario?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_plans: {
+        Row: {
+          content: Json
+          created_at: string
+          description: string | null
+          grade_level: string
+          id: string
+          is_public: boolean | null
+          is_template: boolean | null
+          subject: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          description?: string | null
+          grade_level: string
+          id?: string
+          is_public?: boolean | null
+          is_template?: boolean | null
+          subject: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          description?: string | null
+          grade_level?: string
+          id?: string
+          is_public?: boolean | null
+          is_template?: boolean | null
+          subject?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_plans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_features: {
+        Row: {
+          created_at: string
+          description: string | null
+          feature_name: string
+          id: string
+          is_enabled: boolean
+          plan_id: Database["public"]["Enums"]["subscription_plan_type"]
+          updated_at: string
+          usage_limit: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          feature_name: string
+          id?: string
+          is_enabled?: boolean
+          plan_id: Database["public"]["Enums"]["subscription_plan_type"]
+          updated_at?: string
+          usage_limit?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          feature_name?: string
+          id?: string
+          is_enabled?: boolean
+          plan_id?: Database["public"]["Enums"]["subscription_plan_type"]
+          updated_at?: string
+          usage_limit?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          phone: string | null
+          school_name: string | null
+          subscription_plan_id:
+            | Database["public"]["Enums"]["subscription_plan_type"]
+            | null
+          type: Database["public"]["Enums"]["user_type"]
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          id: string
+          name?: string | null
+          phone?: string | null
+          school_name?: string | null
+          subscription_plan_id?:
+            | Database["public"]["Enums"]["subscription_plan_type"]
+            | null
+          type?: Database["public"]["Enums"]["user_type"]
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          school_name?: string | null
+          subscription_plan_id?:
+            | Database["public"]["Enums"]["subscription_plan_type"]
+            | null
+          type?: Database["public"]["Enums"]["user_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          answer: string
+          created_at: string
+          difficulty: string
+          explanation: string | null
+          grade_level: string
+          id: string
+          is_public: boolean | null
+          options: Json | null
+          question_text: string
+          subject: string
+          topic: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          difficulty: string
+          explanation?: string | null
+          grade_level: string
+          id?: string
+          is_public?: boolean | null
+          options?: Json | null
+          question_text: string
+          subject: string
+          topic: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          difficulty?: string
+          explanation?: string | null
+          grade_level?: string
+          id?: string
+          is_public?: boolean | null
+          options?: Json | null
+          question_text?: string
+          subject?: string
+          topic?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_activity: {
+        Row: {
+          activity_count: number
+          activity_type: string
+          created_at: string
+          id: string
+          last_activity_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_count?: number
+          activity_type: string
+          created_at?: string
+          id?: string
+          last_activity_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_count?: number
+          activity_type?: string
+          created_at?: string
+          id?: string
+          last_activity_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +457,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_plan_type:
+        | "inicial"
+        | "essencial"
+        | "maestro"
+        | "institucional"
+      user_type: "professor" | "instituicao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +577,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_plan_type: [
+        "inicial",
+        "essencial",
+        "maestro",
+        "institucional",
+      ],
+      user_type: ["professor", "instituicao"],
+    },
   },
 } as const
