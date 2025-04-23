@@ -358,7 +358,7 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         onBack={prevStep}
         onNext={step === totalSteps ? form.handleSubmit(onSubmit) : nextStep}
         canAdvance={currentStepIsValid()}
-        isLastStep={step === totalSteps}
+        isLastStep={step === totalSteps ? true : false}
       />
     </div>
   );
