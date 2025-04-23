@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { 
@@ -19,6 +18,7 @@ import {
 import { CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SubscriptionPlanType } from "@/types/profile";
+import { Input } from "@/components/ui/input";
 
 interface EstruturaStepProps {
   form: UseFormReturn<any>;
@@ -281,6 +281,48 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
           )}
         />
       )}
+      
+      {/* Seção de Modelos de Vestibulares */}
+      <div className="mt-8">
+        <h4 className="text-md font-semibold mb-4">Modelos de Vestibulares</h4>
+        <FormDescription className="mb-3">
+          Selecione vestibulares famosos e quantas questões deseja incluir de cada um
+        </FormDescription>
+        
+        <div className="space-y-4">
+          {form.watch("modelosVestibular")?.map((modelo: any, index: number) => (
+            <div key={index} className="flex items-center gap-4">
+              <div className="flex-grow">
+                <FormLabel>{modelo.nome}</FormLabel>
+              </div>
+              <div className="w-24">
+                <FormField
+                  control={form.control}
+                  name={`modelosVestibular.${index}.quantidade`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={20}
+                          value={field.value}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value || "0");
+                            if (value >= 0 && value <= 20) {
+                              field.onChange(value);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
       
       {(plano === 'essencial' || plano === 'maestro' || plano === 'institucional') && (
         <FormField

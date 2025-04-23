@@ -1,4 +1,3 @@
-
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -102,8 +101,9 @@ function App() {
               <Route path="/dashboard/materiais" element={<PageLayout element={<MateriaisPage />} />} />
               <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
               
-              {/* Nova rota para a página de questões */}
+              {/* Rotas para a página de questões */}
               <Route path="/questoes" element={<PageLayout element={<QuestoesPage />} />} />
+              <Route path="/dashboard/questoes" element={<PageLayout element={<QuestoesPage />} />} />
               
               <Route path="/plano-de-aula" element={<PageLayout element={<PlanoDeAula />} />} />
               <Route path="/profile" element={<PageLayout element={<Profile />} />} />

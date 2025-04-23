@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +25,10 @@ const questoesFormSchema = z.object({
   capitulos: z.array(z.string()).min(1, "Selecione pelo menos um capítulo"),
   temas: z.array(z.string()).min(1, "Selecione pelo menos um tema"),
   incluirBncc: z.boolean().optional(),
+  modelosVestibular: z.array(z.object({
+    nome: z.string(),
+    quantidade: z.number().min(0).max(20)
+  })).optional(),
   
   numeroQuestoes: z.number().min(1, "Mínimo de 1 questão").max(20, "Máximo de 20 questões"),
   tipoQuestoes: z.string().min(1, "Selecione um tipo de questão"),
@@ -79,7 +84,16 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
   
   const form = useForm<QuestoesFormValues>({
     resolver: zodResolver(questoesFormSchema),
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      modelosVestibular: [
+        { nome: "ENEM", quantidade: 0 },
+        { nome: "USP", quantidade: 0 },
+        { nome: "UNICAMP", quantidade: 0 },
+        { nome: "ITA", quantidade: 0 },
+        { nome: "FGV", quantidade: 0 }
+      ]
+    },
     mode: "onChange",
   });
   
@@ -193,6 +207,7 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
           capitulos: values.capitulos,
           temas: values.temas,
           incluirBncc: values.incluirBncc,
+          modelosVestibular: values.modelosVestibular,
           numeroQuestoes: values.numeroQuestoes,
           tipoQuestoes: values.tipoQuestoes,
           proporcaoMultiplaEscolha: values.proporcaoMultiplaEscolha,
@@ -221,7 +236,8 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
         description: `${values.numeroQuestoes} questões foram geradas conforme suas especificações.`,
       });
       
-      navigate('/dashboard/questoes');
+      // Corrigido o caminho da rota para /questoes ao invés de /dashboard/questoes
+      navigate('/questoes');
       
     } catch (error: any) {
       console.error('Error generating questions:', error);
