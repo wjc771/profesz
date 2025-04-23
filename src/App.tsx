@@ -27,6 +27,7 @@ const PlanoDeAula = lazy(() => import('./pages/PlanoDeAula'));
 // New dashboard tab pages
 const PlanosPage = lazy(() => import('./pages/dashboard/PlanosPage'));
 const AvaliacoesPage = lazy(() => import('./pages/dashboard/AvaliacoesPage'));
+const CriarAvaliacoesPage = lazy(() => import('./pages/dashboard/CriarAvaliacoesPage'));
 const MateriaisPage = lazy(() => import('./pages/dashboard/MateriaisPage'));
 const ComunicacaoPage = lazy(() => import('./pages/dashboard/ComunicacaoPage'));
 
@@ -96,6 +97,7 @@ function App() {
               <Route path="/dashboard" element={<PageLayout element={<Dashboard />} />} />
               <Route path="/dashboard/planos" element={<PageLayout element={<PlanosPage />} />} />
               <Route path="/dashboard/avaliacoes" element={<PageLayout element={<AvaliacoesPage />} />} />
+              <Route path="/dashboard/avaliacoes/criar" element={<PageLayout element={<CriarAvaliacoesPage />} />} />
               <Route path="/dashboard/materiais" element={<PageLayout element={<MateriaisPage />} />} />
               <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
               

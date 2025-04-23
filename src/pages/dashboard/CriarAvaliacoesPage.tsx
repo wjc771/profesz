@@ -4,14 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AvaliacaoForm } from '@/components/avaliacao/AvaliacaoForm';
 import { SubscriptionPlanType } from '@/types/profile';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
-export default function AvaliacoesPage() {
+export default function CriarAvaliacoesPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [plano, setPlano] = useState<SubscriptionPlanType>('inicial');
   const [usageCount, setUsageCount] = useState(0);
   const [usageLimit, setUsageLimit] = useState<number | null>(25); // Default for inicial plan
@@ -80,42 +77,26 @@ export default function AvaliacoesPage() {
   
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Avaliações</h1>
-          <p className="text-muted-foreground">
-            Gere provas, quizzes e listas de exercícios personalizados em minutos
-          </p>
-        </div>
-        <Button 
-          onClick={() => navigate('/dashboard/avaliacoes/criar')}
-          className="gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Criar Avaliação
-        </Button>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold">Criar Avaliação</h1>
+        <p className="text-muted-foreground">
+          Gere provas, quizzes e listas de exercícios personalizados em minutos
+        </p>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>Minhas Avaliações</CardTitle>
+          <CardTitle>Criar Nova Avaliação</CardTitle>
           <CardDescription>
-            Visualize e gerencie suas avaliações anteriores
+            Configure e gere uma avaliação personalizada para seus alunos
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              Você ainda não criou nenhuma avaliação
-            </p>
-            <Button 
-              onClick={() => navigate('/dashboard/avaliacoes/criar')}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Criar Minha Primeira Avaliação
-            </Button>
-          </div>
+          <AvaliacaoForm 
+            plano={plano} 
+            usageCount={usageCount} 
+            usageLimit={usageLimit} 
+          />
         </CardContent>
       </Card>
     </div>
