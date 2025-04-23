@@ -244,11 +244,11 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
   const renderStepContent = () => {
     switch (step) {
       case 1:
-        return <InfoStep form={form} />;
+        return <InfoStep form={form} plano={plano} />;
       case 2:
         return <ObjetivosStep form={form} plano={plano} />;
       case 3:
-        return <ConteudoStep form={form} />;
+        return <ConteudoStep form={form} plano={plano} />;
       case 4:
         return <EstruturaStep form={form} plano={plano} />;
       case 5:

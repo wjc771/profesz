@@ -2,12 +2,14 @@
 import { supabase } from "./client";
 
 /**
- * Increments the activity count for a specific user and activity type
- * If no record exists, it creates one with count = 1
+ * Increment user activity count for a specific activity type
+ * @param userId The user ID
+ * @param activityType The activity type to increment
+ * @returns Promise with the result of the RPC call
  */
-export async function incrementUserActivity(userId: string, activityType: string) {
+export const incrementUserActivity = async (userId: string, activityType: string) => {
   return supabase.rpc('increment_user_activity', {
     user_id_param: userId,
     activity_type_param: activityType
   });
-}
+};
