@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,38 +20,31 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
-// Define the form schema for the lesson plan
 const formSchema = z.object({
-  // Basic Info
   titulo: z.string().min(3, { message: "Título deve ter pelo menos 3 caracteres" }),
   disciplina: z.string().min(2, { message: "Selecione uma disciplina" }),
   nivelEnsino: z.string().min(2, { message: "Selecione um nível de ensino" }),
   serieAno: z.string().min(1, { message: "Selecione uma série/ano" }),
   duracaoAula: z.string().min(1, { message: "Informe a duração da aula" }),
   
-  // Objectives
   objetivos: z.array(z.string()).min(1, { message: "Adicione pelo menos um objetivo" }),
   habilidadesBNCC: z.array(z.string()).optional(),
   
-  // Content and Methodology
   tema: z.string().min(3, { message: "Informe o tema central" }),
   topicos: z.array(z.string()).min(1, { message: "Adicione pelo menos um tópico" }),
   abordagem: z.string().min(2, { message: "Selecione uma abordagem pedagógica" }),
   recursos: z.array(z.string()).min(1, { message: "Adicione pelo menos um recurso" }),
   
-  // Structure
   introducao: z.string().min(10, { message: "Descreva a introdução da aula" }),
   desenvolvimento: z.string().min(10, { message: "Descreva o desenvolvimento da aula" }),
   fechamento: z.string().min(10, { message: "Descreva o fechamento da aula" }),
   diferenciacaoAlunos: z.string().optional(),
   
-  // Evaluation
   metodoAvaliacao: z.string().min(2, { message: "Selecione um método de avaliação" }),
   atividadesSala: z.string().min(10, { message: "Descreva as atividades em sala" }),
   atividadesCasa: z.string().optional(),
   rubricas: z.string().optional(),
   
-  // Additional Resources
   materiaisComplementares: z.array(z.string()).optional(),
 });
 
@@ -151,7 +143,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
     setIsSubmitting(true);
     
     try {
-      // Transform form data to database structure
       const lessonPlanData = {
         title: values.titulo,
         description: values.tema,
@@ -186,7 +177,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         is_public: false,
       };
       
-      // Insert new lesson plan
       const { data, error } = await supabase
         .from('lesson_plans')
         .insert(lessonPlanData)
@@ -197,7 +187,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         throw error;
       }
       
-      // Update usage count in user_activity
       const { data: activityData, error: activityError } = await supabase
         .from('user_activity')
         .select('*')
@@ -206,7 +195,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         .single();
       
       if (activityError && activityError.code === 'PGRST116') {
-        // Not found, insert new record
         await supabase
           .from('user_activity')
           .insert({
@@ -216,7 +204,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
             last_activity_at: new Date().toISOString(),
           });
       } else if (!activityError) {
-        // Update existing record
         await supabase
           .from('user_activity')
           .update({
@@ -231,7 +218,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         description: "Seu plano de aula foi criado com sucesso!",
       });
       
-      // Reset form
       form.reset();
       setStep(1);
       
@@ -358,7 +344,7 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         onBack={prevStep}
         onNext={step === totalSteps ? form.handleSubmit(onSubmit) : nextStep}
         canAdvance={currentStepIsValid()}
-        isLastStep={step === totalSteps ? true : false}
+        isLastStep={Boolean(step === totalSteps)}
       />
     </div>
   );
