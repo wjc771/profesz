@@ -19,7 +19,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           {children}
         </div>
       </main>
-      <MobileNavigation />
+      {isMobile && <MobileNavigation />}
     </div>
   );
 };

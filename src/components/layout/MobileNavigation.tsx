@@ -28,7 +28,7 @@ export function MobileNavigation() {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="md:hidden fixed bottom-4 right-4 z-50 bg-primary text-primary-foreground rounded-full shadow-lg"
           aria-label="Open Menu"
         >
           <PanelRightOpen className="h-5 w-5" />
@@ -40,13 +40,13 @@ export function MobileNavigation() {
             <h2 className="text-lg font-semibold">Menu</h2>
           </div>
           <nav className="space-y-2">
-            <Link to={user ? "/swipe" : "/"}>
+            <Link to={user ? "/dashboard" : "/"}>
               <Button
                 variant="ghost"
                 className="w-full justify-start"
               >
                 <Home className="mr-2 h-5 w-5" />
-                Swipe
+                {user ? "Dashboard" : "Início"}
               </Button>
             </Link>
 

@@ -1,7 +1,9 @@
+
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { Toaster } from './components/ui/toaster';
+import MainLayout from './components/layout/MainLayout';
 
 // Lazy loaded pages
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -59,6 +61,24 @@ const InitCheck = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Layout wrapper component
+const PageLayout = ({ element }: { element: React.ReactNode }) => {
+  // Pages that use their own layout
+  const currentPath = window.location.pathname;
+  
+  // Pages that don't need MainLayout
+  if (
+    currentPath === '/login' || 
+    currentPath === '/register' || 
+    currentPath === '/'
+  ) {
+    return <>{element}</>;
+  }
+  
+  // All other pages use MainLayout
+  return <MainLayout>{element}</MainLayout>;
+};
+
 function App() {
   return (
     <BrowserRouter>
@@ -69,21 +89,21 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/plano-de-aula" element={<PlanoDeAula />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/property/:id" element={<PropertyDetails />} />
-              <Route path="/property-management" element={<PropertyManagement />} />
-              <Route path="/demand-management" element={<DemandManagement />} />
-              <Route path="/demands" element={<DemandManagement />} />
-              <Route path="/matches/:demandId" element={<MatchManagement />} />
-              <Route path="/subscription" element={<Subscription />} />
-              <Route path="/verification-pending" element={<VerificationPending />} />
-              <Route path="/database-seed" element={<DatabaseSeed />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/swipe" element={<Swipe />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/dashboard" element={<PageLayout element={<Dashboard />} />} />
+              <Route path="/plano-de-aula" element={<PageLayout element={<PlanoDeAula />} />} />
+              <Route path="/profile" element={<PageLayout element={<Profile />} />} />
+              <Route path="/property/:id" element={<PageLayout element={<PropertyDetails />} />} />
+              <Route path="/property-management" element={<PageLayout element={<PropertyManagement />} />} />
+              <Route path="/demand-management" element={<PageLayout element={<DemandManagement />} />} />
+              <Route path="/demands" element={<PageLayout element={<DemandManagement />} />} />
+              <Route path="/matches/:demandId" element={<PageLayout element={<MatchManagement />} />} />
+              <Route path="/subscription" element={<PageLayout element={<Subscription />} />} />
+              <Route path="/verification-pending" element={<PageLayout element={<VerificationPending />} />} />
+              <Route path="/database-seed" element={<PageLayout element={<DatabaseSeed />} />} />
+              <Route path="/settings" element={<PageLayout element={<Settings />} />} />
+              <Route path="/swipe" element={<PageLayout element={<Swipe />} />} />
+              <Route path="/onboarding" element={<PageLayout element={<Onboarding />} />} />
+              <Route path="*" element={<PageLayout element={<NotFound />} />} />
             </Routes>
           </InitCheck>
         </Suspense>
