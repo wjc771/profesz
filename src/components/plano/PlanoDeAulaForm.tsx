@@ -16,6 +16,8 @@ import { SubscriptionPlanType } from "@/types/profile";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Form } from "@/components/ui/form";
+import { incrementUserActivity } from "@/integrations/supabase/rpc";
 
 // Form schema for validation
 const planoFormSchema = z.object({
@@ -211,11 +213,8 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         throw error;
       }
       
-      // Update user activity count
-      const { error: activityError } = await supabase.rpc('increment_user_activity', {
-        user_id_param: user.id,
-        activity_type_param: 'planos_de_aula'
-      });
+      // Update user activity count using the RPC function
+      const { error: activityError } = await incrementUserActivity(user.id, 'planos_de_aula');
       
       if (activityError) {
         console.error('Error updating activity count:', activityError);
@@ -268,20 +267,22 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         usageLimit={usageLimit}
       />
       
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card className="overflow-hidden">
-          {renderStepContent()}
-        </Card>
-        
-        <PlanoFormStepper
-          currentStep={step}
-          totalSteps={totalSteps}
-          onBack={prevStep}
-          onNext={step === totalSteps ? form.handleSubmit(onSubmit) : nextStep}
-          canAdvance={currentStepIsValid()}
-          isLastStep={step === totalSteps}
-        />
-      </form>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card className="overflow-hidden">
+            {renderStepContent()}
+          </Card>
+          
+          <PlanoFormStepper
+            currentStep={step}
+            totalSteps={totalSteps}
+            onBack={prevStep}
+            onNext={step === totalSteps ? form.handleSubmit(onSubmit) : nextStep}
+            canAdvance={currentStepIsValid()}
+            isLastStep={step === totalSteps}
+          />
+        </form>
+      </Form>
     </div>
   );
 }
