@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Card } from "@/components/ui/card";
@@ -19,37 +18,30 @@ import { useToast } from "@/hooks/use-toast";
 import { Form } from "@/components/ui/form";
 import { incrementUserActivity } from "@/integrations/supabase/rpc";
 
-// Form schema for validation
 const planoFormSchema = z.object({
-  // Info Step
   titulo: z.string().min(3, "O título deve ter pelo menos 3 caracteres"),
   disciplina: z.string().min(1, "Selecione uma disciplina"),
   nivelEnsino: z.string().min(1, "Selecione um nível de ensino"),
   anoSerie: z.string().min(1, "Selecione o ano/série"),
   duracao: z.string().min(1, "Informe a duração da aula"),
   
-  // Objetivos Step
   objetivosAprendizagem: z.string().min(10, "Defina os objetivos de aprendizagem"),
   habilidadesBncc: z.array(z.string()).optional(),
   
-  // Conteúdo Step
   temaCentral: z.string().min(3, "Informe o tema central"),
   topicos: z.string().min(10, "Liste os tópicos a serem abordados"),
   abordagemPedagogica: z.string().min(1, "Selecione uma abordagem pedagógica"),
   
-  // Estrutura Step
   introducao: z.string().min(10, "Descreva a introdução da aula"),
   desenvolvimento: z.string().min(20, "Descreva o desenvolvimento da aula"),
   fechamento: z.string().min(10, "Descreva o fechamento da aula"),
   diferenciacaoAlunos: z.string().optional(),
   
-  // Avaliação Step
   metodoAvaliacao: z.string().min(1, "Selecione um método de avaliação"),
   atividadesSala: z.string().min(10, "Descreva as atividades em sala"),
   atividadesCasa: z.string().optional(),
   rubricas: z.string().optional(),
   
-  // Recursos Step
   recursos: z.string().min(5, "Liste os recursos necessários"),
   materiaisComplementares: z.array(z.string()).optional(),
 });
@@ -95,65 +87,65 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
     }
   };
   
-  // Check if the current step is valid
   const currentStepIsValid = () => {
     const currentFields = getCurrentStepFields();
     
-    // If there are no fields for the current step, allow advancing
     if (currentFields.length === 0) {
       return true;
     }
 
-    // Check if all fields in the current step are valid
+    console.log("Current step:", step);
+    console.log("Current fields:", currentFields);
+    console.log("Form values:", form.getValues());
+    console.log("Form errors:", form.formState.errors);
+    
     return currentFields.every((field) => {
       const fieldState = form.getFieldState(field as any);
       const value = form.getValues(field as any);
       
-      // If the field has an error, it's invalid
+      if (field === 'diferenciacaoAlunos' || 
+          field === 'atividadesCasa' || 
+          field === 'rubricas' || 
+          field === 'habilidadesBncc' ||
+          field === 'materiaisComplementares') {
+        return true;
+      }
+      
       if (fieldState.error) {
+        console.log(`Field ${field} has error:`, fieldState.error);
         return false;
       }
       
-      // If the field is required and empty, it's invalid
-      // Note: This is a simplified check. Add more complex validation if needed.
-      if (field !== 'diferenciacaoAlunos' && 
-          field !== 'atividadesCasa' && 
-          field !== 'rubricas' && 
-          field !== 'habilidadesBncc' &&
-          field !== 'materiaisComplementares') {
-        if (!value || (typeof value === 'string' && value.trim() === '')) {
-          return false;
-        }
+      if (!value || (typeof value === 'string' && value.trim() === '')) {
+        console.log(`Field ${field} is empty`);
+        return false;
       }
       
       return true;
     });
   };
 
-  // Get the fields for the current step
   const getCurrentStepFields = () => {
     switch (step) {
-      case 1: // Info Step
+      case 1:
         return ['titulo', 'disciplina', 'nivelEnsino', 'anoSerie', 'duracao'];
-      case 2: // Objetivos Step
+      case 2:
         return ['objetivosAprendizagem', 'habilidadesBncc'];
-      case 3: // Conteúdo Step
+      case 3:
         return ['temaCentral', 'topicos', 'abordagemPedagogica'];
-      case 4: // Estrutura Step
+      case 4:
         return ['introducao', 'desenvolvimento', 'fechamento', 'diferenciacaoAlunos'];
-      case 5: // Avaliação Step
+      case 5:
         return ['metodoAvaliacao', 'atividadesSala', 'atividadesCasa', 'rubricas'];
-      case 6: // Recursos Step
+      case 6:
         return ['recursos', 'materiaisComplementares'];
       default:
         return [];
     }
   };
   
-  // Handle form submission
   const onSubmit = async (values: PlanoFormValues) => {
     try {
-      // Prepare the content JSON for storing in the database
       const planoContent = {
         info: {
           titulo: values.titulo,
@@ -189,14 +181,12 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         }
       };
       
-      // Get the authenticated user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error("Usuário não autenticado");
       }
       
-      // Insert the lesson plan into the database
       const { data, error } = await supabase
         .from('lesson_plans')
         .insert({
@@ -213,7 +203,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         throw error;
       }
       
-      // Update user activity count using the RPC function
       const { error: activityError } = await incrementUserActivity(user.id, 'planos_de_aula');
       
       if (activityError) {
@@ -225,7 +214,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         description: "Seu plano foi salvo e está disponível na sua biblioteca.",
       });
       
-      // Navigate to the dashboard after successful submission
       navigate('/dashboard');
       
     } catch (error: any) {
@@ -239,7 +227,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
     }
   };
   
-  // Render the current step content
   const renderStepContent = () => {
     switch (step) {
       case 1:
