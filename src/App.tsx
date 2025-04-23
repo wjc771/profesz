@@ -1,4 +1,3 @@
-
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -23,6 +22,11 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Swipe = lazy(() => import('./pages/Swipe'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const PlanoDeAula = lazy(() => import('./pages/PlanoDeAula'));
+
+// New dashboard tab pages
+const PlanosPage = lazy(() => import('./pages/dashboard/PlanosPage'));
+const MateriaisPage = lazy(() => import('./pages/dashboard/MateriaisPage'));
+const ComunicacaoPage = lazy(() => import('./pages/dashboard/ComunicacaoPage'));
 
 // Loading component
 const Loading = () => (
@@ -63,10 +67,8 @@ const InitCheck = ({ children }: { children: React.ReactNode }) => {
 
 // Layout wrapper component
 const PageLayout = ({ element }: { element: React.ReactNode }) => {
-  // Pages that use their own layout
   const currentPath = window.location.pathname;
   
-  // Pages that don't need MainLayout
   if (
     currentPath === '/login' || 
     currentPath === '/register' || 
@@ -75,7 +77,6 @@ const PageLayout = ({ element }: { element: React.ReactNode }) => {
     return <>{element}</>;
   }
   
-  // All other pages use MainLayout
   return <MainLayout>{element}</MainLayout>;
 };
 
@@ -89,7 +90,12 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              
               <Route path="/dashboard" element={<PageLayout element={<Dashboard />} />} />
+              <Route path="/dashboard/planos" element={<PageLayout element={<PlanosPage />} />} />
+              <Route path="/dashboard/materiais" element={<PageLayout element={<MateriaisPage />} />} />
+              <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
+              
               <Route path="/plano-de-aula" element={<PageLayout element={<PlanoDeAula />} />} />
               <Route path="/profile" element={<PageLayout element={<Profile />} />} />
               <Route path="/property/:id" element={<PageLayout element={<PropertyDetails />} />} />
