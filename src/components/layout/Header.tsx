@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,7 +98,7 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-10">
           <Link to={user ? "/dashboard" : "/"} className="font-bold text-xl flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground p-1 rounded">PE</span>
+            <span className="bg-primary text-primary-foreground p-1 rounded">PX</span>
             ProfeXpress
           </Link>
 
