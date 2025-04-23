@@ -1,7 +1,6 @@
+export type PropertyType = 'apartment' | 'house' | 'commercial' | 'land' | 'other' | 'plan' | 'material';
 
-export type PropertyType = 'apartment' | 'house' | 'commercial' | 'land' | 'other';
-
-export type TransactionType = 'sale' | 'rent';
+export type TransactionType = 'sale' | 'rent' | 'free' | 'premium';
 
 export interface PropertyLocation {
   address: string;

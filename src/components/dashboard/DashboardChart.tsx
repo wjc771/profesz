@@ -19,13 +19,16 @@ const chartConfig = {
 export function DashboardChart() {
   return (
     <ChartContainer config={chartConfig} className="min-h-[220px]">
-      <BarChart data={data} barSize={24}>
-        <XAxis dataKey="name" axisLine={false} tickLine={false} />
-        <YAxis hide />
-        <Tooltip />
-        <Bar dataKey="atividades" radius={[6, 6, 0, 0]} fill="#9b87f5" />
-      </BarChart>
-      <ChartLegendContent payload={[{ value: "Atividades", color: "#9b87f5" }]} />
+      {/* Wrap the components in a fragment to make them a single child */}
+      <>
+        <BarChart data={data} barSize={24}>
+          <XAxis dataKey="name" axisLine={false} tickLine={false} />
+          <YAxis hide />
+          <Tooltip />
+          <Bar dataKey="atividades" radius={[6, 6, 0, 0]} fill="#9b87f5" />
+        </BarChart>
+        <ChartLegendContent payload={[{ value: "Atividades", color: "#9b87f5" }]} />
+      </>
     </ChartContainer>
   );
 }
