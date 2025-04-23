@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,25 +15,21 @@ import { EstruturaStep } from "@/components/avaliacao/steps/EstruturaStep";
 import { ConfiguracaoStep } from "@/components/avaliacao/steps/ConfiguracaoStep";
 
 const questoesFormSchema = z.object({
-  // Configuração Inicial
   tipoAvaliacao: z.string().min(1, "Selecione um tipo de avaliação"),
   objetivoAvaliacao: z.string().min(1, "Selecione um objetivo"),
   modeloCriacao: z.string().min(1, "Selecione um modelo de criação"),
   
-  // Estrutura Curricular
   materia: z.string().min(1, "Selecione uma matéria"),
   unidade: z.string().min(1, "Selecione uma unidade"),
   capitulos: z.array(z.string()).min(1, "Selecione pelo menos um capítulo"),
   temas: z.array(z.string()).min(1, "Selecione pelo menos um tema"),
   incluirBncc: z.boolean().optional(),
   
-  // Configuração das Questões
   numeroQuestoes: z.number().min(1, "Mínimo de 1 questão").max(20, "Máximo de 20 questões"),
   tipoQuestoes: z.string().min(1, "Selecione um tipo de questão"),
   proporcaoMultiplaEscolha: z.number().min(0).max(100).optional(),
   nivelDificuldade: z.number().min(0).max(10),
   
-  // Opções Adicionais
   incluirFormulas: z.boolean().optional(),
   incluirImagens: z.boolean().optional(),
   incluirTabelas: z.boolean().optional(),
@@ -78,7 +73,7 @@ interface QuestoesFormProps {
 
 export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 3; // Total number of steps in the form
+  const totalSteps = 3;
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -107,22 +102,18 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
       return true;
     }
     
-    // Check required fields based on the step
     return currentFields.every((field) => {
       const fieldState = form.getFieldState(field as any);
       const value = form.getValues(field as any);
       
-      // Skip validation for optional fields
       if (isOptionalField(field)) {
         return true;
       }
       
-      // Check for errors
       if (fieldState.error) {
         return false;
       }
       
-      // Check if field is empty
       if (isEmptyValue(value)) {
         return false;
       }
@@ -160,11 +151,11 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
 
   const getCurrentStepFields = () => {
     switch (step) {
-      case 1: // Configuração Inicial
+      case 1:
         return ['tipoAvaliacao', 'objetivoAvaliacao', 'modeloCriacao'];
-      case 2: // Estrutura Curricular
+      case 2:
         return ['materia', 'unidade', 'capitulos', 'temas', 'incluirBncc'];
-      case 3: // Configuração das Questões
+      case 3:
         return [
           'numeroQuestoes', 'tipoQuestoes', 'proporcaoMultiplaEscolha', 
           'nivelDificuldade', 'incluirFormulas', 'incluirImagens', 
@@ -178,14 +169,12 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
   
   const onSubmit = async (values: QuestoesFormValues) => {
     try {
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error("Usuário não autenticado");
       }
       
-      // Check if user has reached their limit
       if (usageLimit !== null && usageCount >= usageLimit) {
         toast({
           variant: "destructive",
@@ -195,7 +184,6 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
         return;
       }
       
-      // Create a structured data object for the questions
       const questoesData = {
         tipo: values.tipoAvaliacao,
         objetivo: values.objetivoAvaliacao,
@@ -222,11 +210,6 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
         }
       };
       
-      // Call the API to generate the questions
-      // This is a placeholder for the actual API call
-      // TODO: Replace with actual API call to generate questions
-      
-      // Log the activity
       const { error: activityError } = await incrementUserActivity(user.id, 'questoes');
       
       if (activityError) {
