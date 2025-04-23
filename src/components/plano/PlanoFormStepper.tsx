@@ -10,7 +10,7 @@ interface PlanoFormStepperProps {
   onBack: () => void;
   onNext: () => void;
   canAdvance: boolean;
-  isLastStep: boolean;
+  isLastStep: boolean;  // Ensure this is explicitly boolean
 }
 
 export function PlanoFormStepper({ 
