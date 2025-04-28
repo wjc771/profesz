@@ -1,5 +1,6 @@
+
 import { NavLink } from "react-router-dom";
-import { Home, Book, FileText, Star, MessageSquare, Settings } from "lucide-react";
+import { Home, Book, FileText, Star, Layers, MessageSquare, Settings } from "lucide-react";
 
 const sidebarLinks = [
   { label: "Painel", icon: Home, to: "/dashboard" },
