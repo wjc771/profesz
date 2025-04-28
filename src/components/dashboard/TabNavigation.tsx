@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Book, Database, MessageSquare, FileText, 
-  Search, User, Settings 
+  Search, User, Settings, Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -43,14 +43,14 @@ export function TabNavigation() {
       label: "Questões",
       icon: Database,
       route: "/dashboard/questoes",
-      available: false,
+      available: true,
     },
     {
-      id: "feedback",
-      label: "Feedback",
-      icon: MessageSquare,
-      route: "/dashboard/feedback",
-      available: false,
+      id: "avaliacoes",
+      label: "Avaliações",
+      icon: Star,
+      route: "/dashboard/avaliacoes",
+      available: true,
     },
     {
       id: "materiais",

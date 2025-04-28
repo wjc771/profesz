@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { Toaster } from './components/ui/toaster';
 import MainLayout from './components/layout/MainLayout';
@@ -94,6 +94,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               
+              {/* Dashboard Routes */}
               <Route path="/dashboard" element={<PageLayout element={<Dashboard />} />} />
               <Route path="/dashboard/planos" element={<PageLayout element={<PlanosPage />} />} />
               <Route path="/dashboard/avaliacoes" element={<PageLayout element={<AvaliacoesPage />} />} />
@@ -101,10 +102,11 @@ function App() {
               <Route path="/dashboard/materiais" element={<PageLayout element={<MateriaisPage />} />} />
               <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
               
-              {/* Rotas para a página de questões */}
-              <Route path="/questoes" element={<PageLayout element={<QuestoesPage />} />} />
+              {/* Redirect /questoes to /dashboard/questoes */}
+              <Route path="/questoes" element={<Navigate to="/dashboard/questoes" replace />} />
               <Route path="/dashboard/questoes" element={<PageLayout element={<QuestoesPage />} />} />
               
+              {/* Other Routes */}
               <Route path="/plano-de-aula" element={<PageLayout element={<PlanoDeAula />} />} />
               <Route path="/profile" element={<PageLayout element={<Profile />} />} />
               <Route path="/property/:id" element={<PageLayout element={<PropertyDetails />} />} />

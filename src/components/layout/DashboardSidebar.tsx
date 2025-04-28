@@ -1,10 +1,10 @@
-
 import { NavLink } from "react-router-dom";
-import { Home, Book, Star, Layers, MessageSquare, Settings } from "lucide-react";
+import { Home, Book, FileText, Star, MessageSquare, Settings } from "lucide-react";
 
 const sidebarLinks = [
   { label: "Painel", icon: Home, to: "/dashboard" },
   { label: "Planos de Aula", icon: Book, to: "/dashboard/planos" },
+  { label: "Questões", icon: FileText, to: "/dashboard/questoes" },
   { label: "Avaliações", icon: Star, to: "/dashboard/avaliacoes" },
   { label: "Materiais", icon: Layers, to: "/dashboard/materiais" },
   { label: "Comunicação", icon: MessageSquare, to: "/dashboard/comunicacao" },
