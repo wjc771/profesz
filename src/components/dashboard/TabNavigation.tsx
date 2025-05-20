@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
-  Book, Database, MessageSquare, FileText, 
+  Book, Database, FileText, 
   Search, User, Settings, Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -60,25 +61,11 @@ export function TabNavigation() {
       available: true,
     },
     {
-      id: "comunicacao",
-      label: "Comunicação",
-      icon: MessageSquare,
-      route: "/dashboard/comunicacao",
-      available: true,
-    },
-    {
-      id: "recursos",
-      label: "Recursos",
+      id: "tarefas",
+      label: "Tarefas",
       icon: Search,
-      route: "/dashboard/recursos",
-      available: false,
-    },
-    {
-      id: "admin",
-      label: "Organizador",
-      icon: Settings,
-      route: "/dashboard/admin",
-      available: false,
+      route: "/dashboard/tarefas",
+      available: true,
     },
   ];
 

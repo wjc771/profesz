@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, ClipboardList, FilePen, Users, FileText, Lightbulb, Settings, PieChart } from 'lucide-react';
+import { ClipboardList, FilePen, PieChart, FileText, Book, User, Star, MessageSquare } from 'lucide-react';
 import PlanSelection from '@/components/subscription/PlanSelection';
 import WhatsAppButton from '@/components/landing/WhatsAppButton';
 import FeatureCard from '@/components/landing/FeatureCard';
@@ -49,24 +49,14 @@ const LandingPage = () => {
       description: 'Adapte rapidamente textos, atividades ou slides para diferentes públicos e dificuldades.'
     },
     {
-      icon: MessageSquare,
-      title: 'Comunicador Inteligente',
-      description: 'Modelos prontos e editáveis para recados, avisos e comunicados escolares.'
+      icon: Book,
+      title: 'Ajuda em Tarefas',
+      description: 'Estudantes podem resolver dúvidas em exercícios e receber orientação personalizada.'
     },
     {
-      icon: Lightbulb,
-      title: 'Curador de Recursos',
-      description: 'Receba indicações de vídeos, jogos, artigos e materiais didáticos relevantes automaticamente.'
-    },
-    {
-      icon: Settings,
-      title: 'Assistente de Personalização',
-      description: 'Personalize atividades, avaliações e recomendações para cada aluno ou grupo.'
-    },
-    {
-      icon: Users,
-      title: 'Organizador Administrativo',
-      description: 'Ferramentas para organização de listas, reuniões, registros e tarefas escolares.'
+      icon: User,
+      title: 'Suporte para Pais',
+      description: 'Auxílio para pais acompanharem e ajudarem nas tarefas escolares de seus filhos.'
     },
   ];
 
@@ -74,26 +64,26 @@ const LandingPage = () => {
     {
       name: 'Larissa Matos',
       role: 'Professora de Ciências (Ensino Fundamental)',
-      content: 'Nunca consegui preparar aulas tão rápido! O ProfeXpress mudou meu planejamento e liberou horas da minha semana.',
+      content: 'Nunca consegui preparar aulas tão rápido! O ProfesZ mudou meu planejamento e liberou horas da minha semana.',
       image: 'https://randomuser.me/api/portraits/women/45.jpg'
     },
     {
       name: 'Pedro Ventura',
       role: 'Diretor Escolar',
-      content: 'Nossos professores relataram menos estresse e mais tempo para inovar. A IA do ProfeXpress faz a diferença!',
+      content: 'Nossos professores relataram menos estresse e mais tempo para inovar. A IA do ProfesZ faz a diferença!',
       image: 'https://randomuser.me/api/portraits/men/56.jpg'
     },
     {
-      name: 'Simone Souza',
-      role: 'Professora de Matemática',
-      content: 'Os bancos de questões inteligentes me ajudam até com provas adaptadas para cada turma. Recomendo demais!',
+      name: 'Ana Lúcia Silva',
+      role: 'Mãe de aluno do 7º ano',
+      content: 'Agora consigo auxiliar meu filho nas tarefas mesmo sem dominar o conteúdo. O ProfesZ nos ajuda muito!',
       image: 'https://randomuser.me/api/portraits/women/33.jpg'
     }
   ];
 
   const faqs = [
     {
-      question: "Como o ProfeXpress protege meus dados?",
+      question: "Como o ProfesZ protege meus dados?",
       answer: "A segurança dos dados é prioridade máxima. Utilizamos protocolos avançados e nunca compartilhamos informações pessoais sem consentimento."
     },
     {
@@ -105,12 +95,12 @@ const LandingPage = () => {
       answer: "Sim! Basta acessar sua área logada para solicitar cancelamento, upgrade ou downgrade, sem burocracia."
     },
     {
-      question: "O ProfeXpress serve para qual nível de ensino?",
-      answer: "Atendemos professores e gestores da educação básica ao ensino superior, com recursos flexíveis para cada etapa."
+      question: "O ProfesZ serve para qual nível de ensino?",
+      answer: "Atendemos professores, alunos e pais da educação básica ao ensino superior, com recursos flexíveis para cada etapa."
     },
     {
-      question: "Há suporte para escolas e planos institucionais?",
-      answer: "Claro! Nosso time oferece integração, treinamento e suporte dedicado para escolas e redes de ensino."
+      question: "Há planos específicos para alunos e pais?",
+      answer: "Sim! Oferecemos planos especiais para alunos que precisam de auxílio nas tarefas e para pais que querem apoiar seus filhos nas atividades escolares."
     }
   ];
 
@@ -120,8 +110,8 @@ const LandingPage = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Logo ProfeXpress" className="h-8 w-8" />
-            <span className="text-xl font-bold text-indigo-700">ProfeXpress</span>
+            <img src="/logo.svg" alt="Logo ProfesZ" className="h-8 w-8" />
+            <span className="text-xl font-bold text-indigo-700">ProfesZ</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a onClick={() => scrollToSection('features')} className="text-sm font-medium cursor-pointer hover:text-primary">Recursos</a>
@@ -146,10 +136,10 @@ const LandingPage = () => {
         <section className="relative py-20 md:py-28 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
           <div className="container px-4 md:px-6 flex flex-col items-center text-center space-y-4 md:space-y-6 max-w-3xl mx-auto">
             <Badge className="px-3 py-1 text-sm bg-indigo-100 text-indigo-800 font-semibold shadow-sm">
-              Plataforma para Docentes Inteligentes
+              Para Professores, Estudantes e Pais
             </Badge>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter leading-snug">
-              Revolucione sua prática docente <br className="hidden sm:block" />
+              Revolucione sua experiência educacional <br className="hidden sm:block" />
               <span className="text-indigo-700">com inteligência artificial</span>
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl max-w-[700px]">
@@ -157,7 +147,7 @@ const LandingPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row w-full max-w-md gap-3 mx-auto">
               <Input
-                placeholder="Seu e-mail institucional"
+                placeholder="Seu e-mail"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -175,7 +165,7 @@ const LandingPage = () => {
             <div className="mt-8">
               <img
                 src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80"
-                alt="Interface do ProfeXpress"
+                alt="Interface do ProfesZ"
                 className="mx-auto rounded-xl shadow-lg max-h-72 object-cover"
               />
             </div>
@@ -187,19 +177,21 @@ const LandingPage = () => {
           <div className="container px-4 md:px-6 grid md:grid-cols-2 gap-10 items-center">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-indigo-800 mb-4">
-                Falta de tempo? Sobrecarga? ProfeXpress resolve isso.
+                Falta de tempo? Dificuldades? ProfesZ resolve isso.
               </h2>
               <ul className="text-md space-y-2 text-muted-foreground">
+                <li>• Ajuda para professores, alunos e pais.</li>
                 <li>• Organização de planos de aula em segundos.</li>
                 <li>• Geração automática de questões e feedbacks.</li>
-                <li>• Personalização de materiais em poucos cliques.</li>
+                <li>• Suporte em tarefas escolares para estudantes.</li>
+                <li>• Orientação para pais ajudarem seus filhos.</li>
                 <li>• Reduza em até <span className="text-indigo-700 font-bold">70% do tempo</span> gasto com tarefas burocráticas.</li>
               </ul>
               <div className="mt-6">
                 <Card>
                   <CardContent className="p-6">
                     <span className="text-3xl font-bold text-indigo-700">+80%</span>
-                    <span className="ml-2 text-lg">dos usuários relatam mais tempo livre no planejamento</span>
+                    <span className="ml-2 text-lg">dos usuários relatam mais eficiência em suas atividades educacionais</span>
                   </CardContent>
                 </Card>
               </div>
@@ -207,7 +199,7 @@ const LandingPage = () => {
             <div>
               <img
                 src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=700&q=80"
-                alt="Workflow do Professor"
+                alt="Workflow Educacional"
                 className="rounded-xl shadow-xl"
               />
             </div>
@@ -218,12 +210,12 @@ const LandingPage = () => {
         <section id="features" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-3 mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Principais Recursos do ProfeXpress</h2>
+              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Principais Recursos do ProfesZ</h2>
               <p className="text-muted-foreground max-w-[700px] mx-auto">
-                Tudo que o professor e a escola precisam para inovar com segurança e eficiência.
+                Soluções completas para professores, estudantes e pais.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
               {features.map((feature, index) => (
                 <FeatureCard
                   key={index}
@@ -236,12 +228,128 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Demonstração Visual */}
+        {/* Públicos-alvo */}
         <section className="py-16 md:py-20 bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6">
+            <div className="text-center space-y-3 mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Para quem é o ProfesZ?</h2>
+              <p className="text-muted-foreground max-w-[700px] mx-auto">
+                Nossa plataforma atende diferentes perfis do universo educacional
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="bg-blue-50 dark:bg-blue-900/30">
+                  <CardTitle className="flex items-center gap-2">
+                    <Book className="h-6 w-6 text-primary" />
+                    Professores
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Planos de aula automatizados</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Banco de questões personalizadas</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Gerador de avaliações</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Feedback inteligente para alunos</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-2">
+                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'professor' }})}>
+                    Sou Professor
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className="shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="bg-green-50 dark:bg-green-900/30">
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-6 w-6 text-green-600" />
+                    Estudantes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Auxílio em tarefas escolares</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Resolução de dúvidas em tempo real</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Prática com questões personalizadas</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Preparação para avaliações</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-2">
+                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'estudante' }})}>
+                    Sou Estudante
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className="shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="bg-purple-50 dark:bg-purple-900/30">
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-6 w-6 text-purple-600" />
+                    Pais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Auxílio para ajudar nos deveres</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Reforço escolar para seus filhos</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Explicações simplificadas de conteúdos</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Sugestões de atividades adequadas</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-2">
+                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'pai' }})}>
+                    Sou Pai/Responsável
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Demonstração Visual */}
+        <section className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6 grid md:grid-cols-2 gap-10 items-center">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-indigo-800 mb-4">
-                Veja o ProfeXpress em ação!
+                Veja o ProfesZ em ação!
               </h2>
               <p className="text-muted-foreground mb-4">
                 Interface simples, navegação intuitiva e resultados visíveis desde os primeiros minutos de uso.
@@ -249,13 +357,14 @@ const LandingPage = () => {
               <ul className="text-md space-y-1">
                 <li>✔️ Fluxo fácil para criar planos de aula</li>
                 <li>✔️ Geração de avaliações em segundos</li>
-                <li>✔️ Acompanhamento e personalização em tempo real</li>
+                <li>✔️ Auxílio em tarefas escolares</li>
+                <li>✔️ Suporte para pais e alunos</li>
               </ul>
             </div>
             <div className="flex justify-center">
               <img
                 src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80"
-                alt="Demonstração do ProfeXpress"
+                alt="Demonstração do ProfesZ"
                 className="rounded-xl shadow-xl w-full max-w-lg"
               />
             </div>
@@ -263,12 +372,12 @@ const LandingPage = () => {
         </section>
 
         {/* Depoimentos */}
-        <section id="testimonials" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
+        <section id="testimonials" className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-3 mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">O que os educadores dizem</h2>
+              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">O que os usuários dizem</h2>
               <p className="text-muted-foreground max-w-[700px] mx-auto">
-                ProfeXpress foi testado e aprovado por centenas de professores de diferentes etapas do ensino.
+                ProfesZ é aprovado por professores, estudantes e pais em diferentes níveis educacionais.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -286,12 +395,12 @@ const LandingPage = () => {
         </section>
 
         {/* Planos e Preços */}
-        <section id="pricing" className="py-16 md:py-20 bg-white dark:bg-gray-900">
+        <section id="pricing" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-3 mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Planos para cada etapa da sua trajetória docente</h2>
+              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Planos para todos os perfis</h2>
               <p className="text-muted-foreground max-w-[700px] mx-auto">
-                Experimente gratuitamente e descubra qual o plano ideal para você, sua escola ou rede.
+                Experimente gratuitamente e descubra qual o plano ideal para você, seja professor, estudante ou pai.
               </p>
             </div>
             {/* PlanSelection mantém a estrutura, mas o conteúdo dos planos no src/data/plans.ts deve ser atualizado manualmente */}
@@ -299,7 +408,7 @@ const LandingPage = () => {
               plans={[
                 {
                   id: "free",
-                  name: "ProfeXpress Inicial",
+                  name: "ProfesZ Inicial",
                   price: "R$ 0,00",
                   description: "Acesso limitado ao gerador de planos de aula (3 por mês), banco de questões básico (25 questões/mês), 1 template de comunicação.",
                   features: [],
@@ -312,9 +421,9 @@ const LandingPage = () => {
                 },
                 {
                   id: "essencial",
-                  name: "ProfeXpress Essencial",
-                  price: "R$ X/mês",
-                  description: "Acesso completo ao gerador de planos, banco de questões avançado (100 questões/mês), assistente de feedback básico, adaptador de materiais (5 por mês), comunicador inteligente (10 templates), curador básico.",
+                  name: "ProfesZ Essencial",
+                  price: "R$ 29,90/mês",
+                  description: "Acesso completo ao gerador de planos, banco de questões avançado (100 questões/mês), assistente de feedback básico, adaptador de materiais (5 por mês).",
                   features: [],
                   recommended: true,
                   limits: {
@@ -325,23 +434,23 @@ const LandingPage = () => {
                   }
                 },
                 {
-                  id: "maestro",
-                  name: "ProfeXpress Maestro",
-                  price: "R$ XX/mês",
-                  description: "Todos os recursos do Essencial + geradores ilimitados, feedback avançado, adaptação completa de materiais, organizador administrativo e suporte prioritário.",
+                  id: "estudante",
+                  name: "ProfesZ Estudante",
+                  price: "R$ 19,90/mês",
+                  description: "Auxílio em tarefas escolares, resolução de dúvidas, preparação para provas e geração de exercícios personalizados.",
                   features: [],
                   limits: {
-                    activeListings: -1,
-                    activeSearches: -1,
-                    matchesPerMonth: -1,
-                    contactsPerMonth: -1
+                    activeListings: 100,
+                    activeSearches: 100,
+                    matchesPerMonth: 10,
+                    contactsPerMonth: 10
                   }
                 },
                 {
-                  id: "institucional",
-                  name: "ProfeXpress Institucional",
-                  price: "Sob consulta",
-                  description: "Todos os recursos do Maestro + customização, integração com sistemas escolares, painel administrativo, treinamento e suporte dedicado.",
+                  id: "familia",
+                  name: "ProfesZ Família",
+                  price: "R$ 39,90/mês",
+                  description: "Ideal para pais ajudarem seus filhos. Inclui auxílio em tarefas, explicações de conteúdos e recomendações de atividades.",
                   features: [],
                   limits: {
                     activeListings: -1,
@@ -369,7 +478,7 @@ const LandingPage = () => {
         </section>
 
         {/* FAQ */}
-        <section id="faq" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
+        <section id="faq" className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center mb-10">
               <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Perguntas Frequentes</h2>
@@ -391,7 +500,7 @@ const LandingPage = () => {
         </section>
 
         {/* CTA Newsletter/Contato */}
-        <section id="contact" className="py-12 md:py-16 bg-white dark:bg-gray-900">
+        <section id="contact" className="py-12 md:py-16 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6 text-center space-y-6">
             <h2 className="text-2xl font-bold text-indigo-800">Receba novidades, dicas e materiais exclusivos!</h2>
             <form className="flex flex-col sm:flex-row gap-3 justify-center items-center max-w-xl mx-auto">
@@ -413,11 +522,11 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row gap-8 justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <img src="/logo.svg" alt="Logo ProfeXpress" className="h-6 w-6" />
-                <span className="text-lg font-bold text-indigo-700">ProfeXpress</span>
+                <img src="/logo.svg" alt="Logo ProfesZ" className="h-6 w-6" />
+                <span className="text-lg font-bold text-indigo-700">ProfesZ</span>
               </div>
               <p className="text-sm text-muted-foreground max-w-xs">
-                Mais inovação e tempo livre para quem faz a diferença na educação.
+                Mais inovação e tempo livre para todos os envolvidos no processo educacional.
               </p>
               <div className="flex gap-3 mt-3">
                 <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-indigo-700">
@@ -445,7 +554,7 @@ const LandingPage = () => {
             <div>
               <h3 className="font-semibold mb-2 text-indigo-700">Contato</h3>
               <ul className="text-sm space-y-1">
-                <li>Email: <a href="mailto:contato@profexpress.com.br" className="hover:text-indigo-700">contato@profexpress.com.br</a></li>
+                <li>Email: <a href="mailto:contato@profesz.com.br" className="hover:text-indigo-700">contato@profesz.com.br</a></li>
                 <li>WhatsApp: <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-700">(11) 99999-9999</a></li>
               </ul>
               <div className="mt-4">
@@ -457,7 +566,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} ProfeXpress. Todos os direitos reservados.</p>
+            <p>© {new Date().getFullYear()} ProfesZ. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
@@ -469,4 +578,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-
