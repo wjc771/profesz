@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { QuestoesForm } from '@/components/questoes/QuestoesForm';
 import { SubscriptionPlanType } from '@/types/profile';
+import { TabNavigation } from '@/components/dashboard/TabNavigation';
+import { FileText } from 'lucide-react';
 
 export default function QuestoesPage() {
   const { user } = useAuth();
@@ -76,29 +78,38 @@ export default function QuestoesPage() {
   }, [user, toast]);
   
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Criar Questões</h1>
-        <p className="text-muted-foreground">
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="border-b pb-4">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <FileText className="h-8 w-8 text-primary" />
+          Criar Questões
+        </h1>
+        <p className="text-muted-foreground mt-2 text-lg">
           Gere questões personalizadas para suas provas, quizzes e listas de exercícios
         </p>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Criar Novas Questões</CardTitle>
-          <CardDescription>
-            Configure os parâmetros para gerar questões personalizadas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <QuestoesForm 
-            plano={plano} 
-            usageCount={usageCount} 
-            usageLimit={usageLimit} 
-          />
-        </CardContent>
-      </Card>
+      {/* Tab Navigation */}
+      <TabNavigation />
+      
+      {/* Main Content */}
+      <div className="bg-card/30 rounded-lg p-6 shadow-sm">
+        <Card className="border shadow-md">
+          <CardHeader className="bg-card/50 border-b">
+            <CardTitle className="flex items-center justify-between">
+              <span>Criar Novas Questões</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <QuestoesForm 
+              plano={plano} 
+              usageCount={usageCount} 
+              usageLimit={usageLimit} 
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +13,9 @@ import { QuestoesFormStepper } from "./QuestoesFormStepper";
 import { QuestoesStep } from "./steps/QuestoesStep";
 import { EstruturaStep } from "@/components/avaliacao/steps/EstruturaStep";
 import { ConfiguracaoStep } from "@/components/avaliacao/steps/ConfiguracaoStep";
+import { motion, AnimatePresence } from "framer-motion";
 
+// Form schema definition
 const questoesFormSchema = z.object({
   tipoAvaliacao: z.string().min(1, "Selecione um tipo de avaliação"),
   objetivoAvaliacao: z.string().min(1, "Selecione um objetivo"),
@@ -236,7 +237,6 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
         description: `${values.numeroQuestoes} questões foram geradas conforme suas especificações.`,
       });
       
-      // Corrigido o caminho da rota para /questoes ao invés de /dashboard/questoes
       navigate('/questoes');
       
     } catch (error: any) {
@@ -251,20 +251,25 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
   };
   
   const renderStepContent = () => {
-    switch (step) {
-      case 1:
-        return <ConfiguracaoStep form={form} plano={plano} />;
-      case 2:
-        return <EstruturaStep form={form} plano={plano} />;
-      case 3:
-        return <QuestoesStep form={form} plano={plano} usageLimit={usageLimit} />;
-      default:
-        return null;
-    }
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.2 }}
+        >
+          {step === 1 && <ConfiguracaoStep form={form} plano={plano} />}
+          {step === 2 && <EstruturaStep form={form} plano={plano} />}
+          {step === 3 && <QuestoesStep form={form} plano={plano} usageLimit={usageLimit} />}
+        </motion.div>
+      </AnimatePresence>
+    );
   };
   
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="bg-background">
       <QuestoesFormHeader 
         plano={plano}
         usageCount={usageCount}
@@ -272,8 +277,10 @@ export function QuestoesForm({ plano, usageCount, usageLimit }: QuestoesFormProp
       />
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {renderStepContent()}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="relative">
+          <div className="px-6 py-8">
+            {renderStepContent()}
+          </div>
           
           <QuestoesFormStepper
             currentStep={step}
