@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, name: string, userType: UserType) => {
     try {
-      const validTypes: UserType[] = ['professor', 'instituicao'];
+      const validTypes: UserType[] = ['professor', 'instituicao', 'aluno', 'pais'];
       if (!validTypes.includes(userType)) {
         throw new Error('Tipo de usuário inválido');
       }

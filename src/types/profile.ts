@@ -1,5 +1,5 @@
 
-export type UserType = 'professor' | 'instituicao';
+export type UserType = 'professor' | 'instituicao' | 'aluno' | 'pais';
 
 export type SubscriptionPlanType = 'inicial' | 'essencial' | 'maestro' | 'institucional';
 
