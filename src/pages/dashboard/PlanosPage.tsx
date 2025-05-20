@@ -1,7 +1,7 @@
 
 import { TabNavigation } from "@/components/dashboard/TabNavigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Book } from "lucide-react";
+import { Book, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +25,7 @@ export default function PlanosPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Book className="h-5 w-5 text-primary" /> 
+              <GraduationCap className="h-5 w-5 text-primary" /> 
               Gerador de Planos
             </CardTitle>
             <CardDescription>

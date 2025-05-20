@@ -109,7 +109,7 @@ const LandingPage = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Logo ProfesZ" className="h-8 w-8" />
+            <img src="/lovable-uploads/d1692790-1887-44f3-9157-6cd1ade4b2a6.png" alt="Logo ProfesZ" className="h-8 w-8" />
             <span className="text-xl font-bold text-indigo-700">ProfesZ</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -483,9 +483,16 @@ const LandingPage = () => {
                 {
                   id: "professor",
                   name: "ProfesZ Professor",
-                  price: "R$ 29,90/mês",
+                  price: "R$ 29,90",
                   description: "Acesso completo ao gerador de planos, banco de questões avançado, assistente de feedback e adaptador de materiais.",
-                  features: [],
+                  features: [
+                    { name: "Planos de aula automatizados", included: true },
+                    { name: "Banco de questões personalizadas", included: true },
+                    { name: "Gerador de avaliações", included: true },
+                    { name: "Feedback inteligente para alunos", included: true },
+                    { name: "Adaptador de materiais", included: true },
+                    { name: "Suporte dedicado", included: true },
+                  ],
                   recommended: true,
                   limits: {
                     activeListings: 100,
@@ -497,9 +504,16 @@ const LandingPage = () => {
                 {
                   id: "estudante",
                   name: "ProfesZ Estudante",
-                  price: "R$ 19,90/mês",
+                  price: "R$ 19,90",
                   description: "Auxílio em tarefas escolares, resolução de dúvidas, preparação para provas e geração de exercícios personalizados.",
-                  features: [],
+                  features: [
+                    { name: "Auxílio em tarefas escolares", included: true },
+                    { name: "Resolução de dúvidas em tempo real", included: true },
+                    { name: "Prática com questões personalizadas", included: true },
+                    { name: "Preparação para avaliações", included: true },
+                    { name: "Materiais de estudo adaptados", included: true },
+                    { name: "Suporte básico", included: true },
+                  ],
                   limits: {
                     activeListings: 100,
                     activeSearches: 100,
@@ -510,9 +524,16 @@ const LandingPage = () => {
                 {
                   id: "familia",
                   name: "ProfesZ Família",
-                  price: "R$ 39,90/mês",
+                  price: "R$ 39,90",
                   description: "Ideal para pais ajudarem seus filhos. Inclui auxílio em tarefas, explicações de conteúdos e recomendações de atividades.",
-                  features: [],
+                  features: [
+                    { name: "Auxílio para ajudar nos deveres", included: true },
+                    { name: "Reforço escolar para seus filhos", included: true },
+                    { name: "Explicações simplificadas de conteúdos", included: true },
+                    { name: "Sugestões de atividades adequadas", included: true },
+                    { name: "Orientações pedagógicas para pais", included: true },
+                    { name: "Acesso para até 3 perfis", included: true },
+                  ],
                   limits: {
                     activeListings: -1,
                     activeSearches: -1,
@@ -525,7 +546,14 @@ const LandingPage = () => {
                   name: "ProfesZ Institucional",
                   price: "Personalizado",
                   description: "Para escolas e instituições de ensino. Inclui ingestão de material próprio e recursos personalizados para colaboradores.",
-                  features: [],
+                  features: [
+                    { name: "Integração com material próprio", included: true },
+                    { name: "Personalização para colaboradores", included: true },
+                    { name: "Gestão de conteúdo educacional", included: true },
+                    { name: "Base de conhecimento institucional", included: true },
+                    { name: "Portal personalizado", included: true },
+                    { name: "Suporte premium dedicado", included: true },
+                  ],
                   limits: {
                     activeListings: -1,
                     activeSearches: -1,
@@ -542,6 +570,8 @@ const LandingPage = () => {
                   navigate("/register", { state: { planId } });
                 }
               }}
+              showAllFeatures={true}
+              compact={true}
             />
             <div className="text-center mt-6">
               <Link to="/plans">
