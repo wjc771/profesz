@@ -1,3 +1,4 @@
+
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -23,6 +24,7 @@ const Swipe = lazy(() => import('./pages/Swipe'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const PlanoDeAula = lazy(() => import('./pages/PlanoDeAula'));
 const QuestoesPage = lazy(() => import('./pages/QuestoesPage'));
+const Contact = lazy(() => import('./pages/Contact'));
 
 // Dashboard tab pages
 const PlanosPage = lazy(() => import('./pages/dashboard/PlanosPage'));
@@ -98,6 +100,7 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/contact" element={<PageLayout element={<Contact />} />} />
               
               {/* Dashboard Routes */}
               <Route path="/dashboard" element={<PageLayout element={<Dashboard />} />} />

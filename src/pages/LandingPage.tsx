@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, FilePen, PieChart, FileText, Book, User, Star, MessageSquare } from 'lucide-react';
+import { ClipboardList, FilePen, PieChart, FileText, Book, User, Star, MessageSquare, Building, Database } from 'lucide-react';
 import PlanSelection from '@/components/subscription/PlanSelection';
 import WhatsAppButton from '@/components/landing/WhatsAppButton';
 import FeatureCard from '@/components/landing/FeatureCard';
@@ -238,7 +237,7 @@ const LandingPage = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <Card className="shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="bg-blue-50 dark:bg-blue-900/30">
                   <CardTitle className="flex items-center gap-2">
@@ -301,7 +300,7 @@ const LandingPage = () => {
                   </ul>
                 </CardContent>
                 <CardFooter className="pt-2">
-                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'estudante' }})}>
+                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'aluno' }})}>
                     Sou Estudante
                   </Button>
                 </CardFooter>
@@ -335,11 +334,87 @@ const LandingPage = () => {
                   </ul>
                 </CardContent>
                 <CardFooter className="pt-2">
-                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'pai' }})}>
+                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'pais' }})}>
                     Sou Pai/Responsável
                   </Button>
                 </CardFooter>
               </Card>
+              
+              <Card className="shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader className="bg-amber-50 dark:bg-amber-900/30">
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="h-6 w-6 text-amber-600" />
+                    Instituições
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Integração com material próprio</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Personalização para colaboradores</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Gestão de conteúdo educacional</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <span>Base de conhecimento institucional</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-2">
+                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'instituicao' }})}>
+                    Sou Instituição
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Instituições de Ensino */}
+        <section className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900" id="instituicoes">
+          <div className="container px-4 md:px-6 grid md:grid-cols-2 gap-10 items-center">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-indigo-800 mb-4">
+                Soluções para Instituições de Ensino
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                Transforme seu material escolar existente em uma poderosa base de conhecimento para criação de recursos pedagógicos personalizados.
+              </p>
+              <ul className="text-md space-y-2 mb-6">
+                <li className="flex items-start gap-2">
+                  <Database className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <span>Ingestão e processamento de material didático proprietário</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Database className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <span>Criação automatizada de planos de aula baseados no seu conteúdo</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Database className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <span>Geração de questões e avaliações alinhadas ao seu currículo</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Database className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <span>Portal personalizado para docentes e equipe pedagógica</span>
+                </li>
+              </ul>
+              <Button className="w-full sm:w-auto" onClick={() => navigate('/contact', { state: { subject: 'Plano Institucional' }})}>
+                Solicitar demonstração
+              </Button>
+            </div>
+            <div className="flex justify-center">
+              <img
+                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
+                alt="Instituições de Ensino"
+                className="rounded-xl shadow-xl w-full max-w-lg"
+              />
             </div>
           </div>
         </section>
@@ -395,35 +470,21 @@ const LandingPage = () => {
         </section>
 
         {/* Planos e Preços */}
-        <section id="pricing" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
+        <section id="pricing" className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-3 mb-12">
               <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Planos para todos os perfis</h2>
               <p className="text-muted-foreground max-w-[700px] mx-auto">
-                Experimente gratuitamente e descubra qual o plano ideal para você, seja professor, estudante ou pai.
+                Escolha o plano ideal para você, seja professor, estudante ou pai.
               </p>
             </div>
-            {/* PlanSelection mantém a estrutura, mas o conteúdo dos planos no src/data/plans.ts deve ser atualizado manualmente */}
             <PlanSelection
               plans={[
                 {
-                  id: "free",
-                  name: "ProfesZ Inicial",
-                  price: "R$ 0,00",
-                  description: "Acesso limitado ao gerador de planos de aula (3 por mês), banco de questões básico (25 questões/mês), 1 template de comunicação.",
-                  features: [],
-                  limits: {
-                    activeListings: 3,
-                    activeSearches: 25,
-                    matchesPerMonth: 1,
-                    contactsPerMonth: null
-                  }
-                },
-                {
-                  id: "essencial",
-                  name: "ProfesZ Essencial",
+                  id: "professor",
+                  name: "ProfesZ Professor",
                   price: "R$ 29,90/mês",
-                  description: "Acesso completo ao gerador de planos, banco de questões avançado (100 questões/mês), assistente de feedback básico, adaptador de materiais (5 por mês).",
+                  description: "Acesso completo ao gerador de planos, banco de questões avançado, assistente de feedback e adaptador de materiais.",
                   features: [],
                   recommended: true,
                   limits: {
@@ -458,12 +519,25 @@ const LandingPage = () => {
                     matchesPerMonth: -1,
                     contactsPerMonth: -1
                   }
+                },
+                {
+                  id: "instituicao",
+                  name: "ProfesZ Institucional",
+                  price: "Personalizado",
+                  description: "Para escolas e instituições de ensino. Inclui ingestão de material próprio e recursos personalizados para colaboradores.",
+                  features: [],
+                  limits: {
+                    activeListings: -1,
+                    activeSearches: -1,
+                    matchesPerMonth: -1,
+                    contactsPerMonth: -1
+                  }
                 }
               ]}
               currentPlanId={undefined}
               onSelectPlan={(planId) => {
-                if (planId === "free") {
-                  navigate("/register");
+                if (planId === "instituicao") {
+                  navigate("/contact", { state: { subject: "Plano Institucional" } });
                 } else {
                   navigate("/register", { state: { planId } });
                 }
@@ -500,7 +574,7 @@ const LandingPage = () => {
         </section>
 
         {/* CTA Newsletter/Contato */}
-        <section id="contact" className="py-12 md:py-16 bg-indigo-50 dark:bg-gray-900">
+        <section id="contact" className="py-12 md:py-16 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6 text-center space-y-6">
             <h2 className="text-2xl font-bold text-indigo-800">Receba novidades, dicas e materiais exclusivos!</h2>
             <form className="flex flex-col sm:flex-row gap-3 justify-center items-center max-w-xl mx-auto">
