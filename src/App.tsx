@@ -24,12 +24,17 @@ const Onboarding = lazy(() => import('./pages/Onboarding'));
 const PlanoDeAula = lazy(() => import('./pages/PlanoDeAula'));
 const QuestoesPage = lazy(() => import('./pages/QuestoesPage'));
 
-// New dashboard tab pages
+// Dashboard tab pages
 const PlanosPage = lazy(() => import('./pages/dashboard/PlanosPage'));
 const AvaliacoesPage = lazy(() => import('./pages/dashboard/AvaliacoesPage'));
 const CriarAvaliacoesPage = lazy(() => import('./pages/dashboard/CriarAvaliacoesPage'));
 const MateriaisPage = lazy(() => import('./pages/dashboard/MateriaisPage'));
 const ComunicacaoPage = lazy(() => import('./pages/dashboard/ComunicacaoPage'));
+
+// New pages for students and parents
+const TarefasPage = lazy(() => import('./pages/dashboard/TarefasPage'));
+const AjudaPage = lazy(() => import('./pages/dashboard/AjudaPage'));
+const AcompanhamentoPage = lazy(() => import('./pages/dashboard/AcompanhamentoPage'));
 
 // Loading component
 const Loading = () => (
@@ -101,10 +106,15 @@ function App() {
               <Route path="/dashboard/avaliacoes/criar" element={<PageLayout element={<CriarAvaliacoesPage />} />} />
               <Route path="/dashboard/materiais" element={<PageLayout element={<MateriaisPage />} />} />
               <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
+              <Route path="/dashboard/questoes" element={<PageLayout element={<QuestoesPage />} />} />
+              
+              {/* New routes for students and parents */}
+              <Route path="/dashboard/tarefas" element={<PageLayout element={<TarefasPage />} />} />
+              <Route path="/dashboard/ajuda" element={<PageLayout element={<AjudaPage />} />} />
+              <Route path="/dashboard/acompanhamento" element={<PageLayout element={<AcompanhamentoPage />} />} />
               
               {/* Redirect /questoes to /dashboard/questoes */}
               <Route path="/questoes" element={<Navigate to="/dashboard/questoes" replace />} />
-              <Route path="/dashboard/questoes" element={<PageLayout element={<QuestoesPage />} />} />
               
               {/* Other Routes */}
               <Route path="/plano-de-aula" element={<PageLayout element={<PlanoDeAula />} />} />
