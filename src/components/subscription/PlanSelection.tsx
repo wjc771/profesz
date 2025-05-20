@@ -35,7 +35,7 @@ const PlanSelection = ({
             <div>
               <span className={compact ? "text-2xl font-bold" : "text-3xl font-bold"}>
                 {plan.id === "professor" || plan.id === "estudante" || plan.id === "familia" 
-                  ? plan.price + ",90" 
+                  ? "R$ 0,90" 
                   : plan.price}
               </span>
               {plan.price !== 'Grátis' && plan.price !== 'Personalizado' && <span className="text-muted-foreground text-sm ml-1">/mês</span>}
