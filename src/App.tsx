@@ -1,4 +1,3 @@
-
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -37,6 +36,11 @@ const ComunicacaoPage = lazy(() => import('./pages/dashboard/ComunicacaoPage'));
 const TarefasPage = lazy(() => import('./pages/dashboard/TarefasPage'));
 const AjudaPage = lazy(() => import('./pages/dashboard/AjudaPage'));
 const AcompanhamentoPage = lazy(() => import('./pages/dashboard/AcompanhamentoPage'));
+
+// New dashboard pages for ProfesZ
+const PlanejamentoPedagogicoPage = lazy(() => import('./pages/dashboard/PlanejamentoPedagogicoPage'));
+const CentralAtividadesPage = lazy(() => import('./pages/dashboard/CentralAtividadesPage'));
+const CentralCorrecaoPage = lazy(() => import('./pages/dashboard/CentralCorrecaoPage'));
 
 // Loading component
 const Loading = () => (
