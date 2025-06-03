@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Card } from "@/components/ui/card";
@@ -11,6 +12,9 @@ import { ConteudoStep } from "./steps/ConteudoStep";
 import { EstruturaStep } from "./steps/EstruturaStep";
 import { AvaliacaoStep } from "./steps/AvaliacaoStep";
 import { RecursosStep } from "./steps/RecursosStep";
+import { ModelosCompeticaoStep } from "./steps/ModelosCompeticaoStep";
+import { PersonalizacaoAvancadaStep } from "./steps/PersonalizacaoAvancadaStep";
+import { ResumoFinalStep } from "./steps/ResumoFinalStep";
 import { SubscriptionPlanType } from "@/types/profile";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +48,25 @@ const planoFormSchema = z.object({
   
   recursos: z.string().min(5, "Liste os recursos necessários"),
   materiaisComplementares: z.array(z.string()).optional(),
+  
+  // Novos campos para modelos de competição
+  tipoCompeticao: z.string().optional(),
+  modelosCompeticao: z.array(z.string()).optional(),
+  estrategiaCompeticao: z.string().optional(),
+  cronogramaPreparacao: z.string().optional(),
+  
+  // Novos campos para personalização avançada
+  templatePersonalizado: z.string().optional(),
+  linkSiteInstituicao: z.string().optional(),
+  linkPortalAluno: z.string().optional(),
+  linkBiblioteca: z.string().optional(),
+  linkRecursosExtras: z.string().optional(),
+  logo: z.string().optional(),
+  cabecalhoPersonalizado: z.string().optional(),
+  rodapePersonalizado: z.string().optional(),
+  
+  // Campo para webhook
+  webhookUrl: z.string().optional(),
 });
 
 type PlanoFormValues = z.infer<typeof planoFormSchema>;
@@ -55,6 +78,19 @@ const defaultValues: Partial<PlanoFormValues> = {
   atividadesCasa: "",
   rubricas: "",
   materiaisComplementares: [],
+  tipoCompeticao: "",
+  modelosCompeticao: [],
+  estrategiaCompeticao: "",
+  cronogramaPreparacao: "",
+  templatePersonalizado: "",
+  linkSiteInstituicao: "",
+  linkPortalAluno: "",
+  linkBiblioteca: "",
+  linkRecursosExtras: "",
+  logo: "",
+  cabecalhoPersonalizado: "",
+  rodapePersonalizado: "",
+  webhookUrl: "",
 };
 
 interface PlanoDeAulaFormProps {
@@ -65,7 +101,7 @@ interface PlanoDeAulaFormProps {
 
 export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFormProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 6; // Total number of steps in the form
+  const totalSteps = 9; // Atualizado para incluir os novos steps
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -96,18 +132,30 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
 
     console.log("Current step:", step);
     console.log("Current fields:", currentFields);
-    console.log("Form values:", form.getValues());
-    console.log("Form errors:", form.formState.errors);
     
     return currentFields.every((field) => {
       const fieldState = form.getFieldState(field as any);
       const value = form.getValues(field as any);
       
+      // Campos opcionais
       if (field === 'diferenciacaoAlunos' || 
           field === 'atividadesCasa' || 
           field === 'rubricas' || 
           field === 'habilidadesBncc' ||
-          field === 'materiaisComplementares') {
+          field === 'materiaisComplementares' ||
+          field === 'tipoCompeticao' ||
+          field === 'modelosCompeticao' ||
+          field === 'estrategiaCompeticao' ||
+          field === 'cronogramaPreparacao' ||
+          field === 'templatePersonalizado' ||
+          field === 'linkSiteInstituicao' ||
+          field === 'linkPortalAluno' ||
+          field === 'linkBiblioteca' ||
+          field === 'linkRecursosExtras' ||
+          field === 'logo' ||
+          field === 'cabecalhoPersonalizado' ||
+          field === 'rodapePersonalizado' ||
+          field === 'webhookUrl') {
         return true;
       }
       
@@ -139,6 +187,12 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         return ['metodoAvaliacao', 'atividadesSala', 'atividadesCasa', 'rubricas'];
       case 6:
         return ['recursos', 'materiaisComplementares'];
+      case 7:
+        return ['tipoCompeticao', 'modelosCompeticao', 'estrategiaCompeticao', 'cronogramaPreparacao'];
+      case 8:
+        return ['templatePersonalizado', 'linkSiteInstituicao', 'linkPortalAluno', 'linkBiblioteca', 'linkRecursosExtras', 'logo', 'cabecalhoPersonalizado', 'rodapePersonalizado'];
+      case 9:
+        return ['webhookUrl'];
       default:
         return [];
     }
@@ -178,6 +232,26 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         recursos: {
           recursos: values.recursos,
           materiaisComplementares: values.materiaisComplementares || [],
+        },
+        competicao: {
+          tipoCompeticao: values.tipoCompeticao || "",
+          modelosCompeticao: values.modelosCompeticao || [],
+          estrategiaCompeticao: values.estrategiaCompeticao || "",
+          cronogramaPreparacao: values.cronogramaPreparacao || "",
+        },
+        personalizacao: {
+          templatePersonalizado: values.templatePersonalizado || "",
+          links: {
+            siteInstituicao: values.linkSiteInstituicao || "",
+            portalAluno: values.linkPortalAluno || "",
+            biblioteca: values.linkBiblioteca || "",
+            recursosExtras: values.linkRecursosExtras || "",
+          },
+          visual: {
+            logo: values.logo || "",
+            cabecalho: values.cabecalhoPersonalizado || "",
+            rodape: values.rodapePersonalizado || "",
+          }
         }
       };
       
@@ -214,7 +288,7 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         description: "Seu plano foi salvo e está disponível na sua biblioteca.",
       });
       
-      navigate('/dashboard');
+      navigate('/dashboard/planejamento');
       
     } catch (error: any) {
       console.error('Error saving lesson plan:', error);
@@ -241,6 +315,12 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
         return <AvaliacaoStep form={form} plano={plano} />;
       case 6:
         return <RecursosStep form={form} plano={plano} />;
+      case 7:
+        return <ModelosCompeticaoStep form={form} plano={plano} />;
+      case 8:
+        return <PersonalizacaoAvancadaStep form={form} plano={plano} />;
+      case 9:
+        return <ResumoFinalStep form={form} />;
       default:
         return null;
     }

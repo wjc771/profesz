@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Book, FileText, Star, Layers, Settings, Clock, HelpCircle, UserCheck } from "lucide-react";
+import { Home, Book, Star, CheckCircle, Settings, Clock, HelpCircle, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { mockProfiles } from "@/lib/mockData";
 import { UserType } from "@/types/profile";
@@ -26,24 +26,21 @@ export default function DashboardSidebar() {
   const sidebarLinksMap = {
     professor: [
       { label: "Painel", icon: Home, to: "/dashboard" },
-      { label: "Planos de Aula", icon: Book, to: "/dashboard/planos" },
-      { label: "Questões", icon: FileText, to: "/dashboard/questoes" },
-      { label: "Avaliações", icon: Star, to: "/dashboard/avaliacoes" },
-      { label: "Materiais", icon: Layers, to: "/dashboard/materiais" },
+      { label: "Planejamento", icon: Book, to: "/dashboard/planejamento" },
+      { label: "Atividades", icon: Star, to: "/dashboard/atividades" },
+      { label: "Correção", icon: CheckCircle, to: "/dashboard/correcao" },
       { label: "Configurações", icon: Settings, to: "/settings" },
     ],
     instituicao: [
       { label: "Painel", icon: Home, to: "/dashboard" },
-      { label: "Planos de Aula", icon: Book, to: "/dashboard/planos" },
-      { label: "Questões", icon: FileText, to: "/dashboard/questoes" },
-      { label: "Avaliações", icon: Star, to: "/dashboard/avaliacoes" },
-      { label: "Materiais", icon: Layers, to: "/dashboard/materiais" },
+      { label: "Planejamento", icon: Book, to: "/dashboard/planejamento" },
+      { label: "Atividades", icon: Star, to: "/dashboard/atividades" },
+      { label: "Correção", icon: CheckCircle, to: "/dashboard/correcao" },
       { label: "Configurações", icon: Settings, to: "/settings" },
     ],
     aluno: [
       { label: "Painel", icon: Home, to: "/dashboard" },
       { label: "Tarefas", icon: Clock, to: "/dashboard/tarefas" },
-      { label: "Questões", icon: FileText, to: "/dashboard/questoes" },
       { label: "Ajuda", icon: HelpCircle, to: "/dashboard/ajuda" },
       { label: "Configurações", icon: Settings, to: "/settings" },
     ],

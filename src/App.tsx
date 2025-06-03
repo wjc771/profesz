@@ -104,12 +104,16 @@ function App() {
               
               {/* Dashboard Routes */}
               <Route path="/dashboard" element={<PageLayout element={<Dashboard />} />} />
-              <Route path="/dashboard/planos" element={<PageLayout element={<PlanosPage />} />} />
-              <Route path="/dashboard/avaliacoes" element={<PageLayout element={<AvaliacoesPage />} />} />
-              <Route path="/dashboard/avaliacoes/criar" element={<PageLayout element={<CriarAvaliacoesPage />} />} />
-              <Route path="/dashboard/materiais" element={<PageLayout element={<MateriaisPage />} />} />
+              <Route path="/dashboard/planejamento" element={<PageLayout element={<PlanejamentoPedagogicoPage />} />} />
+              <Route path="/dashboard/atividades" element={<PageLayout element={<CentralAtividadesPage />} />} />
+              <Route path="/dashboard/atividades/criar" element={<PageLayout element={<CriarAvaliacoesPage />} />} />
+              <Route path="/dashboard/correcao" element={<PageLayout element={<CentralCorrecaoPage />} />} />
               <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
-              <Route path="/dashboard/questoes" element={<PageLayout element={<QuestoesPage />} />} />
+              
+              {/* Legacy redirects */}
+              <Route path="/dashboard/planos" element={<Navigate to="/dashboard/planejamento" replace />} />
+              <Route path="/dashboard/avaliacoes" element={<Navigate to="/dashboard/atividades" replace />} />
+              <Route path="/dashboard/materiais" element={<Navigate to="/dashboard/correcao" replace />} />
               
               {/* New routes for students and parents */}
               <Route path="/dashboard/tarefas" element={<PageLayout element={<TarefasPage />} />} />

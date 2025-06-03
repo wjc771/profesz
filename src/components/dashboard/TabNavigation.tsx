@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Book, Database, FileText, 
-  Search, Settings, Star,
+  Book, FileText, Star,
+  Search, Settings, CheckCircle,
   Clock, HelpCircle, UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -51,34 +51,26 @@ export function TabNavigation() {
       userTypes: ["professor", "instituicao", "aluno", "pais"]
     },
     {
-      id: "planos",
-      label: "Planos Aula",
+      id: "planejamento",
+      label: "Planejamento Pedagógico",
       icon: Book,
-      route: "/dashboard/planos",
+      route: "/dashboard/planejamento",
       available: true,
       userTypes: ["professor", "instituicao"]
     },
     {
-      id: "questoes",
-      label: "Questões",
-      icon: Database,
-      route: "/dashboard/questoes",
-      available: true,
-      userTypes: ["professor", "instituicao", "aluno"]
-    },
-    {
-      id: "avaliacoes",
-      label: "Avaliações",
+      id: "atividades",
+      label: "Central de Atividades",
       icon: Star,
-      route: "/dashboard/avaliacoes",
+      route: "/dashboard/atividades",
       available: true,
       userTypes: ["professor", "instituicao"]
     },
     {
-      id: "materiais",
-      label: "Adaptador",
-      icon: FileText,
-      route: "/dashboard/materiais",
+      id: "correcao",
+      label: "Central de Correção",
+      icon: CheckCircle,
+      route: "/dashboard/correcao",
       available: true,
       userTypes: ["professor", "instituicao"]
     },
