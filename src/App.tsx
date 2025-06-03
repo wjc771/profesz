@@ -22,7 +22,6 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Swipe = lazy(() => import('./pages/Swipe'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
 const PlanoDeAula = lazy(() => import('./pages/PlanoDeAula'));
-const QuestoesPage = lazy(() => import('./pages/QuestoesPage'));
 const Contact = lazy(() => import('./pages/Contact'));
 
 // Dashboard tab pages
@@ -123,9 +122,6 @@ function App() {
               <Route path="/dashboard/tarefas" element={<PageLayout element={<TarefasPage />} />} />
               <Route path="/dashboard/ajuda" element={<PageLayout element={<AjudaPage />} />} />
               <Route path="/dashboard/acompanhamento" element={<PageLayout element={<AcompanhamentoPage />} />} />
-              
-              {/* Redirect /questoes to /dashboard/questoes */}
-              <Route path="/questoes" element={<Navigate to="/dashboard/questoes" replace />} />
               
               {/* Other Routes */}
               <Route path="/plano-de-aula" element={<PageLayout element={<PlanoDeAula />} />} />

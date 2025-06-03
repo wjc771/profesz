@@ -1,66 +1,22 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FileText, Download, Send, Eye } from "lucide-react";
+import { FileText, Eye } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { JsonExporter } from "../JsonExporter";
+import { WebhookService } from "@/utils/webhookService";
 
 interface ResumoFinalStepProps {
   form: UseFormReturn<any>;
 }
 
 export function ResumoFinalStep({ form }: ResumoFinalStepProps) {
-  const [showWebhookConfig, setShowWebhookConfig] = useState(false);
   const formValues = form.getValues();
 
-  const exportToJSON = () => {
-    const dataToExport = {
-      ...formValues,
-      timestamp: new Date().toISOString(),
-      version: "1.0"
-    };
-    
-    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {
-      type: 'application/json'
-    });
-    
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `plano_de_aula_${formValues.titulo || 'sem_titulo'}_${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const sendToWebhook = async () => {
-    const webhookUrl = form.getValues("webhookUrl");
-    if (!webhookUrl) return;
-    
-    const dataToSend = {
-      ...formValues,
-      timestamp: new Date().toISOString(),
-      version: "1.0"
-    };
-    
-    try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSend)
-      });
-      
-      alert('Dados enviados com sucesso!');
-    } catch (error) {
-      alert('Erro ao enviar dados. Verifique a URL do webhook.');
-    }
+  const handleSendWebhook = async (webhookUrl: string) => {
+    const sanitizedData = WebhookService.sanitizeData(formValues);
+    await WebhookService.sendData(webhookUrl, sanitizedData);
   };
 
   return (
@@ -117,64 +73,27 @@ export function ResumoFinalStep({ form }: ResumoFinalStepProps) {
               <p className="text-sm">{formValues.temaCentral || 'Não informado'}</p>
             </div>
           </div>
+
+          {formValues.templatePersonalizado && (
+            <div>
+              <h4 className="font-medium mb-2">Personalização</h4>
+              <div className="bg-muted/30 p-3 rounded-md">
+                <p><strong>Template:</strong> {formValues.templatePersonalizado}</p>
+                {formValues.linkSiteInstituicao && (
+                  <p><strong>Site Institucional:</strong> {formValues.linkSiteInstituicao}</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <Separator />
 
         {/* Export Options */}
-        <div className="space-y-4">
-          <h4 className="font-medium">Exportar Dados</h4>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Button 
-              onClick={exportToJSON}
-              variant="outline" 
-              className="w-full"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Baixar JSON
-            </Button>
-            
-            <Button 
-              onClick={() => setShowWebhookConfig(!showWebhookConfig)}
-              variant="outline" 
-              className="w-full"
-            >
-              <Send className="mr-2 h-4 w-4" />
-              Enviar via Webhook
-            </Button>
-          </div>
-
-          {showWebhookConfig && (
-            <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
-              <FormField
-                control={form.control}
-                name="webhookUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL do Webhook</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="https://api.exemplo.com/webhook" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button 
-                onClick={sendToWebhook}
-                className="w-full"
-                disabled={!form.getValues("webhookUrl")}
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Enviar Dados
-              </Button>
-            </div>
-          )}
-        </div>
+        <JsonExporter 
+          data={formValues}
+          onSendWebhook={handleSendWebhook}
+        />
 
         <Separator />
 

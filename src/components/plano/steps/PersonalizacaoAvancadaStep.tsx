@@ -7,13 +7,6 @@ import {
   FormLabel, 
   FormMessage 
 } from "@/components/ui/form";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SubscriptionPlanType } from "@/types/profile";
 import { Input } from "@/components/ui/input";
@@ -21,22 +14,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Lock, Palette, Link, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { TemplateSelector } from "../TemplateSelector";
+import { PreviewPanel } from "../PreviewPanel";
+import { useState } from "react";
 
 interface PersonalizacaoAvancadaStepProps {
   form: UseFormReturn<any>;
   plano: SubscriptionPlanType;
 }
 
-const templateOptions = [
-  { id: "moderno", label: "Moderno", preview: "Clean e minimalista" },
-  { id: "classico", label: "Clássico", preview: "Tradicional e elegante" },
-  { id: "colorido", label: "Colorido", preview: "Vibrante e dinâmico" },
-  { id: "institucional", label: "Institucional", preview: "Formal e profissional" },
-];
-
 export function PersonalizacaoAvancadaStep({ form, plano }: PersonalizacaoAvancadaStepProps) {
   const canUseAdvancedStyles = plano === 'essencial' || plano === 'maestro' || plano === 'institucional';
   const canUseFullPersonalization = plano === 'maestro' || plano === 'institucional';
+  const [showPreview, setShowPreview] = useState(false);
+  
+  const formValues = form.watch();
   
   return (
     <>
@@ -62,32 +54,44 @@ export function PersonalizacaoAvancadaStep({ form, plano }: PersonalizacaoAvanca
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Escolha um Template</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                  disabled={!canUseAdvancedStyles}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um template" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {templateOptions.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{template.label}</span>
-                          <span className="text-xs text-muted-foreground">{template.preview}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <div className={!canUseAdvancedStyles ? 'pointer-events-none' : ''}>
+                    <TemplateSelector
+                      selectedTemplate={field.value || "moderno"}
+                      onSelectTemplate={field.onChange}
+                    />
+                  </div>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        <Separator />
+
+        {/* Preview Panel */}
+        {canUseAdvancedStyles && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">Preview em Tempo Real</h4>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+              >
+                {showPreview ? 'Ocultar' : 'Mostrar'} Preview
+              </Button>
+            </div>
+            
+            {showPreview && (
+              <PreviewPanel 
+                formData={formValues}
+                template={formValues.templatePersonalizado || "moderno"}
+              />
+            )}
+          </div>
+        )}
 
         <Separator />
 

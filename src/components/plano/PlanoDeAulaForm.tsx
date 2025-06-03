@@ -49,13 +49,13 @@ const planoFormSchema = z.object({
   recursos: z.string().min(5, "Liste os recursos necessários"),
   materiaisComplementares: z.array(z.string()).optional(),
   
-  // Novos campos para modelos de competição
+  // Campos para modelos de competição
   tipoCompeticao: z.string().optional(),
   modelosCompeticao: z.array(z.string()).optional(),
   estrategiaCompeticao: z.string().optional(),
   cronogramaPreparacao: z.string().optional(),
   
-  // Novos campos para personalização avançada
+  // Campos para personalização avançada
   templatePersonalizado: z.string().optional(),
   linkSiteInstituicao: z.string().optional(),
   linkPortalAluno: z.string().optional(),
@@ -64,9 +64,6 @@ const planoFormSchema = z.object({
   logo: z.string().optional(),
   cabecalhoPersonalizado: z.string().optional(),
   rodapePersonalizado: z.string().optional(),
-  
-  // Campo para webhook
-  webhookUrl: z.string().optional(),
 });
 
 type PlanoFormValues = z.infer<typeof planoFormSchema>;
@@ -82,7 +79,7 @@ const defaultValues: Partial<PlanoFormValues> = {
   modelosCompeticao: [],
   estrategiaCompeticao: "",
   cronogramaPreparacao: "",
-  templatePersonalizado: "",
+  templatePersonalizado: "moderno",
   linkSiteInstituicao: "",
   linkPortalAluno: "",
   linkBiblioteca: "",
@@ -90,7 +87,6 @@ const defaultValues: Partial<PlanoFormValues> = {
   logo: "",
   cabecalhoPersonalizado: "",
   rodapePersonalizado: "",
-  webhookUrl: "",
 };
 
 interface PlanoDeAulaFormProps {
@@ -101,7 +97,7 @@ interface PlanoDeAulaFormProps {
 
 export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFormProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 9; // Atualizado para incluir os novos steps
+  const totalSteps = 9;
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -130,9 +126,6 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
       return true;
     }
 
-    console.log("Current step:", step);
-    console.log("Current fields:", currentFields);
-    
     return currentFields.every((field) => {
       const fieldState = form.getFieldState(field as any);
       const value = form.getValues(field as any);
@@ -154,18 +147,15 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
           field === 'linkRecursosExtras' ||
           field === 'logo' ||
           field === 'cabecalhoPersonalizado' ||
-          field === 'rodapePersonalizado' ||
-          field === 'webhookUrl') {
+          field === 'rodapePersonalizado') {
         return true;
       }
       
       if (fieldState.error) {
-        console.log(`Field ${field} has error:`, fieldState.error);
         return false;
       }
       
       if (!value || (typeof value === 'string' && value.trim() === '')) {
-        console.log(`Field ${field} is empty`);
         return false;
       }
       
@@ -192,7 +182,7 @@ export function PlanoDeAulaForm({ plano, usageCount, usageLimit }: PlanoDeAulaFo
       case 8:
         return ['templatePersonalizado', 'linkSiteInstituicao', 'linkPortalAluno', 'linkBiblioteca', 'linkRecursosExtras', 'logo', 'cabecalhoPersonalizado', 'rodapePersonalizado'];
       case 9:
-        return ['webhookUrl'];
+        return [];
       default:
         return [];
     }
