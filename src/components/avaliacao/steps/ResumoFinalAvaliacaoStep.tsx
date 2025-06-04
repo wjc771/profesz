@@ -25,6 +25,8 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     setIsGenerating(true);
     
     try {
+      console.log('Enviando dados para webhook (prévia):', formValues);
+      
       const dataToSend = {
         ...formValues,
         action: "generate_preview",
@@ -34,31 +36,39 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
       const response = await WebhookService.sendAvaliacaoData(dataToSend);
       
-      if (response.success && response.avaliacao) {
-        setAvaliacaoGerada(response.avaliacao);
-        toast({
-          title: "Prévia gerada com sucesso!",
-          description: `Avaliação gerada conforme suas especificações.`,
-        });
+      console.log('Resposta recebida do webhook:', response);
+      
+      if (response.success) {
+        if (response.avaliacao) {
+          // Dados reais do webhook
+          setAvaliacaoGerada(response.avaliacao);
+          toast({
+            title: "Prévia gerada com sucesso!",
+            description: `Avaliação gerada conforme suas especificações.`,
+          });
+        } else if (response.data) {
+          // Verificar se a avaliação está em data
+          setAvaliacaoGerada(response.data);
+          toast({
+            title: "Prévia gerada com sucesso!",
+            description: `Avaliação recebida do servidor.`,
+          });
+        } else {
+          throw new Error("Webhook não retornou dados de avaliação válidos");
+        }
       } else {
-        // Fallback para mock se webhook não retornar avaliação
-        const mockAvaliacao = generateMockAvaliacao();
-        setAvaliacaoGerada(mockAvaliacao);
-        toast({
-          title: "Prévia gerada (modo offline)",
-          description: "Usando dados de exemplo para demonstração.",
-        });
+        throw new Error(response.error || response.message || "Erro desconhecido no webhook");
       }
     } catch (error: any) {
       console.error('Erro ao gerar prévia:', error);
-      // Em caso de erro, mostrar mock como fallback
-      const mockAvaliacao = generateMockAvaliacao();
-      setAvaliacaoGerada(mockAvaliacao);
+      
       toast({
         variant: "destructive",
-        title: "Erro na conexão",
-        description: "Exibindo prévia offline. " + (error.message || "Tente novamente."),
+        title: "Erro ao gerar prévia",
+        description: error.message || "Não foi possível conectar com o servidor. Verifique sua conexão e tente novamente.",
       });
+      
+      setAvaliacaoGerada(null);
     } finally {
       setIsGenerating(false);
     }
@@ -68,6 +78,8 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     setIsDownloading(true);
     
     try {
+      console.log('Enviando dados para webhook (geração final):', formValues);
+      
       const dataToSend = {
         ...formValues,
         action: "generate_final",
@@ -78,73 +90,30 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
       const response = await WebhookService.sendAvaliacaoData(dataToSend);
       
+      console.log('Resposta do webhook para download:', response);
+      
       if (response.success) {
         // Processar resposta e fazer download
         await FileDownloadService.processWebhookResponse(response, formValues.formatoSaida || ['pdf']);
         
         toast({
           title: "Avaliação gerada e baixada!",
-          description: "O arquivo foi salvo no seu dispositivo.",
+          description: "O arquivo foi processado e está sendo baixado.",
         });
       } else {
-        throw new Error(response.error || "Erro ao gerar avaliação");
+        throw new Error(response.error || response.message || "Erro ao gerar arquivo no servidor");
       }
     } catch (error: any) {
+      console.error('Erro ao gerar arquivo:', error);
+      
       toast({
         variant: "destructive",
         title: "Erro ao gerar arquivo",
-        description: error.message || "Não foi possível gerar o arquivo. Tente novamente.",
+        description: error.message || "Não foi possível gerar o arquivo. Verifique sua conexão e tente novamente.",
       });
     } finally {
       setIsDownloading(false);
     }
-  };
-
-  const generateMockAvaliacao = () => {
-    const questoesMock = [];
-    const numeroQuestoes = formValues.numeroQuestoes || 10;
-    
-    for (let i = 1; i <= numeroQuestoes; i++) {
-      if (formValues.tipoQuestoes === "multipla" || formValues.tipoQuestoes === "mista") {
-        questoesMock.push({
-          numero: i,
-          tipo: "multipla_escolha",
-          enunciado: `Questão ${i}: Considerando os conceitos de ${formValues.materia || 'Matemática'}, analise a situação apresentada e assinale a alternativa correta.`,
-          alternativas: [
-            { letra: "A", texto: "Primeira alternativa correta" },
-            { letra: "B", texto: "Segunda alternativa" },
-            { letra: "C", texto: "Terceira alternativa" },
-            { letra: "D", texto: "Quarta alternativa" },
-            { letra: "E", texto: "Quinta alternativa" }
-          ],
-          gabarito: "A",
-          dificuldade: formValues.nivelDificuldade || 5
-        });
-      } else {
-        questoesMock.push({
-          numero: i,
-          tipo: "dissertativa",
-          enunciado: `Questão ${i}: Desenvolva uma resposta completa sobre os conceitos de ${formValues.materia || 'Matemática'} apresentados.`,
-          criterios_avaliacao: [
-            "Clareza na exposição dos conceitos",
-            "Aplicação correta dos procedimentos",
-            "Organização lógica da resposta"
-          ],
-          dificuldade: formValues.nivelDificuldade || 5
-        });
-      }
-    }
-
-    return {
-      titulo: `Avaliação de ${formValues.materia || 'Matemática'} - ${formValues.unidade || 'Unidade 1'}`,
-      tipo: formValues.tipoAvaliacao || 'Prova',
-      objetivo: formValues.objetivoAvaliacao || 'Diagnóstica',
-      duracao_sugerida: formValues.duracaoSugerida || 60,
-      questoes: questoesMock,
-      gabarito_disponivel: formValues.incluirGabarito || false,
-      permite_calculadora: formValues.permitirCalculadora || false,
-      data_geracao: new Date().toISOString()
-    };
   };
 
   return (
@@ -231,7 +200,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
-                {isGenerating ? 'Gerando...' : 'Gerar Prévia'}
+                {isGenerating ? 'Gerando Prévia...' : 'Gerar Prévia'}
               </Button>
               
               <Button 
@@ -244,42 +213,58 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
                 ) : (
                   <Download className="h-4 w-4" />
                 )}
-                {isDownloading ? 'Baixando...' : 'Gerar e Baixar'}
+                {isDownloading ? 'Gerando Arquivo...' : 'Gerar e Baixar'}
               </Button>
             </div>
           </div>
 
           {avaliacaoGerada && (
             <div className="border rounded-lg p-4 bg-background">
-              <h5 className="font-semibold mb-3">{avaliacaoGerada.titulo}</h5>
+              <h5 className="font-semibold mb-3">
+                {avaliacaoGerada.titulo || 'Avaliação Gerada'}
+              </h5>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Tipo:</strong> {avaliacaoGerada.tipo} | 
-                  <strong> Duração:</strong> {avaliacaoGerada.duracao_sugerida} min | 
-                  <strong> Questões:</strong> {avaliacaoGerada.questoes.length}
+                  <strong>Tipo:</strong> {avaliacaoGerada.tipo || 'N/A'} | 
+                  <strong> Duração:</strong> {avaliacaoGerada.duracao_sugerida || avaliacaoGerada.duracao || 'N/A'} min | 
+                  <strong> Questões:</strong> {avaliacaoGerada.questoes?.length || 'N/A'}
                 </p>
                 
-                <div className="space-y-3 max-h-40 overflow-y-auto">
-                  {avaliacaoGerada.questoes.slice(0, 3).map((questao: any) => (
-                    <div key={questao.numero} className="border-l-2 border-primary/20 pl-3">
-                      <p className="text-sm"><strong>Questão {questao.numero}:</strong></p>
-                      <p className="text-xs text-muted-foreground mt-1">{questao.enunciado}</p>
-                      {questao.alternativas && (
-                        <div className="mt-2 text-xs">
-                          {questao.alternativas.slice(0, 2).map((alt: any) => (
-                            <p key={alt.letra}>{alt.letra}) {alt.texto}</p>
-                          ))}
-                          <p className="text-muted-foreground">...</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {avaliacaoGerada.questoes.length > 3 && (
-                    <p className="text-sm text-muted-foreground text-center">
-                      ... e mais {avaliacaoGerada.questoes.length - 3} questões
-                    </p>
-                  )}
-                </div>
+                {avaliacaoGerada.questoes && avaliacaoGerada.questoes.length > 0 && (
+                  <div className="space-y-3 max-h-40 overflow-y-auto">
+                    {avaliacaoGerada.questoes.slice(0, 3).map((questao: any, index: number) => (
+                      <div key={questao.numero || index} className="border-l-2 border-primary/20 pl-3">
+                        <p className="text-sm"><strong>Questão {questao.numero || (index + 1)}:</strong></p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {questao.enunciado || questao.pergunta || 'Enunciado não disponível'}
+                        </p>
+                        {questao.alternativas && questao.alternativas.length > 0 && (
+                          <div className="mt-2 text-xs">
+                            {questao.alternativas.slice(0, 2).map((alt: any) => (
+                              <p key={alt.letra || alt.id}>
+                                {alt.letra || alt.opcao}) {alt.texto || alt.resposta}
+                              </p>
+                            ))}
+                            {questao.alternativas.length > 2 && (
+                              <p className="text-muted-foreground">... e mais {questao.alternativas.length - 2} alternativas</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {avaliacaoGerada.questoes.length > 3 && (
+                      <p className="text-sm text-muted-foreground text-center">
+                        ... e mais {avaliacaoGerada.questoes.length - 3} questões
+                      </p>
+                    )}
+                  </div>
+                )}
+                
+                {avaliacaoGerada.observacoes && (
+                  <div className="mt-3 p-2 bg-muted/50 rounded text-xs">
+                    <strong>Observações:</strong> {avaliacaoGerada.observacoes}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -292,8 +277,8 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
           <div className="flex items-start gap-2">
             <Eye className="h-5 w-5 text-blue-600 mt-0.5" />
             <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Finalização</p>
-              <p>Gere uma prévia para revisar o conteúdo ou baixe diretamente nos formatos selecionados. Os dados serão processados em tempo real via webhook.</p>
+              <p className="font-medium mb-1">Geração em Tempo Real</p>
+              <p>Os dados são processados em tempo real via webhook. A prévia mostra o conteúdo que será gerado e o download cria os arquivos nos formatos selecionados.</p>
             </div>
           </div>
         </div>

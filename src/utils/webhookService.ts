@@ -40,6 +40,8 @@ export class WebhookService {
       }
     };
 
+    console.log('Enviando payload para webhook:', JSON.stringify(payload, null, 2));
+
     try {
       const response = await fetch(webhookUrl, {
         method: 'POST',
@@ -50,32 +52,57 @@ export class WebhookService {
         body: JSON.stringify(payload)
       });
 
+      console.log('Status da resposta:', response.status, response.statusText);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro HTTP:', response.status, errorText);
         throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
       }
 
       // Tentar ler a resposta
-      try {
-        const responseData = await response.json();
-        console.log('Resposta do webhook:', responseData);
-        return {
-          success: true,
-          ...responseData
-        };
-      } catch (parseError) {
-        // Se não conseguir fazer parse, assumir sucesso
-        console.log('Webhook enviado com sucesso (resposta não é JSON)');
-        return {
-          success: true,
-          message: 'Webhook enviado com sucesso'
-        };
+      const contentType = response.headers.get('content-type');
+      console.log('Content-Type da resposta:', contentType);
+
+      let responseData: any;
+      
+      if (contentType && contentType.includes('application/json')) {
+        responseData = await response.json();
+        console.log('Resposta JSON do webhook:', JSON.stringify(responseData, null, 2));
+      } else {
+        // Se não for JSON, tentar ler como texto
+        const textResponse = await response.text();
+        console.log('Resposta em texto:', textResponse);
+        
+        // Tentar fazer parse manual se o texto parecer JSON
+        try {
+          responseData = JSON.parse(textResponse);
+        } catch {
+          // Se não conseguir fazer parse, criar objeto padrão
+          responseData = {
+            message: textResponse,
+            raw_response: textResponse
+          };
+        }
       }
 
+      return {
+        success: true,
+        ...responseData
+      };
+
     } catch (error) {
+      console.error('Erro na requisição do webhook:', error);
+      
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error("Erro de conexão. Verifique sua internet e tente novamente.");
       }
-      throw error;
+      
+      if (error instanceof Error) {
+        throw new Error(`Erro ao comunicar com o servidor: ${error.message}`);
+      }
+      
+      throw new Error("Erro desconhecido ao comunicar com o servidor.");
     }
   }
 
@@ -110,6 +137,9 @@ export class WebhookService {
   static async sendAvaliacaoData(data: WebhookPayload): Promise<WebhookResponse> {
     const webhookUrl = "https://n8n2.flowfieldsai.com/webhook/6a3f7dab-06bf-463f-906d-77e78c62d66e";
     const sanitizedData = this.sanitizeData(data);
+    
+    console.log('Enviando dados de avaliação para:', webhookUrl);
+    
     return await this.sendData(webhookUrl, sanitizedData);
   }
 }
