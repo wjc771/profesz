@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -58,9 +59,9 @@ const Login = () => {
     <div className="container flex items-center justify-center min-h-screen py-10">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Bem-vindo de volta ao ProfeXpress</CardTitle>
+          <CardTitle className="text-2xl font-bold">Bem-vindo de volta ao PROFZi</CardTitle>
           <CardDescription>
-            Entre com seu email cadastrado para acessar o ProfeXpress
+            Entre com seu email cadastrado para acessar o PROFZi
           </CardDescription>
         </CardHeader>
         <CardContent>

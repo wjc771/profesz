@@ -20,10 +20,10 @@ export class WebhookService {
       ...data,
       timestamp: new Date().toISOString(),
       version: "1.0",
-      platform: "ProfesZ",
+      platform: "PROFZi",
       metadata: {
         userAgent: navigator.userAgent,
-        source: "plano_de_aula_form"
+        source: "avaliacao_form"
       }
     };
 
@@ -32,7 +32,7 @@ export class WebhookService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'ProfesZ-Webhook/1.0',
+          'User-Agent': 'PROFZi-Webhook/1.0',
         },
         body: JSON.stringify(payload)
       });
@@ -83,5 +83,12 @@ export class WebhookService {
     }
     
     return sanitized;
+  }
+
+  // Método específico para enviar dados de avaliação
+  static async sendAvaliacaoData(data: WebhookPayload): Promise<void> {
+    const webhookUrl = "https://n8n2.flowfieldsai.com/webhook/6a3f7dab-06bf-463f-906d-77e78c62d66e";
+    const sanitizedData = this.sanitizeData(data);
+    await this.sendData(webhookUrl, sanitizedData);
   }
 }

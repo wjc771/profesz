@@ -13,15 +13,15 @@ export function AvaliacaoFormHeader({ plano, usageCount, usageLimit }: Avaliacao
   const getPlanLabel = () => {
     switch (plano) {
       case 'inicial':
-        return 'ProfeXpress Inicial';
+        return 'PROFZi Inicial';
       case 'essencial':
-        return 'ProfeXpress Essencial';
+        return 'PROFZi Essencial';
       case 'maestro':
-        return 'ProfeXpress Maestro';
+        return 'PROFZi Maestro';
       case 'institucional':
-        return 'ProfeXpress Institucional';
+        return 'PROFZi Institucional';
       default:
-        return 'ProfeXpress';
+        return 'PROFZi';
     }
   };
   

@@ -17,13 +17,13 @@ export function PlanoFormHeader({ plano, usageCount, usageLimit }: PlanoFormHead
   };
 
   const planDisplayNames = {
-    inicial: "ProfesZ Inicial",
-    essencial: "ProfesZ Essencial",
-    maestro: "ProfesZ Maestro",
-    institucional: "ProfesZ Institucional",
+    inicial: "PROFZi Inicial",
+    essencial: "PROFZi Essencial",
+    maestro: "PROFZi Maestro",
+    institucional: "PROFZi Institucional",
   };
 
-  const planName = planDisplayNames[plano] || "ProfesZ";
+  const planName = planDisplayNames[plano] || "PROFZi";
 
   return (
     <div className="mb-6">

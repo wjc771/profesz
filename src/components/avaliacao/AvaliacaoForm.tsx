@@ -16,6 +16,8 @@ import { EstruturaStep } from "./steps/EstruturaStep";
 import { QuestoesStep } from "./steps/QuestoesStep";
 import { PersonalizacaoStep } from "./steps/PersonalizacaoStep";
 import { DistribuicaoStep } from "./steps/DistribuicaoStep";
+import { ModelosCompeticaoStep } from "./steps/ModelosCompeticaoStep";
+import { ResumoFinalAvaliacaoStep } from "./steps/ResumoFinalAvaliacaoStep";
 import { AvaliacaoFormStepper } from "./AvaliacaoFormStepper";
 
 const avaliacaoFormSchema = z.object({
@@ -60,6 +62,10 @@ const avaliacaoFormSchema = z.object({
   tempoPorQuestao: z.number().optional(),
   incluirCronometro: z.boolean().optional(),
   
+  // Modelos de Competição
+  tipoCompeticao: z.string().optional(),
+  modelosCompeticao: z.array(z.string()).optional(),
+  
   // Distribuição
   formatoSaida: z.array(z.string()).min(1, "Selecione pelo menos um formato"),
   opcaoCompartilhamento: z.array(z.string()).optional(),
@@ -93,6 +99,8 @@ const defaultValues: Partial<AvaliacaoFormValues> = {
   duracaoSugerida: 60,
   tempoPorQuestao: 3,
   incluirCronometro: false,
+  tipoCompeticao: "",
+  modelosCompeticao: [],
   formatoSaida: ["pdf"],
   opcaoCompartilhamento: [],
 };
@@ -105,7 +113,7 @@ interface AvaliacaoFormProps {
 
 export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 5; // Total number of steps in the form
+  const totalSteps = 7; // Atualizado para 7 etapas
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -173,7 +181,8 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
       'incluirGabarito', 'questoesAdaptativas', 'estiloQuestoes',
       'formatoApresentacao', 'logo', 'cabecalhoPersonalizado',
       'rodapePersonalizado', 'estiloFonte', 'duracaoSugerida',
-      'tempoPorQuestao', 'incluirCronometro', 'opcaoCompartilhamento'
+      'tempoPorQuestao', 'incluirCronometro', 'opcaoCompartilhamento',
+      'tipoCompeticao', 'modelosCompeticao'
     ];
     
     return optionalFields.includes(field);
@@ -216,6 +225,10 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
         ];
       case 5: // Distribuição
         return ['formatoSaida', 'opcaoCompartilhamento'];
+      case 6: // Modelos de Competição
+        return ['tipoCompeticao', 'modelosCompeticao'];
+      case 7: // Resumo Final
+        return [];
       default:
         return [];
     }
@@ -280,6 +293,10 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
             incluirCronometro: values.incluirCronometro,
           }
         },
+        modelosCompeticao: {
+          tipo: values.tipoCompeticao,
+          modelos: values.modelosCompeticao,
+        },
         distribuicao: {
           formatoSaida: values.formatoSaida,
           opcaoCompartilhamento: values.opcaoCompartilhamento,
@@ -327,6 +344,10 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
         return <PersonalizacaoStep form={form} plano={plano} />;
       case 5:
         return <DistribuicaoStep form={form} plano={plano} />;
+      case 6:
+        return <ModelosCompeticaoStep form={form} plano={plano} />;
+      case 7:
+        return <ResumoFinalAvaliacaoStep form={form} />;
       default:
         return null;
     }

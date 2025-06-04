@@ -6,7 +6,7 @@ import { Lock } from 'lucide-react';
 
 const onboardingSteps = [
   {
-    title: "Bem-vindo ao ProfeXpress!",
+    title: "Bem-vindo ao PROFZi!",
     text: "Aqui você encontra vagas, oportunidades e conexão entre professores e instituições.",
   },
   {
@@ -87,7 +87,7 @@ export default function Onboarding() {
           </Button>
         </div>
         <div className="text-xs text-muted-foreground text-center mt-6">
-          ProfeXpress é compatível com dispositivos móveis (PWA) <br />
+          PROFZi é compatível com dispositivos móveis (PWA) <br />
           <span className="font-bold">LGPD</span> &mdash; Dados protegidos e transparência sobre IA <br />
           Design acessível e adaptável.
         </div>
