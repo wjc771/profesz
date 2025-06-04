@@ -1,13 +1,14 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Eye, Download, Send } from "lucide-react";
+import { FileText, Eye, Download, Send, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WebhookService } from "@/utils/webhookService";
+import { FileDownloadService } from "@/utils/fileDownload";
 
 interface ResumoFinalAvaliacaoStepProps {
   form: UseFormReturn<any>;
@@ -15,9 +16,89 @@ interface ResumoFinalAvaliacaoStepProps {
 
 export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [mockAvaliacao, setMockAvaliacao] = useState<any>(null);
+  const [avaliacaoGerada, setAvaliacaoGerada] = useState<any>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
   const formValues = form.getValues();
+
+  const handleGeneratePreview = async () => {
+    setIsGenerating(true);
+    
+    try {
+      const dataToSend = {
+        ...formValues,
+        action: "generate_preview",
+        timestamp: new Date().toISOString(),
+        plataforma: "PROFZi"
+      };
+
+      const response = await WebhookService.sendAvaliacaoData(dataToSend);
+      
+      if (response.success && response.avaliacao) {
+        setAvaliacaoGerada(response.avaliacao);
+        toast({
+          title: "Prévia gerada com sucesso!",
+          description: `Avaliação gerada conforme suas especificações.`,
+        });
+      } else {
+        // Fallback para mock se webhook não retornar avaliação
+        const mockAvaliacao = generateMockAvaliacao();
+        setAvaliacaoGerada(mockAvaliacao);
+        toast({
+          title: "Prévia gerada (modo offline)",
+          description: "Usando dados de exemplo para demonstração.",
+        });
+      }
+    } catch (error: any) {
+      console.error('Erro ao gerar prévia:', error);
+      // Em caso de erro, mostrar mock como fallback
+      const mockAvaliacao = generateMockAvaliacao();
+      setAvaliacaoGerada(mockAvaliacao);
+      toast({
+        variant: "destructive",
+        title: "Erro na conexão",
+        description: "Exibindo prévia offline. " + (error.message || "Tente novamente."),
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateAndDownload = async () => {
+    setIsDownloading(true);
+    
+    try {
+      const dataToSend = {
+        ...formValues,
+        action: "generate_final",
+        formato_saida: formValues.formatoSaida,
+        timestamp: new Date().toISOString(),
+        plataforma: "PROFZi"
+      };
+
+      const response = await WebhookService.sendAvaliacaoData(dataToSend);
+      
+      if (response.success) {
+        // Processar resposta e fazer download
+        await FileDownloadService.processWebhookResponse(response, formValues.formatoSaida || ['pdf']);
+        
+        toast({
+          title: "Avaliação gerada e baixada!",
+          description: "O arquivo foi salvo no seu dispositivo.",
+        });
+      } else {
+        throw new Error(response.error || "Erro ao gerar avaliação");
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar arquivo",
+        description: error.message || "Não foi possível gerar o arquivo. Tente novamente.",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const generateMockAvaliacao = () => {
     const questoesMock = [];
@@ -64,47 +145,6 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
       permite_calculadora: formValues.permitirCalculadora || false,
       data_geracao: new Date().toISOString()
     };
-  };
-
-  const handleGenerateMock = async () => {
-    setIsGenerating(true);
-    
-    // Simular tempo de processamento
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const mock = generateMockAvaliacao();
-    setMockAvaliacao(mock);
-    setIsGenerating(false);
-    
-    toast({
-      title: "Avaliação gerada com sucesso!",
-      description: `${mock.questoes.length} questões foram geradas conforme suas especificações.`,
-    });
-  };
-
-  const handleSendWebhook = async () => {
-    try {
-      const webhookUrl = "https://n8n2.flowfieldsai.com/webhook/6a3f7dab-06bf-463f-906d-77e78c62d66e";
-      const dataToSend = {
-        ...formValues,
-        avaliacao_gerada: mockAvaliacao,
-        timestamp: new Date().toISOString(),
-        plataforma: "PROFZi"
-      };
-
-      await WebhookService.sendData(webhookUrl, dataToSend);
-      
-      toast({
-        title: "Dados enviados com sucesso!",
-        description: "Os dados da avaliação foram enviados para processamento.",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao enviar dados",
-        description: error.message || "Não foi possível enviar os dados. Tente novamente.",
-      });
-    }
   };
 
   return (
@@ -175,32 +215,52 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
         <Separator />
 
-        {/* Geração de Avaliação Mock */}
+        {/* Generation Actions */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium">Prévia da Avaliação</h4>
-            <Button 
-              onClick={handleGenerateMock} 
-              disabled={isGenerating}
-              className="gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              {isGenerating ? 'Gerando...' : 'Gerar Prévia'}
-            </Button>
+            <h4 className="font-medium">Gerar Avaliação</h4>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleGeneratePreview} 
+                disabled={isGenerating || isDownloading}
+                variant="outline"
+                className="gap-2"
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+                {isGenerating ? 'Gerando...' : 'Gerar Prévia'}
+              </Button>
+              
+              <Button 
+                onClick={handleGenerateAndDownload} 
+                disabled={isGenerating || isDownloading}
+                className="gap-2"
+              >
+                {isDownloading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {isDownloading ? 'Baixando...' : 'Gerar e Baixar'}
+              </Button>
+            </div>
           </div>
 
-          {mockAvaliacao && (
+          {avaliacaoGerada && (
             <div className="border rounded-lg p-4 bg-background">
-              <h5 className="font-semibold mb-3">{mockAvaliacao.titulo}</h5>
+              <h5 className="font-semibold mb-3">{avaliacaoGerada.titulo}</h5>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Tipo:</strong> {mockAvaliacao.tipo} | 
-                  <strong> Duração:</strong> {mockAvaliacao.duracao_sugerida} min | 
-                  <strong> Questões:</strong> {mockAvaliacao.questoes.length}
+                  <strong>Tipo:</strong> {avaliacaoGerada.tipo} | 
+                  <strong> Duração:</strong> {avaliacaoGerada.duracao_sugerida} min | 
+                  <strong> Questões:</strong> {avaliacaoGerada.questoes.length}
                 </p>
                 
                 <div className="space-y-3 max-h-40 overflow-y-auto">
-                  {mockAvaliacao.questoes.slice(0, 3).map((questao: any) => (
+                  {avaliacaoGerada.questoes.slice(0, 3).map((questao: any) => (
                     <div key={questao.numero} className="border-l-2 border-primary/20 pl-3">
                       <p className="text-sm"><strong>Questão {questao.numero}:</strong></p>
                       <p className="text-xs text-muted-foreground mt-1">{questao.enunciado}</p>
@@ -214,22 +274,11 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
                       )}
                     </div>
                   ))}
-                  {mockAvaliacao.questoes.length > 3 && (
+                  {avaliacaoGerada.questoes.length > 3 && (
                     <p className="text-sm text-muted-foreground text-center">
-                      ... e mais {mockAvaliacao.questoes.length - 3} questões
+                      ... e mais {avaliacaoGerada.questoes.length - 3} questões
                     </p>
                   )}
-                </div>
-
-                <div className="flex gap-2 pt-3">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Download PDF
-                  </Button>
-                  <Button onClick={handleSendWebhook} size="sm" className="gap-2">
-                    <Send className="h-4 w-4" />
-                    Enviar Dados
-                  </Button>
                 </div>
               </div>
             </div>
@@ -244,7 +293,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
             <Eye className="h-5 w-5 text-blue-600 mt-0.5" />
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Finalização</p>
-              <p>Gere uma prévia da avaliação para revisar o conteúdo antes de finalizar. Os dados serão enviados automaticamente para processamento.</p>
+              <p>Gere uma prévia para revisar o conteúdo ou baixe diretamente nos formatos selecionados. Os dados serão processados em tempo real via webhook.</p>
             </div>
           </div>
         </div>

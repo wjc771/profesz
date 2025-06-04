@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,10 +12,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { incrementUserActivity } from "@/integrations/supabase/rpc";
 import { ConfiguracaoStep } from "./steps/ConfiguracaoStep";
 import { EstruturaStep } from "./steps/EstruturaStep";
+import { ModelosCompeticaoStep } from "./steps/ModelosCompeticaoStep";
 import { QuestoesStep } from "./steps/QuestoesStep";
 import { PersonalizacaoStep } from "./steps/PersonalizacaoStep";
 import { DistribuicaoStep } from "./steps/DistribuicaoStep";
-import { ModelosCompeticaoStep } from "./steps/ModelosCompeticaoStep";
 import { ResumoFinalAvaliacaoStep } from "./steps/ResumoFinalAvaliacaoStep";
 import { AvaliacaoFormStepper } from "./AvaliacaoFormStepper";
 
@@ -113,7 +112,7 @@ interface AvaliacaoFormProps {
 
 export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 7; // Atualizado para 7 etapas
+  const totalSteps = 7;
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -210,23 +209,23 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
         return ['tipoAvaliacao', 'objetivoAvaliacao', 'modeloCriacao'];
       case 2: // Estrutura Curricular
         return ['materia', 'unidade', 'capitulos', 'temas', 'incluirBncc'];
-      case 3: // Configuração das Questões
+      case 3: // Modelos de Competição
+        return ['tipoCompeticao', 'modelosCompeticao'];
+      case 4: // Configuração das Questões
         return [
           'numeroQuestoes', 'tipoQuestoes', 'proporcaoMultiplaEscolha', 
           'nivelDificuldade', 'incluirFormulas', 'incluirImagens', 
           'incluirTabelas', 'incluirContexto', 'incluirInterdisciplinar', 
           'permitirCalculadora', 'incluirGabarito', 'questoesAdaptativas'
         ];
-      case 4: // Personalização Avançada
+      case 5: // Personalização Avançada
         return [
           'estiloQuestoes', 'formatoApresentacao', 'logo', 
           'cabecalhoPersonalizado', 'rodapePersonalizado', 'estiloFonte',
           'duracaoSugerida', 'tempoPorQuestao', 'incluirCronometro'
         ];
-      case 5: // Distribuição
+      case 6: // Distribuição
         return ['formatoSaida', 'opcaoCompartilhamento'];
-      case 6: // Modelos de Competição
-        return ['tipoCompeticao', 'modelosCompeticao'];
       case 7: // Resumo Final
         return [];
       default:
@@ -339,13 +338,13 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
       case 2:
         return <EstruturaStep form={form} plano={plano} />;
       case 3:
-        return <QuestoesStep form={form} plano={plano} usageLimit={usageLimit} />;
-      case 4:
-        return <PersonalizacaoStep form={form} plano={plano} />;
-      case 5:
-        return <DistribuicaoStep form={form} plano={plano} />;
-      case 6:
         return <ModelosCompeticaoStep form={form} plano={plano} />;
+      case 4:
+        return <QuestoesStep form={form} plano={plano} usageLimit={usageLimit} />;
+      case 5:
+        return <PersonalizacaoStep form={form} plano={plano} />;
+      case 6:
+        return <DistribuicaoStep form={form} plano={plano} />;
       case 7:
         return <ResumoFinalAvaliacaoStep form={form} />;
       default:

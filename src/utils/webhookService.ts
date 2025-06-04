@@ -3,8 +3,21 @@ interface WebhookPayload {
   [key: string]: any;
 }
 
+interface WebhookResponse {
+  success: boolean;
+  data?: any;
+  files?: Array<{
+    filename: string;
+    content: string;
+    format: string;
+  }>;
+  avaliacao?: any;
+  message?: string;
+  error?: string;
+}
+
 export class WebhookService {
-  static async sendData(webhookUrl: string, data: WebhookPayload): Promise<void> {
+  static async sendData(webhookUrl: string, data: WebhookPayload): Promise<WebhookResponse> {
     if (!webhookUrl) {
       throw new Error("URL do webhook é obrigatória");
     }
@@ -41,13 +54,21 @@ export class WebhookService {
         throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
       }
 
-      // Tentar ler a resposta, mas não falhar se não conseguir
+      // Tentar ler a resposta
       try {
         const responseData = await response.json();
         console.log('Resposta do webhook:', responseData);
+        return {
+          success: true,
+          ...responseData
+        };
       } catch (parseError) {
-        // Ignora erro de parsing da resposta
+        // Se não conseguir fazer parse, assumir sucesso
         console.log('Webhook enviado com sucesso (resposta não é JSON)');
+        return {
+          success: true,
+          message: 'Webhook enviado com sucesso'
+        };
       }
 
     } catch (error) {
@@ -86,9 +107,9 @@ export class WebhookService {
   }
 
   // Método específico para enviar dados de avaliação
-  static async sendAvaliacaoData(data: WebhookPayload): Promise<void> {
+  static async sendAvaliacaoData(data: WebhookPayload): Promise<WebhookResponse> {
     const webhookUrl = "https://n8n2.flowfieldsai.com/webhook/6a3f7dab-06bf-463f-906d-77e78c62d66e";
     const sanitizedData = this.sanitizeData(data);
-    await this.sendData(webhookUrl, sanitizedData);
+    return await this.sendData(webhookUrl, sanitizedData);
   }
 }
