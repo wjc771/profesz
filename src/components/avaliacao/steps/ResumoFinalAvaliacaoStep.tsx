@@ -1,4 +1,3 @@
-
 import { UseFormReturn } from "react-hook-form";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Eye, Download, Send, Loader2 } from "lucide-react";
@@ -27,17 +26,17 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     // Verificar se é array com output
     if (Array.isArray(response) && response.length > 0 && response[0].output) {
       const outputText = response[0].output;
-      return parseAvaliacaoText(outputText);
+      return parseJsonAvaliacao(outputText);
     }
     
     // Verificar se tem output direto
     if (response.output) {
-      return parseAvaliacaoText(response.output);
+      return parseJsonAvaliacao(response.output);
     }
     
     // Verificar estruturas aninhadas
     if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
-      return parseAvaliacaoText(response.data[0].output);
+      return parseJsonAvaliacao(response.data[0].output);
     }
     
     if (response.avaliacao) {
@@ -45,6 +44,42 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     }
     
     return null;
+  };
+
+  const parseJsonAvaliacao = (outputText: string) => {
+    try {
+      // Tentar fazer parse do JSON contido no output
+      const avaliacaoData = JSON.parse(outputText);
+      
+      console.log('JSON da avaliação parseado:', avaliacaoData);
+      
+      // Estruturar dados para exibição
+      return {
+        titulo: `${avaliacaoData.cabecalho?.disciplina || 'Avaliação'} - ${avaliacaoData.cabecalho?.tema || 'Tema'}`,
+        duracao: avaliacaoData.cabecalho?.duracao || avaliacaoData.metadata?.tempo_total ? `${avaliacaoData.metadata.tempo_total} minutos` : 'Não especificada',
+        disciplina: avaliacaoData.cabecalho?.disciplina || 'Não informada',
+        unidade: avaliacaoData.cabecalho?.unidade || 'Não informada',
+        capitulo: avaliacaoData.cabecalho?.capitulo || 'Não informado',
+        tema: avaliacaoData.cabecalho?.tema || 'Não informado',
+        instrucoes: avaliacaoData.instrucoes || [],
+        questoes: avaliacaoData.questoes?.map((q: any) => ({
+          numero: q.numero,
+          enunciado: q.enunciado,
+          alternativas: q.alternativas || [],
+          pontuacao: q.pontuacao,
+          tipo: q.tipo,
+          resposta_correta: q.resposta_correta
+        })) || [],
+        gabarito: avaliacaoData.gabarito || [],
+        metadata: avaliacaoData.metadata || {},
+        json_completo: avaliacaoData,
+        texto_completo: outputText
+      };
+    } catch (error) {
+      console.error('Erro ao fazer parse do JSON:', error);
+      // Fallback para texto simples se não conseguir parsear JSON
+      return parseAvaliacaoText(outputText);
+    }
   };
 
   const parseAvaliacaoText = (text: string) => {
@@ -302,10 +337,38 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
               <h5 className="font-semibold mb-3">
                 {avaliacaoGerada.titulo}
               </h5>
+              
+              {/* Informações do Cabeçalho */}
+              <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                <div>
+                  <p><strong>Disciplina:</strong> {avaliacaoGerada.disciplina}</p>
+                  <p><strong>Unidade:</strong> {avaliacaoGerada.unidade}</p>
+                </div>
+                <div>
+                  <p><strong>Capítulo:</strong> {avaliacaoGerada.capitulo}</p>
+                  <p><strong>Duração:</strong> {avaliacaoGerada.duracao}</p>
+                </div>
+              </div>
+
+              {/* Instruções */}
+              {avaliacaoGerada.instrucoes && avaliacaoGerada.instrucoes.length > 0 && (
+                <div className="mb-4">
+                  <h6 className="font-medium text-sm mb-2">Instruções:</h6>
+                  <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                    {avaliacaoGerada.instrucoes.map((instrucao: string, index: number) => (
+                      <li key={index}>{instrucao}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Questões */}
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Duração:</strong> {avaliacaoGerada.duracao} | 
-                  <strong> Questões:</strong> {avaliacaoGerada.questoes?.length || 0}
+                  <strong>Total de questões:</strong> {avaliacaoGerada.questoes?.length || 0}
+                  {avaliacaoGerada.metadata?.nivel_dificuldade && (
+                    <span> | <strong>Nível:</strong> {avaliacaoGerada.metadata.nivel_dificuldade}/10</span>
+                  )}
                 </p>
                 
                 {avaliacaoGerada.questoes && avaliacaoGerada.questoes.length > 0 && (
@@ -313,7 +376,12 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
                     {avaliacaoGerada.questoes.slice(0, 3).map((questao: any, index: number) => (
                       <div key={questao.numero || index} className="border-l-2 border-primary/20 pl-3">
                         <p className="text-sm font-medium">
-                          Questão {questao.numero} ({questao.pontuacao} ponto{questao.pontuacao !== '1,0' ? 's' : ''})
+                          Questão {questao.numero} ({questao.pontuacao})
+                          {questao.resposta_correta && (
+                            <span className="ml-2 text-xs bg-green-100 text-green-800 px-1 rounded">
+                              Resposta: {questao.resposta_correta}
+                            </span>
+                          )}
                         </p>
                         <p className="text-sm mt-1 mb-2">
                           {questao.enunciado}
@@ -321,7 +389,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
                         {questao.alternativas && questao.alternativas.length > 0 && (
                           <div className="text-xs space-y-1">
                             {questao.alternativas.map((alt: any, altIndex: number) => (
-                              <p key={altIndex}>
+                              <p key={altIndex} className={alt.letra === questao.resposta_correta ? 'font-semibold text-green-700' : ''}>
                                 {alt.letra}) {alt.texto}
                               </p>
                             ))}
@@ -333,6 +401,17 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
                       <p className="text-sm text-muted-foreground text-center">
                         ... e mais {avaliacaoGerada.questoes.length - 3} questões
                       </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Metadata */}
+                {avaliacaoGerada.metadata && Object.keys(avaliacaoGerada.metadata).length > 0 && (
+                  <div className="mt-3 p-2 bg-muted/30 rounded text-xs">
+                    <strong>Informações adicionais:</strong>
+                    {avaliacaoGerada.metadata.estilo && <span> | Estilo: {avaliacaoGerada.metadata.estilo}</span>}
+                    {avaliacaoGerada.metadata.permite_calculadora !== undefined && (
+                      <span> | Calculadora: {avaliacaoGerada.metadata.permite_calculadora ? 'Permitida' : 'Não permitida'}</span>
                     )}
                   </div>
                 )}
@@ -349,7 +428,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
             <Eye className="h-5 w-5 text-blue-600 mt-0.5" />
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Geração em Tempo Real</p>
-              <p>Os dados são processados em tempo real via webhook. A prévia mostra o conteúdo que será gerado e o download cria os arquivos nos formatos selecionados.</p>
+              <p>Os dados são processados em tempo real via webhook. A prévia mostra o conteúdo estruturado que será gerado e o download cria os arquivos formatados nos formatos selecionados.</p>
             </div>
           </div>
         </div>

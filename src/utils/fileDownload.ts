@@ -1,4 +1,3 @@
-
 export interface FileDownloadOptions {
   filename: string;
   content: string | Blob;
@@ -133,19 +132,36 @@ export class FileDownloadService {
     
     // Extrair conteúdo do webhook baseado na estrutura real
     let content = '';
+    let avaliacaoData: any = null;
     let hasProcessedFile = false;
 
     // Verificar se é array com output (formato recebido)
     if (Array.isArray(response) && response.length > 0 && response[0].output) {
       content = response[0].output;
+      try {
+        avaliacaoData = JSON.parse(content);
+        console.log('JSON da avaliação para download:', avaliacaoData);
+      } catch (error) {
+        console.warn('Não foi possível parsear JSON, tratando como texto:', error);
+      }
     }
     // Verificar se tem output direto
     else if (response.output) {
       content = response.output;
+      try {
+        avaliacaoData = JSON.parse(content);
+      } catch (error) {
+        console.warn('Não foi possível parsear JSON, tratando como texto:', error);
+      }
     }
     // Verificar estruturas aninhadas
     else if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
       content = response.data[0].output;
+      try {
+        avaliacaoData = JSON.parse(content);
+      } catch (error) {
+        console.warn('Não foi possível parsear JSON, tratando como texto:', error);
+      }
     }
     // Verificar outras estruturas possíveis
     else if (response.files && Array.isArray(response.files)) {
@@ -175,8 +191,47 @@ export class FileDownloadService {
       }
     }
 
-    // Se encontrou conteúdo de texto, processar para cada formato solicitado
-    if (content && !hasProcessedFile) {
+    // Se encontrou dados estruturados, processar para cada formato solicitado
+    if (avaliacaoData && !hasProcessedFile) {
+      const timestamp = new Date().toISOString().split('T')[0];
+      
+      for (const formato of formatoSaida) {
+        let filename = `avaliacao_${timestamp}`;
+        let processedContent = '';
+
+        switch (formato) {
+          case 'txt':
+            filename += '.txt';
+            processedContent = this.formatToText(avaliacaoData);
+            break;
+          case 'json':
+            filename += '.json';
+            processedContent = JSON.stringify(avaliacaoData, null, 2);
+            break;
+          case 'pdf':
+            filename += '.txt'; // Por enquanto, gerar como TXT formatado
+            processedContent = this.formatToPdf(avaliacaoData);
+            console.warn('PDF solicitado mas gerando TXT formatado para impressão');
+            break;
+          case 'doc':
+            filename += '.txt'; // Por enquanto, gerar como TXT formatado
+            processedContent = this.formatToDoc(avaliacaoData);
+            console.warn('DOC solicitado mas gerando TXT formatado');
+            break;
+          default:
+            filename += '.txt';
+            processedContent = this.formatToText(avaliacaoData);
+        }
+
+        await this.downloadFile({
+          filename,
+          content: processedContent,
+          type: formato === 'pdf' || formato === 'doc' ? 'txt' : formato as 'pdf' | 'doc' | 'txt' | 'json'
+        });
+      }
+    }
+    // Se encontrou conteúdo de texto simples, processar como antes
+    else if (content && !avaliacaoData && !hasProcessedFile) {
       for (const formato of formatoSaida) {
         const timestamp = new Date().toISOString().split('T')[0];
         let filename = `avaliacao_${timestamp}`;
@@ -235,4 +290,111 @@ export class FileDownloadService {
       });
     }
   }
+
+  private static formatToText(avaliacaoData: any): string {
+    let texto = '';
+    
+    // Cabeçalho
+    if (avaliacaoData.cabecalho) {
+      texto += 'CABEÇALHO:\n\n';
+      texto += 'ESCOLA: _________________________________\n';
+      texto += `DISCIPLINA: ${avaliacaoData.cabecalho.disciplina || 'Não informada'}\n`;
+      texto += `UNIDADE: ${avaliacaoData.cabecalho.unidade || 'Não informada'}`;
+      if (avaliacaoData.cabecalho.capitulo) {
+        texto += ` - CAPÍTULO: ${avaliacaoData.cabecalho.capitulo}`;
+      }
+      texto += '\n';
+      texto += `TEMA: ${avaliacaoData.cabecalho.tema || 'Não informado'}\n`;
+      texto += 'ALUNO: _________________________________\n';
+      texto += 'DATA: ___/___/______\n';
+      texto += `DURAÇÃO: ${avaliacaoData.cabecalho.duracao || avaliacaoData.metadata?.tempo_total + ' minutos' || 'Não informada'}\n\n`;
+    }
+
+    // Instruções
+    if (avaliacaoData.instrucoes && avaliacaoData.instrucoes.length > 0) {
+      texto += 'INSTRUÇÕES:\n\n';
+      avaliacaoData.instrucoes.forEach((instrucao: string) => {
+        texto += `${instrucao}\n`;
+      });
+      texto += '\n';
+    }
+
+    // Questões
+    if (avaliacaoData.questoes && avaliacaoData.questoes.length > 0) {
+      texto += 'QUESTÕES:\n\n';
+      
+      avaliacaoData.questoes.forEach((questao: any) => {
+        texto += `QUESTÃO ${questao.numero} (${questao.pontuacao})\n`;
+        texto += `${questao.enunciado}\n`;
+        
+        if (questao.alternativas && questao.alternativas.length > 0) {
+          questao.alternativas.forEach((alt: any) => {
+            texto += `${alt.letra}) ${alt.texto}\n`;
+          });
+        }
+        
+        texto += '\n__________\n\n';
+      });
+    }
+
+    // Gabarito (se incluído)
+    if (avaliacaoData.gabarito && avaliacaoData.gabarito.length > 0) {
+      texto += 'GABARITO:\n\n';
+      avaliacaoData.gabarito.forEach((resposta: any, index: number) => {
+        texto += `Questão ${index + 1}: ${resposta}\n`;
+      });
+      texto += '\n';
+    } else if (avaliacaoData.questoes) {
+      // Gerar gabarito automaticamente se as questões têm resposta_correta
+      const respostas = avaliacaoData.questoes
+        .filter((q: any) => q.resposta_correta)
+        .map((q: any) => `Questão ${q.numero}: ${q.resposta_correta}`);
+      
+      if (respostas.length > 0) {
+        texto += 'GABARITO:\n\n';
+        respostas.forEach((resposta: string) => {
+          texto += `${resposta}\n`;
+        });
+        texto += '\n';
+      }
+    }
+
+    // Metadata
+    if (avaliacaoData.metadata) {
+      texto += 'INFORMAÇÕES ADICIONAIS:\n\n';
+      if (avaliacaoData.metadata.nivel_dificuldade) {
+        texto += `Nível de dificuldade: ${avaliacaoData.metadata.nivel_dificuldade}/10\n`;
+      }
+      if (avaliacaoData.metadata.estilo) {
+        texto += `Estilo: ${avaliacaoData.metadata.estilo}\n`;
+      }
+      if (avaliacaoData.metadata.permite_calculadora !== undefined) {
+        texto += `Calculadora: ${avaliacaoData.metadata.permite_calculadora ? 'Permitida' : 'Não permitida'}\n`;
+      }
+    }
+
+    return texto;
+  }
+
+  private static formatToPdf(avaliacaoData: any): string {
+    // Por enquanto, retorna formato TXT otimizado para impressão
+    let texto = this.formatToText(avaliacaoData);
+    
+    // Adicionar quebras de página e formatação para PDF
+    texto = 'AVALIAÇÃO - FORMATO PARA IMPRESSÃO\n' + '='.repeat(50) + '\n\n' + texto;
+    
+    return texto;
+  }
+
+  private static formatToDoc(avaliacaoData: any): string {
+    // Por enquanto, retorna formato TXT otimizado para Word
+    let texto = this.formatToText(avaliacaoData);
+    
+    // Adicionar formatação específica para Word
+    texto = 'DOCUMENTO DE AVALIAÇÃO\n' + '='.repeat(50) + '\n\n' + texto;
+    
+    return texto;
+  }
+
+  
 }
