@@ -18,10 +18,10 @@ export class FileDownloadService {
         mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
         break;
       case 'txt':
-        mimeType = 'text/plain';
+        mimeType = 'text/plain;charset=utf-8';
         break;
       case 'json':
-        mimeType = 'application/json';
+        mimeType = 'application/json;charset=utf-8';
         break;
       default:
         mimeType = 'application/octet-stream';
@@ -44,7 +44,10 @@ export class FileDownloadService {
           blob = new Blob([content], { type: mimeType });
         }
       } else {
-        blob = new Blob([content], { type: mimeType });
+        // Para texto simples, incluir BOM UTF-8 se necessário
+        const bom = '\uFEFF';
+        const textContent = type === 'txt' ? bom + content : content;
+        blob = new Blob([textContent], { type: mimeType });
       }
     } else {
       blob = new Blob([String(content)], { type: mimeType });
@@ -67,16 +70,24 @@ export class FileDownloadService {
 
   private static async modernDownload(blob: Blob, filename: string): Promise<void> {
     try {
+      const extension = filename.split('.').pop()?.toLowerCase() || 'txt';
+      const acceptTypes: Record<string, string[]> = {
+        'pdf': ['.pdf'],
+        'doc': ['.doc', '.docx'],
+        'txt': ['.txt'],
+        'json': ['.json']
+      };
+
       // @ts-ignore - API experimental
       const fileHandle = await window.showSaveFilePicker({
         suggestedName: filename,
         types: [{
           description: 'Arquivos de avaliação',
           accept: {
-            'application/pdf': ['.pdf'],
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-            'text/plain': ['.txt'],
-            'application/json': ['.json']
+            'application/pdf': acceptTypes.pdf,
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': acceptTypes.doc,
+            'text/plain': acceptTypes.txt,
+            'application/json': acceptTypes.json
           }
         }]
       });
@@ -120,8 +131,24 @@ export class FileDownloadService {
   static async processWebhookResponse(response: any, formatoSaida: string[]): Promise<void> {
     console.log('Processando resposta do webhook para download:', response);
     
-    // Verificar diferentes estruturas de resposta
-    if (response.files && Array.isArray(response.files)) {
+    // Extrair conteúdo do webhook baseado na estrutura real
+    let content = '';
+    let hasProcessedFile = false;
+
+    // Verificar se é array com output (formato recebido)
+    if (Array.isArray(response) && response.length > 0 && response[0].output) {
+      content = response[0].output;
+    }
+    // Verificar se tem output direto
+    else if (response.output) {
+      content = response.output;
+    }
+    // Verificar estruturas aninhadas
+    else if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
+      content = response.data[0].output;
+    }
+    // Verificar outras estruturas possíveis
+    else if (response.files && Array.isArray(response.files)) {
       // Estrutura com array de arquivos
       for (const file of response.files) {
         if (formatoSaida.includes(file.format)) {
@@ -130,9 +157,11 @@ export class FileDownloadService {
             content: file.content,
             type: file.format as 'pdf' | 'doc' | 'txt' | 'json'
           });
+          hasProcessedFile = true;
         }
       }
-    } else if (response.data && response.data.files) {
+    }
+    else if (response.data && response.data.files) {
       // Estrutura aninhada em data
       for (const file of response.data.files) {
         if (formatoSaida.includes(file.format)) {
@@ -141,37 +170,67 @@ export class FileDownloadService {
             content: file.content,
             type: file.format as 'pdf' | 'doc' | 'txt' | 'json'
           });
+          hasProcessedFile = true;
         }
       }
-    } else if (response.content || response.data) {
-      // Resposta com conteúdo direto
-      const content = response.content || response.data;
-      const format = formatoSaida[0] || 'pdf';
-      
-      await this.downloadFile({
-        filename: `avaliacao_${new Date().toISOString().split('T')[0]}.${format}`,
-        content: content,
-        type: format as 'pdf' | 'doc' | 'txt' | 'json'
-      });
-    } else if (response.pdf || response.doc || response.txt || response.json) {
-      // Resposta com propriedades específicas por formato
+    }
+
+    // Se encontrou conteúdo de texto, processar para cada formato solicitado
+    if (content && !hasProcessedFile) {
       for (const formato of formatoSaida) {
-        if (response[formato]) {
-          await this.downloadFile({
-            filename: `avaliacao_${new Date().toISOString().split('T')[0]}.${formato}`,
-            content: response[formato],
-            type: formato as 'pdf' | 'doc' | 'txt' | 'json'
-          });
+        const timestamp = new Date().toISOString().split('T')[0];
+        let filename = `avaliacao_${timestamp}`;
+        let processedContent = content;
+
+        switch (formato) {
+          case 'txt':
+            filename += '.txt';
+            // Manter formatação original do texto
+            break;
+          case 'json':
+            filename += '.json';
+            // Converter para JSON estruturado
+            processedContent = JSON.stringify({
+              titulo: "Avaliação Gerada",
+              data_criacao: new Date().toISOString(),
+              conteudo: content,
+              formato_original: "texto"
+            }, null, 2);
+            break;
+          case 'pdf':
+            // Para PDF, o ideal seria converter o texto para um PDF real
+            // Por enquanto, vamos alertar que é texto simples
+            filename += '.txt';
+            processedContent = `AVISO: Este arquivo contém o texto da avaliação. Para um PDF formatado, utilize ferramentas de conversão.\n\n${content}`;
+            console.warn('PDF solicitado mas recebido texto simples. Salvando como .txt');
+            break;
+          case 'doc':
+            // Para DOC, similar ao PDF
+            filename += '.txt';
+            processedContent = `AVISO: Este arquivo contém o texto da avaliação. Para um documento Word formatado, utilize ferramentas de conversão.\n\n${content}`;
+            console.warn('DOC solicitado mas recebido texto simples. Salvando como .txt');
+            break;
+          default:
+            filename += '.txt';
         }
+
+        await this.downloadFile({
+          filename,
+          content: processedContent,
+          type: formato === 'pdf' || formato === 'doc' ? 'txt' : formato as 'pdf' | 'doc' | 'txt' | 'json'
+        });
       }
-    } else {
-      // Tentar converter a resposta inteira em JSON
+    }
+
+    // Se não conseguiu processar nada, tentar converter a resposta inteira
+    if (!content && !hasProcessedFile) {
       const format = formatoSaida.includes('json') ? 'json' : formatoSaida[0] || 'txt';
-      const content = format === 'json' ? JSON.stringify(response, null, 2) : String(response);
+      const timestamp = new Date().toISOString().split('T')[0];
+      const responseContent = format === 'json' ? JSON.stringify(response, null, 2) : String(response);
       
       await this.downloadFile({
-        filename: `avaliacao_${new Date().toISOString().split('T')[0]}.${format}`,
-        content: content,
+        filename: `resposta_webhook_${timestamp}.${format}`,
+        content: responseContent,
         type: format as 'pdf' | 'doc' | 'txt' | 'json'
       });
     }

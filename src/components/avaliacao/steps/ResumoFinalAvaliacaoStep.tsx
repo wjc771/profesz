@@ -21,6 +21,91 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
   const { toast } = useToast();
   const formValues = form.getValues();
 
+  const parseWebhookResponse = (response: any) => {
+    console.log('Parseando resposta do webhook:', response);
+    
+    // Verificar se é array com output
+    if (Array.isArray(response) && response.length > 0 && response[0].output) {
+      const outputText = response[0].output;
+      return parseAvaliacaoText(outputText);
+    }
+    
+    // Verificar se tem output direto
+    if (response.output) {
+      return parseAvaliacaoText(response.output);
+    }
+    
+    // Verificar estruturas aninhadas
+    if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
+      return parseAvaliacaoText(response.data[0].output);
+    }
+    
+    if (response.avaliacao) {
+      return response.avaliacao;
+    }
+    
+    return null;
+  };
+
+  const parseAvaliacaoText = (text: string) => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const questoes = [];
+    let currentQuestao = null;
+    let titulo = '';
+    let duracao = '';
+    
+    // Extrair informações do cabeçalho
+    for (const line of lines) {
+      if (line.includes('DISCIPLINA:')) {
+        titulo = line.split(':')[1]?.trim() || 'Avaliação';
+      }
+      if (line.includes('DURAÇÃO:')) {
+        duracao = line.split(':')[1]?.trim() || '';
+      }
+      
+      // Identificar questões
+      if (line.match(/QUESTÃO\s+\d+/)) {
+        if (currentQuestao) {
+          questoes.push(currentQuestao);
+        }
+        
+        const numeroMatch = line.match(/QUESTÃO\s+(\d+)/);
+        const numero = numeroMatch ? parseInt(numeroMatch[1]) : questoes.length + 1;
+        
+        currentQuestao = {
+          numero,
+          enunciado: '',
+          alternativas: [],
+          pontuacao: line.match(/\(([\d,]+)\s*pontos?\)/)?.[1] || '1,0'
+        };
+      } else if (currentQuestao && line.match(/^[a-d]\)/)) {
+        // Alternativa
+        const letra = line.charAt(0);
+        const texto = line.substring(3).trim();
+        currentQuestao.alternativas.push({ letra, texto });
+      } else if (currentQuestao && line.trim() && !line.includes('_____') && !line.includes('QUESTÃO')) {
+        // Parte do enunciado
+        if (currentQuestao.enunciado) {
+          currentQuestao.enunciado += ' ' + line.trim();
+        } else {
+          currentQuestao.enunciado = line.trim();
+        }
+      }
+    }
+    
+    // Adicionar última questão
+    if (currentQuestao) {
+      questoes.push(currentQuestao);
+    }
+    
+    return {
+      titulo: titulo || 'Avaliação Gerada',
+      duracao: duracao || 'Não especificada',
+      questoes,
+      texto_completo: text
+    };
+  };
+
   const handleGeneratePreview = async () => {
     setIsGenerating(true);
     
@@ -39,22 +124,16 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
       console.log('Resposta recebida do webhook:', response);
       
       if (response.success) {
-        if (response.avaliacao) {
-          // Dados reais do webhook
-          setAvaliacaoGerada(response.avaliacao);
+        const avaliacaoParsed = parseWebhookResponse(response);
+        
+        if (avaliacaoParsed) {
+          setAvaliacaoGerada(avaliacaoParsed);
           toast({
             title: "Prévia gerada com sucesso!",
-            description: `Avaliação gerada conforme suas especificações.`,
-          });
-        } else if (response.data) {
-          // Verificar se a avaliação está em data
-          setAvaliacaoGerada(response.data);
-          toast({
-            title: "Prévia gerada com sucesso!",
-            description: `Avaliação recebida do servidor.`,
+            description: `Avaliação com ${avaliacaoParsed.questoes?.length || 0} questões foi gerada.`,
           });
         } else {
-          throw new Error("Webhook não retornou dados de avaliação válidos");
+          throw new Error("Não foi possível processar a resposta do webhook");
         }
       } else {
         throw new Error(response.error || response.message || "Erro desconhecido no webhook");
@@ -221,33 +300,31 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
           {avaliacaoGerada && (
             <div className="border rounded-lg p-4 bg-background">
               <h5 className="font-semibold mb-3">
-                {avaliacaoGerada.titulo || 'Avaliação Gerada'}
+                {avaliacaoGerada.titulo}
               </h5>
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Tipo:</strong> {avaliacaoGerada.tipo || 'N/A'} | 
-                  <strong> Duração:</strong> {avaliacaoGerada.duracao_sugerida || avaliacaoGerada.duracao || 'N/A'} min | 
-                  <strong> Questões:</strong> {avaliacaoGerada.questoes?.length || 'N/A'}
+                  <strong>Duração:</strong> {avaliacaoGerada.duracao} | 
+                  <strong> Questões:</strong> {avaliacaoGerada.questoes?.length || 0}
                 </p>
                 
                 {avaliacaoGerada.questoes && avaliacaoGerada.questoes.length > 0 && (
-                  <div className="space-y-3 max-h-40 overflow-y-auto">
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
                     {avaliacaoGerada.questoes.slice(0, 3).map((questao: any, index: number) => (
                       <div key={questao.numero || index} className="border-l-2 border-primary/20 pl-3">
-                        <p className="text-sm"><strong>Questão {questao.numero || (index + 1)}:</strong></p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {questao.enunciado || questao.pergunta || 'Enunciado não disponível'}
+                        <p className="text-sm font-medium">
+                          Questão {questao.numero} ({questao.pontuacao} ponto{questao.pontuacao !== '1,0' ? 's' : ''})
+                        </p>
+                        <p className="text-sm mt-1 mb-2">
+                          {questao.enunciado}
                         </p>
                         {questao.alternativas && questao.alternativas.length > 0 && (
-                          <div className="mt-2 text-xs">
-                            {questao.alternativas.slice(0, 2).map((alt: any) => (
-                              <p key={alt.letra || alt.id}>
-                                {alt.letra || alt.opcao}) {alt.texto || alt.resposta}
+                          <div className="text-xs space-y-1">
+                            {questao.alternativas.map((alt: any, altIndex: number) => (
+                              <p key={altIndex}>
+                                {alt.letra}) {alt.texto}
                               </p>
                             ))}
-                            {questao.alternativas.length > 2 && (
-                              <p className="text-muted-foreground">... e mais {questao.alternativas.length - 2} alternativas</p>
-                            )}
                           </div>
                         )}
                       </div>
@@ -257,12 +334,6 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
                         ... e mais {avaliacaoGerada.questoes.length - 3} questões
                       </p>
                     )}
-                  </div>
-                )}
-                
-                {avaliacaoGerada.observacoes && (
-                  <div className="mt-3 p-2 bg-muted/50 rounded text-xs">
-                    <strong>Observações:</strong> {avaliacaoGerada.observacoes}
                   </div>
                 )}
               </div>
