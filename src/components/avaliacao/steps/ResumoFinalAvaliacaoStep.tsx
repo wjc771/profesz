@@ -1,7 +1,7 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Eye, Send, Loader2 } from "lucide-react";
+import { FileText, Eye, Send, Loader2, AlertTriangle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,33 +18,84 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
   const [isGenerating, setIsGenerating] = useState(false);
   const [avaliacaoGerada, setAvaliacaoGerada] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const { toast } = useToast();
   const formValues = form.getValues();
+
+  const createFallbackAvaliacao = (formData: any) => {
+    console.log('Criando avaliação de fallback com dados:', formData);
+    
+    return {
+      cabecalho: {
+        disciplina: formData.materia || 'Disciplina',
+        unidade: formData.unidade || 'Unidade 1',
+        capitulo: formData.capitulos?.[0] || 'Capítulo 1',
+        tema: formData.temas?.[0] || 'Tema da Avaliação',
+        duracao: `${formData.duracaoSugerida || 60} minutos`
+      },
+      instrucoes: [
+        'Leia atentamente cada questão antes de responder.',
+        'Marque apenas uma alternativa por questão.',
+        'Use caneta azul ou preta para responder.',
+        'Não é permitido o uso de corretor.',
+        formData.permitirCalculadora ? 'É permitido o uso de calculadora.' : 'Não é permitido o uso de calculadora.'
+      ].filter(Boolean),
+      questoes: Array.from({ length: formData.numeroQuestoes || 5 }, (_, index) => ({
+        numero: index + 1,
+        enunciado: `Esta é a questão ${index + 1} sobre ${formData.temas?.[0] || 'o tema estudado'}. Complete com o conteúdo apropriado baseado nos objetivos de aprendizagem da disciplina ${formData.materia || 'estudada'}.`,
+        alternativas: [
+          { letra: 'a', texto: 'Primeira alternativa da questão' },
+          { letra: 'b', texto: 'Segunda alternativa da questão' },
+          { letra: 'c', texto: 'Terceira alternativa da questão' },
+          { letra: 'd', texto: 'Quarta alternativa da questão' }
+        ],
+        pontuacao: '1,0 ponto',
+        resposta_correta: 'a'
+      })),
+      metadata: {
+        nivel_dificuldade: formData.nivelDificuldade || 5,
+        estilo: formData.estiloQuestoes || 'conceitual',
+        permite_calculadora: formData.permitirCalculadora || false,
+        tempo_total: formData.duracaoSugerida || 60,
+        data_criacao: new Date().toISOString(),
+        observacoes: 'Avaliação gerada automaticamente. Revise e personalize conforme necessário.'
+      },
+      gabarito: Array.from({ length: formData.numeroQuestoes || 5 }, (_, index) => `Questão ${index + 1}: a`)
+    };
+  };
 
   const parseWebhookResponse = (response: any) => {
     console.log('Parseando resposta do webhook:', response);
     
-    // Verificar se é array com output
-    if (Array.isArray(response) && response.length > 0 && response[0].output) {
-      const outputText = response[0].output;
-      return parseJsonAvaliacao(outputText);
+    try {
+      // Verificar se é array com output
+      if (Array.isArray(response) && response.length > 0 && response[0].output) {
+        const outputText = response[0].output;
+        return parseJsonAvaliacao(outputText);
+      }
+      
+      // Verificar se tem output direto
+      if (response.output) {
+        return parseJsonAvaliacao(response.output);
+      }
+      
+      // Verificar estruturas aninhadas
+      if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
+        return parseJsonAvaliacao(response.data[0].output);
+      }
+      
+      if (response.avaliacao) {
+        return response.avaliacao;
+      }
+
+      // Se chegou aqui, não conseguiu extrair dados válidos
+      console.warn('Não foi possível extrair dados válidos da resposta, usando fallback');
+      return null;
+      
+    } catch (error) {
+      console.error('Erro ao processar resposta do webhook:', error);
+      return null;
     }
-    
-    // Verificar se tem output direto
-    if (response.output) {
-      return parseJsonAvaliacao(response.output);
-    }
-    
-    // Verificar estruturas aninhadas
-    if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
-      return parseJsonAvaliacao(response.data[0].output);
-    }
-    
-    if (response.avaliacao) {
-      return response.avaliacao;
-    }
-    
-    return null;
   };
 
   const parseJsonAvaliacao = (outputText: string) => {
@@ -53,6 +104,12 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
       const avaliacaoData = JSON.parse(outputText);
       
       console.log('JSON da avaliação parseado:', avaliacaoData);
+      
+      // Validar se tem estrutura mínima necessária
+      if (!avaliacaoData.questoes || !Array.isArray(avaliacaoData.questoes) || avaliacaoData.questoes.length === 0) {
+        console.warn('Estrutura de avaliação inválida, usando fallback');
+        return null;
+      }
       
       return avaliacaoData;
     } catch (error) {
@@ -63,75 +120,93 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
   };
 
   const parseAvaliacaoText = (text: string) => {
-    const lines = text.split('\n').filter(line => line.trim());
-    const questoes = [];
-    let currentQuestao = null;
-    let cabecalho = {
-      disciplina: '',
-      unidade: '',
-      tema: '',
-      duracao: ''
-    };
+    console.log('Parseando texto como avaliação:', text.substring(0, 200) + '...');
     
-    // Extrair informações do cabeçalho
-    for (const line of lines) {
-      if (line.includes('DISCIPLINA:')) {
-        cabecalho.disciplina = line.split(':')[1]?.trim() || 'Avaliação';
-      }
-      if (line.includes('UNIDADE:')) {
-        cabecalho.unidade = line.split(':')[1]?.trim() || '';
-      }
-      if (line.includes('TEMA:')) {
-        cabecalho.tema = line.split(':')[1]?.trim() || '';
-      }
-      if (line.includes('DURAÇÃO:')) {
-        cabecalho.duracao = line.split(':')[1]?.trim() || '';
+    try {
+      const lines = text.split('\n').filter(line => line.trim());
+      const questoes = [];
+      let currentQuestao = null;
+      let cabecalho = {
+        disciplina: formValues.materia || 'Disciplina',
+        unidade: formValues.unidade || 'Unidade',
+        tema: formValues.temas?.[0] || 'Tema',
+        duracao: `${formValues.duracaoSugerida || 60} minutos`
+      };
+      
+      // Extrair informações do cabeçalho
+      for (const line of lines) {
+        if (line.includes('DISCIPLINA:')) {
+          cabecalho.disciplina = line.split(':')[1]?.trim() || cabecalho.disciplina;
+        }
+        if (line.includes('UNIDADE:')) {
+          cabecalho.unidade = line.split(':')[1]?.trim() || cabecalho.unidade;
+        }
+        if (line.includes('TEMA:')) {
+          cabecalho.tema = line.split(':')[1]?.trim() || cabecalho.tema;
+        }
+        if (line.includes('DURAÇÃO:')) {
+          cabecalho.duracao = line.split(':')[1]?.trim() || cabecalho.duracao;
+        }
+        
+        // Identificar questões
+        if (line.match(/QUESTÃO\s+\d+/)) {
+          if (currentQuestao) {
+            questoes.push(currentQuestao);
+          }
+          
+          const numeroMatch = line.match(/QUESTÃO\s+(\d+)/);
+          const numero = numeroMatch ? parseInt(numeroMatch[1]) : questoes.length + 1;
+          
+          currentQuestao = {
+            numero,
+            enunciado: '',
+            alternativas: [],
+            pontuacao: line.match(/\(([\d,]+)\s*pontos?\)/)?.[1] || '1,0'
+          };
+        } else if (currentQuestao && line.match(/^[a-d]\)/)) {
+          // Alternativa
+          const letra = line.charAt(0);
+          const texto = line.substring(3).trim();
+          currentQuestao.alternativas.push({ letra, texto });
+        } else if (currentQuestao && line.trim() && !line.includes('_____') && !line.includes('QUESTÃO')) {
+          // Parte do enunciado
+          if (currentQuestao.enunciado) {
+            currentQuestao.enunciado += ' ' + line.trim();
+          } else {
+            currentQuestao.enunciado = line.trim();
+          }
+        }
       }
       
-      // Identificar questões
-      if (line.match(/QUESTÃO\s+\d+/)) {
-        if (currentQuestao) {
-          questoes.push(currentQuestao);
-        }
-        
-        const numeroMatch = line.match(/QUESTÃO\s+(\d+)/);
-        const numero = numeroMatch ? parseInt(numeroMatch[1]) : questoes.length + 1;
-        
-        currentQuestao = {
-          numero,
-          enunciado: '',
-          alternativas: [],
-          pontuacao: line.match(/\(([\d,]+)\s*pontos?\)/)?.[1] || '1,0'
-        };
-      } else if (currentQuestao && line.match(/^[a-d]\)/)) {
-        // Alternativa
-        const letra = line.charAt(0);
-        const texto = line.substring(3).trim();
-        currentQuestao.alternativas.push({ letra, texto });
-      } else if (currentQuestao && line.trim() && !line.includes('_____') && !line.includes('QUESTÃO')) {
-        // Parte do enunciado
-        if (currentQuestao.enunciado) {
-          currentQuestao.enunciado += ' ' + line.trim();
-        } else {
-          currentQuestao.enunciado = line.trim();
-        }
+      // Adicionar última questão
+      if (currentQuestao) {
+        questoes.push(currentQuestao);
       }
+
+      // Se não conseguiu extrair questões válidas, retorna null
+      if (questoes.length === 0) {
+        console.warn('Não foi possível extrair questões válidas do texto');
+        return null;
+      }
+      
+      return {
+        cabecalho,
+        questoes,
+        texto_completo: text,
+        metadata: {
+          origem: 'texto_parseado',
+          data_criacao: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Erro ao parsear texto da avaliação:', error);
+      return null;
     }
-    
-    // Adicionar última questão
-    if (currentQuestao) {
-      questoes.push(currentQuestao);
-    }
-    
-    return {
-      cabecalho,
-      questoes,
-      texto_completo: text
-    };
   };
 
   const handleGeneratePreview = async () => {
     setIsGenerating(true);
+    setHasError(false);
     
     try {
       console.log('Enviando dados para webhook (prévia):', formValues);
@@ -143,37 +218,56 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         plataforma: "PROFZi"
       };
 
-      const response = await WebhookService.sendAvaliacaoData(dataToSend);
-      
-      console.log('Resposta recebida do webhook:', response);
-      
-      if (response.success) {
-        const avaliacaoParsed = parseWebhookResponse(response);
+      let avaliacaoParsed = null;
+
+      try {
+        const response = await WebhookService.sendAvaliacaoData(dataToSend);
+        console.log('Resposta recebida do webhook:', response);
         
-        if (avaliacaoParsed) {
-          setAvaliacaoGerada(avaliacaoParsed);
-          setShowPreview(true);
-          toast({
-            title: "Prévia gerada com sucesso!",
-            description: `Avaliação com ${avaliacaoParsed.questoes?.length || 0} questões foi gerada.`,
-          });
-        } else {
-          throw new Error("Não foi possível processar a resposta do webhook");
+        if (response.success) {
+          avaliacaoParsed = parseWebhookResponse(response);
         }
-      } else {
-        throw new Error(response.error || response.message || "Erro desconhecido no webhook");
+      } catch (webhookError) {
+        console.error('Erro no webhook, usando fallback:', webhookError);
+        // Continue para usar o fallback abaixo
       }
+
+      // Se o webhook falhou ou não retornou dados válidos, usar fallback
+      if (!avaliacaoParsed) {
+        console.log('Webhook falhou ou retornou dados inválidos, gerando avaliação de fallback');
+        avaliacaoParsed = createFallbackAvaliacao(formValues);
+        setHasError(true);
+        
+        toast({
+          title: "Avaliação gerada localmente",
+          description: "Houve um problema na conexão, mas geramos uma prévia para você. Revise e personalize conforme necessário.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Prévia gerada com sucesso!",
+          description: `Avaliação com ${avaliacaoParsed.questoes?.length || 0} questões foi gerada.`,
+        });
+      }
+
+      setAvaliacaoGerada(avaliacaoParsed);
+      setShowPreview(true);
+      
     } catch (error: any) {
-      console.error('Erro ao gerar prévia:', error);
+      console.error('Erro geral ao gerar prévia:', error);
+      
+      // Usar fallback mesmo em caso de erro geral
+      console.log('Gerando avaliação de fallback devido a erro geral');
+      const fallbackAvaliacao = createFallbackAvaliacao(formValues);
+      setAvaliacaoGerada(fallbackAvaliacao);
+      setShowPreview(true);
+      setHasError(true);
       
       toast({
-        variant: "destructive",
-        title: "Erro ao gerar prévia",
-        description: error.message || "Não foi possível conectar com o servidor. Verifique sua conexão e tente novamente.",
+        title: "Prévia gerada localmente",
+        description: "Houve um problema técnico, mas geramos uma prévia básica para você. Personalize conforme necessário.",
+        variant: "default",
       });
-      
-      setAvaliacaoGerada(null);
-      setShowPreview(false);
     } finally {
       setIsGenerating(false);
     }
@@ -275,6 +369,18 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
               {isGenerating ? 'Gerando...' : 'Gerar Avaliação'}
             </Button>
           </div>
+
+          {hasError && (
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-medium mb-1">Avaliação gerada localmente</p>
+                  <p>Houve um problema na conexão com o servidor, mas geramos uma prévia básica para você. Revise e personalize o conteúdo conforme necessário.</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {showPreview && avaliacaoGerada && (
             <FilePreview 
