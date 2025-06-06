@@ -26,6 +26,9 @@ export class FileDownloadService {
         mimeType = 'application/octet-stream';
     }
 
+    console.log('FileDownloadService.downloadFile - Tipo do conteúdo:', typeof content);
+    console.log('FileDownloadService.downloadFile - Conteúdo:', content);
+
     if (content instanceof Blob) {
       blob = content;
     } else if (typeof content === 'string') {
@@ -49,7 +52,10 @@ export class FileDownloadService {
         blob = new Blob([textContent], { type: mimeType });
       }
     } else {
-      blob = new Blob([String(content)], { type: mimeType });
+      // CORREÇÃO: Converter qualquer outro tipo para string JSON
+      console.warn('Conteúdo não é string nem Blob, convertendo para JSON:', content);
+      const stringContent = JSON.stringify(content, null, 2);
+      blob = new Blob([stringContent], { type: mimeType });
     }
 
     // Usar a API nativa do browser para download
@@ -138,9 +144,10 @@ export class FileDownloadService {
     // Verificar se é array com output (formato recebido)
     if (Array.isArray(response) && response.length > 0 && response[0].output) {
       content = response[0].output;
+      console.log('Conteúdo extraído do array[0].output:', content);
       try {
         avaliacaoData = JSON.parse(content);
-        console.log('JSON da avaliação para download:', avaliacaoData);
+        console.log('JSON da avaliação parseado com sucesso:', avaliacaoData);
       } catch (error) {
         console.warn('Não foi possível parsear JSON, tratando como texto:', error);
       }
@@ -148,8 +155,10 @@ export class FileDownloadService {
     // Verificar se tem output direto
     else if (response.output) {
       content = response.output;
+      console.log('Conteúdo extraído do response.output:', content);
       try {
         avaliacaoData = JSON.parse(content);
+        console.log('JSON da avaliação parseado com sucesso:', avaliacaoData);
       } catch (error) {
         console.warn('Não foi possível parsear JSON, tratando como texto:', error);
       }
@@ -197,37 +206,60 @@ export class FileDownloadService {
       
       for (const formato of formatoSaida) {
         let filename = `avaliacao_${timestamp}`;
-        let processedContent = '';
+        let processedContent: string = '';
 
-        switch (formato) {
-          case 'txt':
-            filename += '.txt';
-            processedContent = this.formatToText(avaliacaoData);
-            break;
-          case 'json':
-            filename += '.json';
-            processedContent = JSON.stringify(avaliacaoData, null, 2);
-            break;
-          case 'pdf':
-            filename += '.txt'; // Por enquanto, gerar como TXT formatado
-            processedContent = this.formatToPdf(avaliacaoData);
-            console.warn('PDF solicitado mas gerando TXT formatado para impressão');
-            break;
-          case 'doc':
-            filename += '.txt'; // Por enquanto, gerar como TXT formatado
-            processedContent = this.formatToDoc(avaliacaoData);
-            console.warn('DOC solicitado mas gerando TXT formatado');
-            break;
-          default:
-            filename += '.txt';
-            processedContent = this.formatToText(avaliacaoData);
+        console.log(`Processando formato: ${formato}`);
+        console.log('Dados da avaliação:', avaliacaoData);
+
+        try {
+          switch (formato) {
+            case 'txt':
+              filename += '.txt';
+              processedContent = this.formatToText(avaliacaoData);
+              break;
+            case 'json':
+              filename += '.json';
+              processedContent = JSON.stringify(avaliacaoData, null, 2);
+              break;
+            case 'pdf':
+              filename += '.txt'; // Por enquanto, gerar como TXT formatado
+              processedContent = this.formatToPdf(avaliacaoData);
+              console.warn('PDF solicitado mas gerando TXT formatado para impressão');
+              break;
+            case 'doc':
+              filename += '.txt'; // Por enquanto, gerar como TXT formatado
+              processedContent = this.formatToDoc(avaliacaoData);
+              console.warn('DOC solicitado mas gerando TXT formatado');
+              break;
+            default:
+              filename += '.txt';
+              processedContent = this.formatToText(avaliacaoData);
+          }
+
+          console.log(`Conteúdo processado para ${formato}:`, typeof processedContent, processedContent.substring(0, 100) + '...');
+
+          // VALIDAÇÃO: Garantir que processedContent é string
+          if (typeof processedContent !== 'string') {
+            console.error('ERRO: processedContent não é string:', typeof processedContent, processedContent);
+            processedContent = JSON.stringify(processedContent, null, 2);
+          }
+
+          await this.downloadFile({
+            filename,
+            content: processedContent,
+            type: formato === 'pdf' || formato === 'doc' ? 'txt' : formato as 'pdf' | 'doc' | 'txt' | 'json'
+          });
+
+        } catch (error) {
+          console.error(`Erro ao processar formato ${formato}:`, error);
+          // Fallback: gerar arquivo de erro
+          const errorContent = `ERRO AO PROCESSAR ARQUIVO ${formato.toUpperCase()}\n\nDados recebidos:\n${JSON.stringify(avaliacaoData, null, 2)}`;
+          await this.downloadFile({
+            filename: `erro_${formato}_${timestamp}.txt`,
+            content: errorContent,
+            type: 'txt'
+          });
         }
-
-        await this.downloadFile({
-          filename,
-          content: processedContent,
-          type: formato === 'pdf' || formato === 'doc' ? 'txt' : formato as 'pdf' | 'doc' | 'txt' | 'json'
-        });
       }
     }
     // Se encontrou conteúdo de texto simples, processar como antes
@@ -292,88 +324,102 @@ export class FileDownloadService {
   }
 
   private static formatToText(avaliacaoData: any): string {
+    console.log('formatToText - Dados recebidos:', avaliacaoData);
+    
+    if (!avaliacaoData || typeof avaliacaoData !== 'object') {
+      console.error('formatToText - Dados inválidos:', avaliacaoData);
+      return `ERRO: Dados de avaliação inválidos\n\nDados recebidos: ${JSON.stringify(avaliacaoData, null, 2)}`;
+    }
+
     let texto = '';
     
-    // Cabeçalho
-    if (avaliacaoData.cabecalho) {
-      texto += 'CABEÇALHO:\n\n';
-      texto += 'ESCOLA: _________________________________\n';
-      texto += `DISCIPLINA: ${avaliacaoData.cabecalho.disciplina || 'Não informada'}\n`;
-      texto += `UNIDADE: ${avaliacaoData.cabecalho.unidade || 'Não informada'}`;
-      if (avaliacaoData.cabecalho.capitulo) {
-        texto += ` - CAPÍTULO: ${avaliacaoData.cabecalho.capitulo}`;
-      }
-      texto += '\n';
-      texto += `TEMA: ${avaliacaoData.cabecalho.tema || 'Não informado'}\n`;
-      texto += 'ALUNO: _________________________________\n';
-      texto += 'DATA: ___/___/______\n';
-      texto += `DURAÇÃO: ${avaliacaoData.cabecalho.duracao || avaliacaoData.metadata?.tempo_total + ' minutos' || 'Não informada'}\n\n`;
-    }
-
-    // Instruções
-    if (avaliacaoData.instrucoes && avaliacaoData.instrucoes.length > 0) {
-      texto += 'INSTRUÇÕES:\n\n';
-      avaliacaoData.instrucoes.forEach((instrucao: string) => {
-        texto += `${instrucao}\n`;
-      });
-      texto += '\n';
-    }
-
-    // Questões
-    if (avaliacaoData.questoes && avaliacaoData.questoes.length > 0) {
-      texto += 'QUESTÕES:\n\n';
-      
-      avaliacaoData.questoes.forEach((questao: any) => {
-        texto += `QUESTÃO ${questao.numero} (${questao.pontuacao})\n`;
-        texto += `${questao.enunciado}\n`;
-        
-        if (questao.alternativas && questao.alternativas.length > 0) {
-          questao.alternativas.forEach((alt: any) => {
-            texto += `${alt.letra}) ${alt.texto}\n`;
-          });
+    try {
+      // Cabeçalho
+      if (avaliacaoData.cabecalho) {
+        texto += 'CABEÇALHO:\n\n';
+        texto += 'ESCOLA: _________________________________\n';
+        texto += `DISCIPLINA: ${avaliacaoData.cabecalho.disciplina || 'Não informada'}\n`;
+        texto += `UNIDADE: ${avaliacaoData.cabecalho.unidade || 'Não informada'}`;
+        if (avaliacaoData.cabecalho.capitulo) {
+          texto += ` - CAPÍTULO: ${avaliacaoData.cabecalho.capitulo}`;
         }
-        
-        texto += '\n__________\n\n';
-      });
-    }
+        texto += '\n';
+        texto += `TEMA: ${avaliacaoData.cabecalho.tema || 'Não informado'}\n`;
+        texto += 'ALUNO: _________________________________\n';
+        texto += 'DATA: ___/___/______\n';
+        texto += `DURAÇÃO: ${avaliacaoData.cabecalho.duracao || avaliacaoData.metadata?.tempo_total + ' minutos' || 'Não informada'}\n\n`;
+      }
 
-    // Gabarito (se incluído)
-    if (avaliacaoData.gabarito && avaliacaoData.gabarito.length > 0) {
-      texto += 'GABARITO:\n\n';
-      avaliacaoData.gabarito.forEach((resposta: any, index: number) => {
-        texto += `Questão ${index + 1}: ${resposta}\n`;
-      });
-      texto += '\n';
-    } else if (avaliacaoData.questoes) {
-      // Gerar gabarito automaticamente se as questões têm resposta_correta
-      const respostas = avaliacaoData.questoes
-        .filter((q: any) => q.resposta_correta)
-        .map((q: any) => `Questão ${q.numero}: ${q.resposta_correta}`);
-      
-      if (respostas.length > 0) {
-        texto += 'GABARITO:\n\n';
-        respostas.forEach((resposta: string) => {
-          texto += `${resposta}\n`;
+      // Instruções
+      if (avaliacaoData.instrucoes && Array.isArray(avaliacaoData.instrucoes) && avaliacaoData.instrucoes.length > 0) {
+        texto += 'INSTRUÇÕES:\n\n';
+        avaliacaoData.instrucoes.forEach((instrucao: string) => {
+          texto += `${instrucao}\n`;
         });
         texto += '\n';
       }
-    }
 
-    // Metadata
-    if (avaliacaoData.metadata) {
-      texto += 'INFORMAÇÕES ADICIONAIS:\n\n';
-      if (avaliacaoData.metadata.nivel_dificuldade) {
-        texto += `Nível de dificuldade: ${avaliacaoData.metadata.nivel_dificuldade}/10\n`;
+      // Questões
+      if (avaliacaoData.questoes && Array.isArray(avaliacaoData.questoes) && avaliacaoData.questoes.length > 0) {
+        texto += 'QUESTÕES:\n\n';
+        
+        avaliacaoData.questoes.forEach((questao: any) => {
+          texto += `QUESTÃO ${questao.numero} (${questao.pontuacao})\n`;
+          texto += `${questao.enunciado}\n`;
+          
+          if (questao.alternativas && Array.isArray(questao.alternativas) && questao.alternativas.length > 0) {
+            questao.alternativas.forEach((alt: any) => {
+              texto += `${alt.letra}) ${alt.texto}\n`;
+            });
+          }
+          
+          texto += '\n__________\n\n';
+        });
       }
-      if (avaliacaoData.metadata.estilo) {
-        texto += `Estilo: ${avaliacaoData.metadata.estilo}\n`;
-      }
-      if (avaliacaoData.metadata.permite_calculadora !== undefined) {
-        texto += `Calculadora: ${avaliacaoData.metadata.permite_calculadora ? 'Permitida' : 'Não permitida'}\n`;
-      }
-    }
 
-    return texto;
+      // Gabarito (se incluído)
+      if (avaliacaoData.gabarito && Array.isArray(avaliacaoData.gabarito) && avaliacaoData.gabarito.length > 0) {
+        texto += 'GABARITO:\n\n';
+        avaliacaoData.gabarito.forEach((resposta: any, index: number) => {
+          texto += `Questão ${index + 1}: ${resposta}\n`;
+        });
+        texto += '\n';
+      } else if (avaliacaoData.questoes && Array.isArray(avaliacaoData.questoes)) {
+        // Gerar gabarito automaticamente se as questões têm resposta_correta
+        const respostas = avaliacaoData.questoes
+          .filter((q: any) => q.resposta_correta)
+          .map((q: any) => `Questão ${q.numero}: ${q.resposta_correta}`);
+        
+        if (respostas.length > 0) {
+          texto += 'GABARITO:\n\n';
+          respostas.forEach((resposta: string) => {
+            texto += `${resposta}\n`;
+          });
+          texto += '\n';
+        }
+      }
+
+      // Metadata
+      if (avaliacaoData.metadata) {
+        texto += 'INFORMAÇÕES ADICIONAIS:\n\n';
+        if (avaliacaoData.metadata.nivel_dificuldade) {
+          texto += `Nível de dificuldade: ${avaliacaoData.metadata.nivel_dificuldade}/10\n`;
+        }
+        if (avaliacaoData.metadata.estilo) {
+          texto += `Estilo: ${avaliacaoData.metadata.estilo}\n`;
+        }
+        if (avaliacaoData.metadata.permite_calculadora !== undefined) {
+          texto += `Calculadora: ${avaliacaoData.metadata.permite_calculadora ? 'Permitida' : 'Não permitida'}\n`;
+        }
+      }
+
+      console.log('formatToText - Texto gerado com sucesso, tamanho:', texto.length);
+      return texto;
+
+    } catch (error) {
+      console.error('Erro ao formatar texto:', error);
+      return `ERRO AO FORMATAR AVALIAÇÃO\n\nDados originais:\n${JSON.stringify(avaliacaoData, null, 2)}`;
+    }
   }
 
   private static formatToPdf(avaliacaoData: any): string {
@@ -395,6 +441,4 @@ export class FileDownloadService {
     
     return texto;
   }
-
-  
 }
