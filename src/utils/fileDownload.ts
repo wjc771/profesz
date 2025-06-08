@@ -12,44 +12,33 @@ export class FileDownloadService {
     let mimeType: string;
     let finalFilename = filename;
 
-    // Para conteúdo de texto, sempre usar MIME type correto
-    if (actualContentType === 'text' || typeof content === 'string') {
-      switch (type) {
-        case 'json':
-          mimeType = 'application/json;charset=utf-8';
-          break;
-        case 'txt':
-        case 'pdf':
-        case 'doc':
-        default:
-          mimeType = 'text/plain;charset=utf-8';
-          // Sempre usar extensão .txt para conteúdo de texto
-          if (type === 'pdf' || type === 'doc') {
-            finalFilename = filename.replace(/\.(pdf|doc|docx)$/, '.txt');
-            if (!finalFilename.endsWith('.txt')) {
-              finalFilename += '.txt';
-            }
-          }
-          break;
-      }
-    } else {
-      // Para conteúdo binário (futuro)
-      switch (type) {
-        case 'pdf':
-          mimeType = 'application/pdf';
-          break;
-        case 'doc':
-          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-          break;
-        case 'txt':
-          mimeType = 'text/plain;charset=utf-8';
-          break;
-        case 'json':
-          mimeType = 'application/json;charset=utf-8';
-          break;
-        default:
-          mimeType = 'application/octet-stream';
-      }
+    // Definir MIME types corretos para cada formato
+    switch (type) {
+      case 'pdf':
+        mimeType = 'application/pdf';
+        if (!finalFilename.endsWith('.pdf')) {
+          finalFilename = filename.replace(/\.[^.]+$/, '.pdf') || filename + '.pdf';
+        }
+        break;
+      case 'doc':
+        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        if (!finalFilename.endsWith('.docx')) {
+          finalFilename = filename.replace(/\.[^.]+$/, '.docx') || filename + '.docx';
+        }
+        break;
+      case 'json':
+        mimeType = 'application/json;charset=utf-8';
+        if (!finalFilename.endsWith('.json')) {
+          finalFilename = filename.replace(/\.[^.]+$/, '.json') || filename + '.json';
+        }
+        break;
+      case 'txt':
+      default:
+        mimeType = 'text/plain;charset=utf-8';
+        if (!finalFilename.endsWith('.txt')) {
+          finalFilename = filename.replace(/\.[^.]+$/, '.txt') || filename + '.txt';
+        }
+        break;
     }
 
     console.log('FileDownloadService.downloadFile - Configuração:', {
@@ -64,9 +53,9 @@ export class FileDownloadService {
     if (content instanceof Blob) {
       blob = content;
     } else if (typeof content === 'string') {
-      // Adicionar BOM para arquivos UTF-8
-      const bom = '\uFEFF';
-      const textContent = type === 'txt' ? bom + content : content;
+      // Para PDF e DOC, usar UTF-8 BOM para compatibilidade
+      const bom = type === 'pdf' || type === 'doc' ? '\uFEFF' : '';
+      const textContent = bom + content;
       blob = new Blob([textContent], { type: mimeType });
     } else {
       console.warn('Conteúdo não é string nem Blob, convertendo para JSON:', content);
@@ -140,25 +129,18 @@ export class FileDownloadService {
         try {
           switch (formato) {
             case 'txt':
-              filename += '.txt';
               processedContent = this.formatToText(avaliacaoData);
               break;
             case 'json':
-              filename += '.json';
               processedContent = JSON.stringify(avaliacaoData, null, 2);
               break;
             case 'pdf':
-              filename += '.txt';
-              processedContent = this.formatToPdfText(avaliacaoData);
-              console.log('PDF solicitado - gerando texto formatado como .txt');
+              processedContent = this.formatToPdfContent(avaliacaoData);
               break;
             case 'doc':
-              filename += '.txt';
-              processedContent = this.formatToDocText(avaliacaoData);
-              console.log('DOC solicitado - gerando texto formatado como .txt');
+              processedContent = this.formatToDocContent(avaliacaoData);
               break;
             default:
-              filename += '.txt';
               processedContent = this.formatToText(avaliacaoData);
           }
 
@@ -195,10 +177,8 @@ export class FileDownloadService {
 
         switch (formato) {
           case 'txt':
-            filename += '.txt';
             break;
           case 'json':
-            filename += '.json';
             processedContent = JSON.stringify({
               titulo: "Avaliação Gerada",
               data_criacao: new Date().toISOString(),
@@ -208,12 +188,10 @@ export class FileDownloadService {
             break;
           case 'pdf':
           case 'doc':
-            filename += '.txt';
-            processedContent = `AVISO: Este arquivo contém texto da avaliação.\nPara ${formato.toUpperCase()} formatado, utilize ferramentas de conversão.\n\n${content}`;
-            console.warn(`${formato.toUpperCase()} solicitado mas gerando texto - salvando como .txt`);
+            processedContent = this.formatForOfficeApp(content, formato);
             break;
           default:
-            filename += '.txt';
+            break;
         }
 
         await this.downloadFile({
@@ -232,7 +210,7 @@ export class FileDownloadService {
       const responseContent = format === 'json' ? JSON.stringify(response, null, 2) : String(response);
       
       await this.downloadFile({
-        filename: `resposta_webhook_${timestamp}.${format}`,
+        filename: `resposta_webhook_${timestamp}`,
         content: responseContent,
         type: format as 'pdf' | 'doc' | 'txt' | 'json',
         actualContentType: 'text'
@@ -309,32 +287,18 @@ export class FileDownloadService {
         });
       }
 
-      // Gabarito (se incluir)
+      // Gabarito
       if (avaliacaoData.gabarito && Array.isArray(avaliacaoData.gabarito) && avaliacaoData.gabarito.length > 0) {
         texto += '\n' + '═'.repeat(80) + '\n';
         texto += '                            GABARITO\n';
         texto += '═'.repeat(80) + '\n\n';
-        avaliacaoData.gabarito.forEach((resposta: any, index: number) => {
+        avaliacaoData.gabarito.forEach((resposta: any) => {
           if (typeof resposta === 'string') {
             texto += `${resposta}\n`;
           } else {
-            texto += `Questão ${index + 1}: ${resposta}\n`;
+            texto += `Questão ${resposta.questao}: ${resposta.resposta?.toUpperCase()} - ${resposta.explicacao || ''}\n`;
           }
         });
-      } else if (avaliacaoData.questoes && Array.isArray(avaliacaoData.questoes)) {
-        // Gerar gabarito das respostas corretas
-        const respostasCorretas = avaliacaoData.questoes
-          .filter((q: any) => q.resposta_correta)
-          .map((q: any) => `Questão ${q.numero}: ${q.resposta_correta?.toUpperCase()}`);
-        
-        if (respostasCorretas.length > 0) {
-          texto += '\n' + '═'.repeat(80) + '\n';
-          texto += '                            GABARITO\n';
-          texto += '═'.repeat(80) + '\n\n';
-          respostasCorretas.forEach((resposta: string) => {
-            texto += `${resposta}\n`;
-          });
-        }
       }
 
       // Informações finais
@@ -356,29 +320,47 @@ export class FileDownloadService {
     }
   }
 
-  private static formatToPdfText(avaliacaoData: any): string {
-    let texto = this.formatToText(avaliacaoData);
+  private static formatToPdfContent(avaliacaoData: any): string {
+    // Para PDF, criar um conteúdo mais formatado que pode ser interpretado por leitores de PDF
+    let content = this.formatToText(avaliacaoData);
     
-    // Adicionar cabeçalho específico para PDF
-    const cabecalhoPdf = '✓ ARQUIVO TEXTO FORMATADO PARA IMPRESSÃO\n' + 
-                        '✓ Para gerar PDF real, importe este arquivo em processadores de texto\n' +
-                        '✓ Use margens: 2cm superior/inferior, 1,5cm laterais\n' +
-                        '✓ Fonte sugerida: Times New Roman 12pt\n' +
-                        '═'.repeat(80) + '\n\n';
+    // Adicionar metadata específica para PDF
+    const pdfMetadata = `%PDF Formatted Content
+%Creator: PROFZi Platform
+%Title: Avaliação ${avaliacaoData.cabecalho?.disciplina || 'Acadêmica'}
+%Subject: ${avaliacaoData.cabecalho?.tema || 'Avaliação'}
+%Keywords: avaliacao, educacao, questoes
+
+`;
     
-    return cabecalhoPdf + texto;
+    return pdfMetadata + content;
   }
 
-  private static formatToDocText(avaliacaoData: any): string {
-    let texto = this.formatToText(avaliacaoData);
+  private static formatToDocContent(avaliacaoData: any): string {
+    // Para DOC, criar um conteúdo estruturado que pode ser interpretado pelo Word
+    let content = this.formatToText(avaliacaoData);
     
-    // Adicionar cabeçalho específico para DOC
-    const cabecalhoDoc = '✓ DOCUMENTO WORD FORMATADO (TEXTO)\n' + 
-                        '✓ Para gerar Word real, importe este arquivo no Microsoft Word\n' +
-                        '✓ Configurações recomendadas: A4, margens normais, fonte Times 12pt\n' +
-                        '✓ Salve como .docx após importar\n' +
-                        '═'.repeat(80) + '\n\n';
+    // Adicionar estrutura RTF básica para melhor compatibilidade
+    const docHeader = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}}
+\\f0\\fs24 
+`;
+    const docFooter = `}`;
     
-    return cabecalhoDoc + texto;
+    // Escapar caracteres especiais para RTF
+    content = content.replace(/\\/g, '\\\\')
+                   .replace(/\{/g, '\\{')
+                   .replace(/\}/g, '\\}')
+                   .replace(/\n/g, '\\par ');
+    
+    return docHeader + content + docFooter;
+  }
+
+  private static formatForOfficeApp(content: string, format: string): string {
+    if (format === 'pdf') {
+      return `%PDF Formatted Content\n%Title: Avaliação\n\n${content}`;
+    } else if (format === 'doc') {
+      return `{\\rtf1\\ansi {\\fonttbl {\\f0 Times New Roman;}}\\f0\\fs24 ${content.replace(/\n/g, '\\par ')}}`;
+    }
+    return content;
   }
 }

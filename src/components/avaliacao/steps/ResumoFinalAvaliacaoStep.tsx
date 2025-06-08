@@ -134,10 +134,24 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         };
       });
 
-      // Gerar gabarito automaticamente
-      const gabaritoGerado = questoesValidadas.map((questao: any) => 
-        `${questao.numero}: ${questao.resposta_correta}`
-      );
+      // Processar gabarito do webhook ou gerar automaticamente
+      let gabaritoProcessado;
+      if (avaliacaoData.gabarito && Array.isArray(avaliacaoData.gabarito)) {
+        // Se gabarito vem como array de objetos com explicação
+        if (avaliacaoData.gabarito[0] && typeof avaliacaoData.gabarito[0] === 'object' && avaliacaoData.gabarito[0].questao) {
+          gabaritoProcessado = avaliacaoData.gabarito.map((item: any) => 
+            `Questão ${item.questao}: ${item.resposta?.toUpperCase()} - ${item.explicacao || ''}`
+          );
+        } else {
+          // Se gabarito vem como array de strings
+          gabaritoProcessado = avaliacaoData.gabarito;
+        }
+      } else {
+        // Gerar gabarito das questões
+        gabaritoProcessado = questoesValidadas.map((questao: any) => 
+          `Questão ${questao.numero}: ${questao.resposta_correta?.toUpperCase()}`
+        );
+      }
 
       // Montar objeto final validado
       const avaliacaoValidada = {
@@ -164,7 +178,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
           tempo_total: avaliacaoData.metadata?.tempo_total || 60,
           data_criacao: new Date().toISOString()
         },
-        gabarito: gabaritoGerado
+        gabarito: gabaritoProcessado
       };
       
       return avaliacaoValidada;
