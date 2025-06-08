@@ -12,9 +12,8 @@ export class FileDownloadService {
     let mimeType: string;
     let finalFilename = filename;
 
-    // Determine the actual MIME type based on content, not requested type
+    // Para conteúdo de texto, sempre usar MIME type correto
     if (actualContentType === 'text' || typeof content === 'string') {
-      // For text content, always use text MIME types regardless of requested format
       switch (type) {
         case 'json':
           mimeType = 'application/json;charset=utf-8';
@@ -24,7 +23,7 @@ export class FileDownloadService {
         case 'doc':
         default:
           mimeType = 'text/plain;charset=utf-8';
-          // Ensure filename has .txt extension for text content
+          // Sempre usar extensão .txt para conteúdo de texto
           if (type === 'pdf' || type === 'doc') {
             finalFilename = filename.replace(/\.(pdf|doc|docx)$/, '.txt');
             if (!finalFilename.endsWith('.txt')) {
@@ -34,7 +33,7 @@ export class FileDownloadService {
           break;
       }
     } else {
-      // For binary content (future PDF generation)
+      // Para conteúdo binário (futuro)
       switch (type) {
         case 'pdf':
           mimeType = 'application/pdf';
@@ -65,59 +64,45 @@ export class FileDownloadService {
     if (content instanceof Blob) {
       blob = content;
     } else if (typeof content === 'string') {
-      // Add BOM for UTF-8 text files to ensure proper encoding
+      // Adicionar BOM para arquivos UTF-8
       const bom = '\uFEFF';
       const textContent = type === 'txt' ? bom + content : content;
       blob = new Blob([textContent], { type: mimeType });
     } else {
-      // Convert any other type to JSON string
       console.warn('Conteúdo não é string nem Blob, convertendo para JSON:', content);
       const stringContent = JSON.stringify(content, null, 2);
       blob = new Blob([stringContent], { type: 'application/json;charset=utf-8' });
       finalFilename = filename.replace(/\.[^.]+$/, '.json');
     }
 
-    // Use native browser download
     this.triggerNativeDownload(blob, finalFilename);
   }
 
   private static triggerNativeDownload(blob: Blob, filename: string): void {
     console.log('Iniciando download:', { filename, size: blob.size, type: blob.type });
     
-    // Use the standard download approach that works across all browsers
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     
-    // Add to DOM temporarily and trigger download
     document.body.appendChild(link);
     link.click();
     
-    // Cleanup
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
     console.log('Download concluído:', filename);
   }
 
-  private static isBase64(str: string): boolean {
-    try {
-      return btoa(atob(str)) === str;
-    } catch (err) {
-      return false;
-    }
-  }
-
   static async processWebhookResponse(response: any, formatoSaida: string[]): Promise<void> {
     console.log('Processando resposta do webhook para download:', response);
     
-    // Extract content from webhook response
     let content = '';
     let avaliacaoData: any = null;
     let hasProcessedFile = false;
 
-    // Check various response structures
+    // Processar estrutura do webhook
     if (Array.isArray(response) && response.length > 0 && response[0].output) {
       content = response[0].output;
       try {
@@ -141,7 +126,7 @@ export class FileDownloadService {
       }
     }
 
-    // Process structured data for each requested format
+    // Processar dados estruturados
     if (avaliacaoData && !hasProcessedFile) {
       const timestamp = new Date().toISOString().split('T')[0];
       
@@ -163,14 +148,12 @@ export class FileDownloadService {
               processedContent = JSON.stringify(avaliacaoData, null, 2);
               break;
             case 'pdf':
-              // Generate text content but inform user it's not a real PDF
-              filename += '.txt'; // Use .txt extension for text content
+              filename += '.txt';
               processedContent = this.formatToPdfText(avaliacaoData);
               console.log('PDF solicitado - gerando texto formatado como .txt');
               break;
             case 'doc':
-              // Generate text content but inform user it's not a real DOC
-              filename += '.txt'; // Use .txt extension for text content
+              filename += '.txt';
               processedContent = this.formatToDocText(avaliacaoData);
               console.log('DOC solicitado - gerando texto formatado como .txt');
               break;
@@ -179,7 +162,6 @@ export class FileDownloadService {
               processedContent = this.formatToText(avaliacaoData);
           }
 
-          // Validate that processedContent is a string
           if (typeof processedContent !== 'string') {
             console.error('ERRO: processedContent não é string:', typeof processedContent, processedContent);
             processedContent = JSON.stringify(processedContent, null, 2);
@@ -194,7 +176,6 @@ export class FileDownloadService {
 
         } catch (error) {
           console.error(`Erro ao processar formato ${formato}:`, error);
-          // Generate error file
           const errorContent = `ERRO AO PROCESSAR ARQUIVO ${formato.toUpperCase()}\n\nDados recebidos:\n${JSON.stringify(avaliacaoData, null, 2)}`;
           await this.downloadFile({
             filename: `erro_${formato}_${timestamp}.txt`,
@@ -205,7 +186,7 @@ export class FileDownloadService {
         }
       }
     }
-    // Handle simple text content
+    // Tratar conteúdo simples de texto
     else if (content && !avaliacaoData && !hasProcessedFile) {
       for (const formato of formatoSaida) {
         const timestamp = new Date().toISOString().split('T')[0];
@@ -227,7 +208,7 @@ export class FileDownloadService {
             break;
           case 'pdf':
           case 'doc':
-            filename += '.txt'; // Use .txt for text content
+            filename += '.txt';
             processedContent = `AVISO: Este arquivo contém texto da avaliação.\nPara ${formato.toUpperCase()} formatado, utilize ferramentas de conversão.\n\n${content}`;
             console.warn(`${formato.toUpperCase()} solicitado mas gerando texto - salvando como .txt`);
             break;
@@ -244,7 +225,7 @@ export class FileDownloadService {
       }
     }
 
-    // Fallback: convert entire response to JSON
+    // Fallback
     if (!content && !hasProcessedFile) {
       const format = formatoSaida.includes('json') ? 'json' : 'txt';
       const timestamp = new Date().toISOString().split('T')[0];
@@ -270,10 +251,13 @@ export class FileDownloadService {
     let texto = '';
     
     try {
-      // Header
+      // Cabeçalho formatado
       if (avaliacaoData.cabecalho) {
-        texto += 'CABEÇALHO:\n\n';
-        texto += 'ESCOLA: _________________________________\n';
+        texto += '═'.repeat(80) + '\n';
+        texto += '                           AVALIAÇÃO\n';
+        texto += '═'.repeat(80) + '\n\n';
+        
+        texto += 'ESCOLA: ________________________________________________\n\n';
         texto += `DISCIPLINA: ${avaliacaoData.cabecalho.disciplina || 'Não informada'}\n`;
         texto += `UNIDADE: ${avaliacaoData.cabecalho.unidade || 'Não informada'}`;
         if (avaliacaoData.cabecalho.capitulo) {
@@ -281,57 +265,87 @@ export class FileDownloadService {
         }
         texto += '\n';
         texto += `TEMA: ${avaliacaoData.cabecalho.tema || 'Não informado'}\n`;
-        texto += 'ALUNO: _________________________________\n';
-        texto += 'DATA: ___/___/______\n';
         texto += `DURAÇÃO: ${avaliacaoData.cabecalho.duracao || avaliacaoData.metadata?.tempo_total + ' minutos' || 'Não informada'}\n\n`;
+        texto += 'ALUNO: ________________________________________________\n';
+        texto += 'DATA: _____ / _____ / __________     TURMA: __________\n\n';
+        texto += '═'.repeat(80) + '\n\n';
       }
 
-      // Instructions
+      // Instruções
       if (avaliacaoData.instrucoes && Array.isArray(avaliacaoData.instrucoes) && avaliacaoData.instrucoes.length > 0) {
         texto += 'INSTRUÇÕES:\n\n';
-        avaliacaoData.instrucoes.forEach((instrucao: string) => {
-          texto += `${instrucao}\n`;
+        avaliacaoData.instrucoes.forEach((instrucao: string, index: number) => {
+          texto += `${index + 1}. ${instrucao}\n`;
         });
-        texto += '\n';
+        texto += '\n' + '─'.repeat(80) + '\n\n';
       }
 
-      // Questions
+      // Questões
       if (avaliacaoData.questoes && Array.isArray(avaliacaoData.questoes) && avaliacaoData.questoes.length > 0) {
         texto += 'QUESTÕES:\n\n';
         
-        avaliacaoData.questoes.forEach((questao: any) => {
-          texto += `QUESTÃO ${questao.numero} (${questao.pontuacao})\n`;
-          texto += `${questao.enunciado}\n`;
+        avaliacaoData.questoes.forEach((questao: any, index: number) => {
+          // Cabeçalho da questão
+          texto += `QUESTÃO ${questao.numero || (index + 1)}`;
+          if (questao.pontuacao) {
+            texto += ` (${questao.pontuacao})`;
+          }
+          texto += '\n';
+          texto += '─'.repeat(50) + '\n\n';
           
+          // Enunciado
+          texto += `${questao.enunciado}\n\n`;
+          
+          // Alternativas
           if (questao.alternativas && Array.isArray(questao.alternativas) && questao.alternativas.length > 0) {
             questao.alternativas.forEach((alt: any) => {
-              texto += `${alt.letra}) ${alt.texto}\n`;
+              texto += `${alt.letra?.toUpperCase() || 'A'}) ${alt.texto}\n\n`;
             });
           }
           
-          texto += '\n__________\n\n';
+          // Espaço para resposta
+          texto += 'RESPOSTA: ___________\n\n';
+          texto += '═'.repeat(80) + '\n\n';
         });
       }
 
-      // Answer key
+      // Gabarito (se incluir)
       if (avaliacaoData.gabarito && Array.isArray(avaliacaoData.gabarito) && avaliacaoData.gabarito.length > 0) {
-        texto += 'GABARITO:\n\n';
+        texto += '\n' + '═'.repeat(80) + '\n';
+        texto += '                            GABARITO\n';
+        texto += '═'.repeat(80) + '\n\n';
         avaliacaoData.gabarito.forEach((resposta: any, index: number) => {
-          texto += `Questão ${index + 1}: ${resposta}\n`;
+          if (typeof resposta === 'string') {
+            texto += `${resposta}\n`;
+          } else {
+            texto += `Questão ${index + 1}: ${resposta}\n`;
+          }
         });
-        texto += '\n';
       } else if (avaliacaoData.questoes && Array.isArray(avaliacaoData.questoes)) {
-        const respostas = avaliacaoData.questoes
+        // Gerar gabarito das respostas corretas
+        const respostasCorretas = avaliacaoData.questoes
           .filter((q: any) => q.resposta_correta)
-          .map((q: any) => `Questão ${q.numero}: ${q.resposta_correta}`);
+          .map((q: any) => `Questão ${q.numero}: ${q.resposta_correta?.toUpperCase()}`);
         
-        if (respostas.length > 0) {
-          texto += 'GABARITO:\n\n';
-          respostas.forEach((resposta: string) => {
+        if (respostasCorretas.length > 0) {
+          texto += '\n' + '═'.repeat(80) + '\n';
+          texto += '                            GABARITO\n';
+          texto += '═'.repeat(80) + '\n\n';
+          respostasCorretas.forEach((resposta: string) => {
             texto += `${resposta}\n`;
           });
-          texto += '\n';
         }
+      }
+
+      // Informações finais
+      if (avaliacaoData.metadata) {
+        texto += '\n' + '─'.repeat(80) + '\n';
+        texto += 'INFORMAÇÕES DA AVALIAÇÃO:\n';
+        texto += `Total de questões: ${avaliacaoData.metadata.total_questoes || avaliacaoData.questoes?.length || 0}\n`;
+        texto += `Nível de dificuldade: ${avaliacaoData.metadata.nivel_dificuldade || 'Não informado'}\n`;
+        texto += `Estilo: ${avaliacaoData.metadata.estilo || 'Não informado'}\n`;
+        texto += `Calculadora permitida: ${avaliacaoData.metadata.permite_calculadora ? 'Sim' : 'Não'}\n`;
+        texto += `Tempo sugerido: ${avaliacaoData.metadata.tempo_total || 'Não informado'} minutos\n`;
       }
 
       return texto;
@@ -345,24 +359,26 @@ export class FileDownloadService {
   private static formatToPdfText(avaliacaoData: any): string {
     let texto = this.formatToText(avaliacaoData);
     
-    // Add PDF-specific formatting notice
-    texto = 'AVALIAÇÃO - FORMATO TEXTO PARA IMPRESSÃO\n' + 
-            'AVISO: Este é um arquivo de texto formatado (.txt)\n' +
-            'Para gerar PDF real, utilize ferramentas de conversão online\n' +
-            '='.repeat(60) + '\n\n' + texto;
+    // Adicionar cabeçalho específico para PDF
+    const cabecalhoPdf = '✓ ARQUIVO TEXTO FORMATADO PARA IMPRESSÃO\n' + 
+                        '✓ Para gerar PDF real, importe este arquivo em processadores de texto\n' +
+                        '✓ Use margens: 2cm superior/inferior, 1,5cm laterais\n' +
+                        '✓ Fonte sugerida: Times New Roman 12pt\n' +
+                        '═'.repeat(80) + '\n\n';
     
-    return texto;
+    return cabecalhoPdf + texto;
   }
 
   private static formatToDocText(avaliacaoData: any): string {
     let texto = this.formatToText(avaliacaoData);
     
-    // Add DOC-specific formatting notice
-    texto = 'DOCUMENTO DE AVALIAÇÃO - FORMATO TEXTO\n' + 
-            'AVISO: Este é um arquivo de texto formatado (.txt)\n' +
-            'Para gerar Word real, utilize ferramentas de conversão online\n' +
-            '='.repeat(60) + '\n\n' + texto;
+    // Adicionar cabeçalho específico para DOC
+    const cabecalhoDoc = '✓ DOCUMENTO WORD FORMATADO (TEXTO)\n' + 
+                        '✓ Para gerar Word real, importe este arquivo no Microsoft Word\n' +
+                        '✓ Configurações recomendadas: A4, margens normais, fonte Times 12pt\n' +
+                        '✓ Salve como .docx após importar\n' +
+                        '═'.repeat(80) + '\n\n';
     
-    return texto;
+    return cabecalhoDoc + texto;
   }
 }

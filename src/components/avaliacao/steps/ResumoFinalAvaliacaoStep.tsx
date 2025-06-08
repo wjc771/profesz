@@ -68,9 +68,10 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     console.log('Parseando resposta do webhook:', response);
     
     try {
-      // Verificar se é array com output
+      // Verificar se é array com output (formato atual)
       if (Array.isArray(response) && response.length > 0 && response[0].output) {
         const outputText = response[0].output;
+        console.log('Output encontrado:', outputText);
         return parseJsonAvaliacao(outputText);
       }
       
@@ -100,106 +101,74 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
   const parseJsonAvaliacao = (outputText: string) => {
     try {
-      // Tentar fazer parse do JSON contido no output
+      // Fazer parse do JSON
       const avaliacaoData = JSON.parse(outputText);
       
       console.log('JSON da avaliação parseado:', avaliacaoData);
       
-      // Validar se tem estrutura mínima necessária
+      // Validar estrutura básica
       if (!avaliacaoData.questoes || !Array.isArray(avaliacaoData.questoes) || avaliacaoData.questoes.length === 0) {
         console.warn('Estrutura de avaliação inválida, usando fallback');
         return null;
       }
-      
-      return avaliacaoData;
-    } catch (error) {
-      console.error('Erro ao fazer parse do JSON:', error);
-      // Fallback para texto simples se não conseguir parsear JSON
-      return parseAvaliacaoText(outputText);
-    }
-  };
 
-  const parseAvaliacaoText = (text: string) => {
-    console.log('Parseando texto como avaliação:', text.substring(0, 200) + '...');
-    
-    try {
-      const lines = text.split('\n').filter(line => line.trim());
-      const questoes = [];
-      let currentQuestao = null;
-      let cabecalho = {
-        disciplina: formValues.materia || 'Disciplina',
-        unidade: formValues.unidade || 'Unidade',
-        tema: formValues.temas?.[0] || 'Tema',
-        duracao: `${formValues.duracaoSugerida || 60} minutos`
-      };
-      
-      // Extrair informações do cabeçalho
-      for (const line of lines) {
-        if (line.includes('DISCIPLINA:')) {
-          cabecalho.disciplina = line.split(':')[1]?.trim() || cabecalho.disciplina;
-        }
-        if (line.includes('UNIDADE:')) {
-          cabecalho.unidade = line.split(':')[1]?.trim() || cabecalho.unidade;
-        }
-        if (line.includes('TEMA:')) {
-          cabecalho.tema = line.split(':')[1]?.trim() || cabecalho.tema;
-        }
-        if (line.includes('DURAÇÃO:')) {
-          cabecalho.duracao = line.split(':')[1]?.trim() || cabecalho.duracao;
-        }
-        
-        // Identificar questões
-        if (line.match(/QUESTÃO\s+\d+/)) {
-          if (currentQuestao) {
-            questoes.push(currentQuestao);
-          }
-          
-          const numeroMatch = line.match(/QUESTÃO\s+(\d+)/);
-          const numero = numeroMatch ? parseInt(numeroMatch[1]) : questoes.length + 1;
-          
-          currentQuestao = {
-            numero,
-            enunciado: '',
-            alternativas: [],
-            pontuacao: line.match(/\(([\d,]+)\s*pontos?\)/)?.[1] || '1,0'
-          };
-        } else if (currentQuestao && line.match(/^[a-d]\)/)) {
-          // Alternativa
-          const letra = line.charAt(0);
-          const texto = line.substring(3).trim();
-          currentQuestao.alternativas.push({ letra, texto });
-        } else if (currentQuestao && line.trim() && !line.includes('_____') && !line.includes('QUESTÃO')) {
-          // Parte do enunciado
-          if (currentQuestao.enunciado) {
-            currentQuestao.enunciado += ' ' + line.trim();
-          } else {
-            currentQuestao.enunciado = line.trim();
-          }
-        }
-      }
-      
-      // Adicionar última questão
-      if (currentQuestao) {
-        questoes.push(currentQuestao);
-      }
+      // Validar e normalizar questões
+      const questoesValidadas = avaliacaoData.questoes.map((questao: any, index: number) => {
+        return {
+          numero: questao.numero || (index + 1),
+          pontuacao: questao.pontuacao || '1,0 ponto',
+          enunciado: questao.enunciado || `Questão ${index + 1}`,
+          tipo: questao.tipo || 'multipla_escolha',
+          alternativas: questao.alternativas && Array.isArray(questao.alternativas) 
+            ? questao.alternativas.map((alt: any) => ({
+                letra: alt.letra || 'a',
+                texto: alt.texto || 'Alternativa'
+              }))
+            : [
+                { letra: 'a', texto: 'Primeira alternativa' },
+                { letra: 'b', texto: 'Segunda alternativa' },
+                { letra: 'c', texto: 'Terceira alternativa' },
+                { letra: 'd', texto: 'Quarta alternativa' }
+              ],
+          resposta_correta: questao.resposta_correta || 'a'
+        };
+      });
 
-      // Se não conseguiu extrair questões válidas, retorna null
-      if (questoes.length === 0) {
-        console.warn('Não foi possível extrair questões válidas do texto');
-        return null;
-      }
-      
-      return {
-        cabecalho,
-        questoes,
-        texto_completo: text,
+      // Montar objeto final validado
+      const avaliacaoValidada = {
+        cabecalho: {
+          disciplina: avaliacaoData.cabecalho?.disciplina || 'Disciplina',
+          unidade: avaliacaoData.cabecalho?.unidade || 'Unidade',
+          capitulo: avaliacaoData.cabecalho?.capitulo || '',
+          tema: avaliacaoData.cabecalho?.tema || 'Tema',
+          duracao: avaliacaoData.cabecalho?.duracao || '60 minutos'
+        },
+        instrucoes: Array.isArray(avaliacaoData.instrucoes) 
+          ? avaliacaoData.instrucoes 
+          : [
+              'Leia atentamente cada questão antes de responder.',
+              'Marque apenas uma alternativa por questão.',
+              'Use caneta azul ou preta para responder.'
+            ],
+        questoes: questoesValidadas,
         metadata: {
-          origem: 'texto_parseado',
+          total_questoes: questoesValidadas.length,
+          nivel_dificuldade: avaliacaoData.metadata?.nivel_dificuldade || 5,
+          estilo: avaliacaoData.metadata?.estilo || 'conceitual',
+          permite_calculadora: avaliacaoData.metadata?.permite_calculadora || false,
+          tempo_total: avaliacaoData.metadata?.tempo_total || 60,
           data_criacao: new Date().toISOString()
         }
       };
+
+      // Gerar gabarito automaticamente
+      avaliacaoValidada.gabarito = questoesValidadas.map((questao: any) => 
+        `${questao.numero}: ${questao.resposta_correta}`
+      );
+      
+      return avaliacaoValidada;
     } catch (error) {
-      console.error('Erro ao parsear texto da avaliação:', error);
+      console.error('Erro ao fazer parse do JSON:', error);
       return null;
     }
   };
