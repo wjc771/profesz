@@ -122,7 +122,24 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
     mode: "onChange",
   });
   
-  const nextStep = () => {
+  const handleNextStep = async () => {
+    const currentFields = getCurrentStepFields() as Array<keyof AvaliacaoFormValues>;
+    const isValidStep = await form.trigger(currentFields);
+
+    if (isValidStep && step < totalSteps) {
+      setStep(step + 1);
+    } else if (!isValidStep) {
+      console.log("Validation failed for step:", step, "Fields:", currentFields);
+      // Optionally, show a toast message for failed validation
+      // toast({
+      //   title: "Campos inválidos",
+      //   description: "Por favor, corrija os campos destacados antes de prosseguir.",
+      //   variant: "destructive",
+      // });
+    }
+  };
+
+  const nextStep = () => { // This function seems to be unused after the change, but let's keep it for now.
     if (step < totalSteps) {
       setStep(step + 1);
     }
@@ -370,7 +387,7 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
             currentStep={step}
             totalSteps={totalSteps}
             onBack={prevStep}
-            onNext={step === totalSteps ? form.handleSubmit(onSubmit) : nextStep}
+            onNext={step === totalSteps ? form.handleSubmit(onSubmit) : handleNextStep}
             canAdvance={currentStepIsValid()}
             isLastStep={step === totalSteps}
           />

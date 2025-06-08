@@ -12,12 +12,13 @@ export default function CriarAvaliacoesPage() {
   const [plano, setPlano] = useState<SubscriptionPlanType>('inicial');
   const [usageCount, setUsageCount] = useState(0);
   const [usageLimit, setUsageLimit] = useState<number | null>(25); // Default for inicial plan
+  const [fetchErrorOccurred, setFetchErrorOccurred] = useState(false); // New state variable
   const { toast } = useToast();
   
   useEffect(() => {
     // Fetch user profile information including plan
     const fetchProfileInfo = async () => {
-      if (!user) return;
+      if (!user || fetchErrorOccurred) return; // Return early if an error occurred previously
       
       try {
         const { data: profile, error } = await supabase
@@ -64,9 +65,11 @@ export default function CriarAvaliacoesPage() {
         
       } catch (error: any) {
         console.error('Error fetching profile information:', error);
+        // Set fetchErrorOccurred to true and display a more specific toast message
+        setFetchErrorOccurred(true);
         toast({
           title: "Erro ao carregar informações",
-          description: "Não foi possível carregar suas informações de perfil.",
+          description: "Não foi possível carregar suas informações de perfil. Isso pode ser um problema de rede ou CORS.",
           variant: "destructive",
         });
       }
