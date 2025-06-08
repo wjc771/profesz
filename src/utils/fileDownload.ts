@@ -1,120 +1,96 @@
+
 export interface FileDownloadOptions {
   filename: string;
   content: string | Blob;
   type: 'pdf' | 'doc' | 'txt' | 'json';
+  actualContentType?: 'text' | 'binary';
 }
 
 export class FileDownloadService {
-  static async downloadFile({ filename, content, type }: FileDownloadOptions): Promise<void> {
+  static async downloadFile({ filename, content, type, actualContentType = 'text' }: FileDownloadOptions): Promise<void> {
     let blob: Blob;
     let mimeType: string;
+    let finalFilename = filename;
 
-    switch (type) {
-      case 'pdf':
-        mimeType = 'application/pdf';
-        break;
-      case 'doc':
-        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        break;
-      case 'txt':
-        mimeType = 'text/plain;charset=utf-8';
-        break;
-      case 'json':
-        mimeType = 'application/json;charset=utf-8';
-        break;
-      default:
-        mimeType = 'application/octet-stream';
+    // Determine the actual MIME type based on content, not requested type
+    if (actualContentType === 'text' || typeof content === 'string') {
+      // For text content, always use text MIME types regardless of requested format
+      switch (type) {
+        case 'json':
+          mimeType = 'application/json;charset=utf-8';
+          break;
+        case 'txt':
+        case 'pdf':
+        case 'doc':
+        default:
+          mimeType = 'text/plain;charset=utf-8';
+          // Ensure filename has .txt extension for text content
+          if (type === 'pdf' || type === 'doc') {
+            finalFilename = filename.replace(/\.(pdf|doc|docx)$/, '.txt');
+            if (!finalFilename.endsWith('.txt')) {
+              finalFilename += '.txt';
+            }
+          }
+          break;
+      }
+    } else {
+      // For binary content (future PDF generation)
+      switch (type) {
+        case 'pdf':
+          mimeType = 'application/pdf';
+          break;
+        case 'doc':
+          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          break;
+        case 'txt':
+          mimeType = 'text/plain;charset=utf-8';
+          break;
+        case 'json':
+          mimeType = 'application/json;charset=utf-8';
+          break;
+        default:
+          mimeType = 'application/octet-stream';
+      }
     }
 
-    console.log('FileDownloadService.downloadFile - Tipo do conteúdo:', typeof content);
-    console.log('FileDownloadService.downloadFile - Conteúdo:', content);
+    console.log('FileDownloadService.downloadFile - Configuração:', {
+      originalFilename: filename,
+      finalFilename,
+      requestedType: type,
+      actualContentType,
+      mimeType,
+      contentType: typeof content
+    });
 
     if (content instanceof Blob) {
       blob = content;
     } else if (typeof content === 'string') {
-      // Verificar se é base64
-      if (this.isBase64(content)) {
-        try {
-          const binaryString = atob(content);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          blob = new Blob([bytes], { type: mimeType });
-        } catch (error) {
-          console.error('Erro ao decodificar base64:', error);
-          blob = new Blob([content], { type: mimeType });
-        }
-      } else {
-        // Para texto simples, incluir BOM UTF-8 se necessário
-        const bom = '\uFEFF';
-        const textContent = type === 'txt' ? bom + content : content;
-        blob = new Blob([textContent], { type: mimeType });
-      }
+      // Add BOM for UTF-8 text files to ensure proper encoding
+      const bom = '\uFEFF';
+      const textContent = type === 'txt' ? bom + content : content;
+      blob = new Blob([textContent], { type: mimeType });
     } else {
-      // CORREÇÃO: Converter qualquer outro tipo para string JSON
+      // Convert any other type to JSON string
       console.warn('Conteúdo não é string nem Blob, convertendo para JSON:', content);
       const stringContent = JSON.stringify(content, null, 2);
-      blob = new Blob([stringContent], { type: mimeType });
+      blob = new Blob([stringContent], { type: 'application/json;charset=utf-8' });
+      finalFilename = filename.replace(/\.[^.]+$/, '.json');
     }
 
-    // Usar a API nativa do browser para download
-    this.triggerNativeDownload(blob, filename);
+    // Use native browser download
+    this.triggerNativeDownload(blob, finalFilename);
   }
 
   private static triggerNativeDownload(blob: Blob, filename: string): void {
-    // Verificar se o browser suporta a API de download
-    if ('showSaveFilePicker' in window) {
-      // Usar a API moderna de file system
-      this.modernDownload(blob, filename);
-    } else {
-      // Fallback para método tradicional
-      this.legacyDownload(blob, filename);
-    }
-  }
-
-  private static async modernDownload(blob: Blob, filename: string): Promise<void> {
-    try {
-      const extension = filename.split('.').pop()?.toLowerCase() || 'txt';
-      const acceptTypes: Record<string, string[]> = {
-        'pdf': ['.pdf'],
-        'doc': ['.doc', '.docx'],
-        'txt': ['.txt'],
-        'json': ['.json']
-      };
-
-      // @ts-ignore - API experimental
-      const fileHandle = await window.showSaveFilePicker({
-        suggestedName: filename,
-        types: [{
-          description: 'Arquivos de avaliação',
-          accept: {
-            'application/pdf': acceptTypes.pdf,
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': acceptTypes.doc,
-            'text/plain': acceptTypes.txt,
-            'application/json': acceptTypes.json
-          }
-        }]
-      });
-
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      
-      console.log('Arquivo salvo usando API moderna:', filename);
-    } catch (error) {
-      console.log('Usuário cancelou o download ou erro na API moderna, usando método tradicional');
-      this.legacyDownload(blob, filename);
-    }
-  }
-
-  private static legacyDownload(blob: Blob, filename: string): void {
+    console.log('Iniciando download:', { filename, size: blob.size, type: blob.type });
+    
+    // Use the standard download approach that works across all browsers
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     
-    // Adicionar ao DOM temporariamente
+    // Add to DOM temporarily and trigger download
     document.body.appendChild(link);
     link.click();
     
@@ -122,7 +98,7 @@ export class FileDownloadService {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
-    console.log('Arquivo baixado usando método tradicional:', filename);
+    console.log('Download concluído:', filename);
   }
 
   private static isBase64(str: string): boolean {
@@ -136,35 +112,27 @@ export class FileDownloadService {
   static async processWebhookResponse(response: any, formatoSaida: string[]): Promise<void> {
     console.log('Processando resposta do webhook para download:', response);
     
-    // Extrair conteúdo do webhook baseado na estrutura real
+    // Extract content from webhook response
     let content = '';
     let avaliacaoData: any = null;
     let hasProcessedFile = false;
 
-    // Verificar se é array com output (formato recebido)
+    // Check various response structures
     if (Array.isArray(response) && response.length > 0 && response[0].output) {
       content = response[0].output;
-      console.log('Conteúdo extraído do array[0].output:', content);
       try {
         avaliacaoData = JSON.parse(content);
-        console.log('JSON da avaliação parseado com sucesso:', avaliacaoData);
       } catch (error) {
         console.warn('Não foi possível parsear JSON, tratando como texto:', error);
       }
-    }
-    // Verificar se tem output direto
-    else if (response.output) {
+    } else if (response.output) {
       content = response.output;
-      console.log('Conteúdo extraído do response.output:', content);
       try {
         avaliacaoData = JSON.parse(content);
-        console.log('JSON da avaliação parseado com sucesso:', avaliacaoData);
       } catch (error) {
         console.warn('Não foi possível parsear JSON, tratando como texto:', error);
       }
-    }
-    // Verificar estruturas aninhadas
-    else if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
+    } else if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
       content = response.data[0].output;
       try {
         avaliacaoData = JSON.parse(content);
@@ -172,44 +140,17 @@ export class FileDownloadService {
         console.warn('Não foi possível parsear JSON, tratando como texto:', error);
       }
     }
-    // Verificar outras estruturas possíveis
-    else if (response.files && Array.isArray(response.files)) {
-      // Estrutura com array de arquivos
-      for (const file of response.files) {
-        if (formatoSaida.includes(file.format)) {
-          await this.downloadFile({
-            filename: file.filename || `avaliacao.${file.format}`,
-            content: file.content,
-            type: file.format as 'pdf' | 'doc' | 'txt' | 'json'
-          });
-          hasProcessedFile = true;
-        }
-      }
-    }
-    else if (response.data && response.data.files) {
-      // Estrutura aninhada em data
-      for (const file of response.data.files) {
-        if (formatoSaida.includes(file.format)) {
-          await this.downloadFile({
-            filename: file.filename || `avaliacao.${file.format}`,
-            content: file.content,
-            type: file.format as 'pdf' | 'doc' | 'txt' | 'json'
-          });
-          hasProcessedFile = true;
-        }
-      }
-    }
 
-    // Se encontrou dados estruturados, processar para cada formato solicitado
+    // Process structured data for each requested format
     if (avaliacaoData && !hasProcessedFile) {
       const timestamp = new Date().toISOString().split('T')[0];
       
       for (const formato of formatoSaida) {
         let filename = `avaliacao_${timestamp}`;
         let processedContent: string = '';
+        let actualContentType: 'text' | 'binary' = 'text';
 
         console.log(`Processando formato: ${formato}`);
-        console.log('Dados da avaliação:', avaliacaoData);
 
         try {
           switch (formato) {
@@ -222,23 +163,23 @@ export class FileDownloadService {
               processedContent = JSON.stringify(avaliacaoData, null, 2);
               break;
             case 'pdf':
-              filename += '.txt'; // Por enquanto, gerar como TXT formatado
-              processedContent = this.formatToPdf(avaliacaoData);
-              console.warn('PDF solicitado mas gerando TXT formatado para impressão');
+              // Generate text content but inform user it's not a real PDF
+              filename += '.txt'; // Use .txt extension for text content
+              processedContent = this.formatToPdfText(avaliacaoData);
+              console.log('PDF solicitado - gerando texto formatado como .txt');
               break;
             case 'doc':
-              filename += '.txt'; // Por enquanto, gerar como TXT formatado
-              processedContent = this.formatToDoc(avaliacaoData);
-              console.warn('DOC solicitado mas gerando TXT formatado');
+              // Generate text content but inform user it's not a real DOC
+              filename += '.txt'; // Use .txt extension for text content
+              processedContent = this.formatToDocText(avaliacaoData);
+              console.log('DOC solicitado - gerando texto formatado como .txt');
               break;
             default:
               filename += '.txt';
               processedContent = this.formatToText(avaliacaoData);
           }
 
-          console.log(`Conteúdo processado para ${formato}:`, typeof processedContent, processedContent.substring(0, 100) + '...');
-
-          // VALIDAÇÃO: Garantir que processedContent é string
+          // Validate that processedContent is a string
           if (typeof processedContent !== 'string') {
             console.error('ERRO: processedContent não é string:', typeof processedContent, processedContent);
             processedContent = JSON.stringify(processedContent, null, 2);
@@ -247,22 +188,24 @@ export class FileDownloadService {
           await this.downloadFile({
             filename,
             content: processedContent,
-            type: formato === 'pdf' || formato === 'doc' ? 'txt' : formato as 'pdf' | 'doc' | 'txt' | 'json'
+            type: formato as 'pdf' | 'doc' | 'txt' | 'json',
+            actualContentType
           });
 
         } catch (error) {
           console.error(`Erro ao processar formato ${formato}:`, error);
-          // Fallback: gerar arquivo de erro
+          // Generate error file
           const errorContent = `ERRO AO PROCESSAR ARQUIVO ${formato.toUpperCase()}\n\nDados recebidos:\n${JSON.stringify(avaliacaoData, null, 2)}`;
           await this.downloadFile({
             filename: `erro_${formato}_${timestamp}.txt`,
             content: errorContent,
-            type: 'txt'
+            type: 'txt',
+            actualContentType: 'text'
           });
         }
       }
     }
-    // Se encontrou conteúdo de texto simples, processar como antes
+    // Handle simple text content
     else if (content && !avaliacaoData && !hasProcessedFile) {
       for (const formato of formatoSaida) {
         const timestamp = new Date().toISOString().split('T')[0];
@@ -272,11 +215,9 @@ export class FileDownloadService {
         switch (formato) {
           case 'txt':
             filename += '.txt';
-            // Manter formatação original do texto
             break;
           case 'json':
             filename += '.json';
-            // Converter para JSON estruturado
             processedContent = JSON.stringify({
               titulo: "Avaliação Gerada",
               data_criacao: new Date().toISOString(),
@@ -285,17 +226,10 @@ export class FileDownloadService {
             }, null, 2);
             break;
           case 'pdf':
-            // Para PDF, o ideal seria converter o texto para um PDF real
-            // Por enquanto, vamos alertar que é texto simples
-            filename += '.txt';
-            processedContent = `AVISO: Este arquivo contém o texto da avaliação. Para um PDF formatado, utilize ferramentas de conversão.\n\n${content}`;
-            console.warn('PDF solicitado mas recebido texto simples. Salvando como .txt');
-            break;
           case 'doc':
-            // Para DOC, similar ao PDF
-            filename += '.txt';
-            processedContent = `AVISO: Este arquivo contém o texto da avaliação. Para um documento Word formatado, utilize ferramentas de conversão.\n\n${content}`;
-            console.warn('DOC solicitado mas recebido texto simples. Salvando como .txt');
+            filename += '.txt'; // Use .txt for text content
+            processedContent = `AVISO: Este arquivo contém texto da avaliação.\nPara ${formato.toUpperCase()} formatado, utilize ferramentas de conversão.\n\n${content}`;
+            console.warn(`${formato.toUpperCase()} solicitado mas gerando texto - salvando como .txt`);
             break;
           default:
             filename += '.txt';
@@ -304,21 +238,23 @@ export class FileDownloadService {
         await this.downloadFile({
           filename,
           content: processedContent,
-          type: formato === 'pdf' || formato === 'doc' ? 'txt' : formato as 'pdf' | 'doc' | 'txt' | 'json'
+          type: formato as 'pdf' | 'doc' | 'txt' | 'json',
+          actualContentType: 'text'
         });
       }
     }
 
-    // Se não conseguiu processar nada, tentar converter a resposta inteira
+    // Fallback: convert entire response to JSON
     if (!content && !hasProcessedFile) {
-      const format = formatoSaida.includes('json') ? 'json' : formatoSaida[0] || 'txt';
+      const format = formatoSaida.includes('json') ? 'json' : 'txt';
       const timestamp = new Date().toISOString().split('T')[0];
       const responseContent = format === 'json' ? JSON.stringify(response, null, 2) : String(response);
       
       await this.downloadFile({
         filename: `resposta_webhook_${timestamp}.${format}`,
         content: responseContent,
-        type: format as 'pdf' | 'doc' | 'txt' | 'json'
+        type: format as 'pdf' | 'doc' | 'txt' | 'json',
+        actualContentType: 'text'
       });
     }
   }
@@ -334,7 +270,7 @@ export class FileDownloadService {
     let texto = '';
     
     try {
-      // Cabeçalho
+      // Header
       if (avaliacaoData.cabecalho) {
         texto += 'CABEÇALHO:\n\n';
         texto += 'ESCOLA: _________________________________\n';
@@ -350,7 +286,7 @@ export class FileDownloadService {
         texto += `DURAÇÃO: ${avaliacaoData.cabecalho.duracao || avaliacaoData.metadata?.tempo_total + ' minutos' || 'Não informada'}\n\n`;
       }
 
-      // Instruções
+      // Instructions
       if (avaliacaoData.instrucoes && Array.isArray(avaliacaoData.instrucoes) && avaliacaoData.instrucoes.length > 0) {
         texto += 'INSTRUÇÕES:\n\n';
         avaliacaoData.instrucoes.forEach((instrucao: string) => {
@@ -359,7 +295,7 @@ export class FileDownloadService {
         texto += '\n';
       }
 
-      // Questões
+      // Questions
       if (avaliacaoData.questoes && Array.isArray(avaliacaoData.questoes) && avaliacaoData.questoes.length > 0) {
         texto += 'QUESTÕES:\n\n';
         
@@ -377,7 +313,7 @@ export class FileDownloadService {
         });
       }
 
-      // Gabarito (se incluído)
+      // Answer key
       if (avaliacaoData.gabarito && Array.isArray(avaliacaoData.gabarito) && avaliacaoData.gabarito.length > 0) {
         texto += 'GABARITO:\n\n';
         avaliacaoData.gabarito.forEach((resposta: any, index: number) => {
@@ -385,7 +321,6 @@ export class FileDownloadService {
         });
         texto += '\n';
       } else if (avaliacaoData.questoes && Array.isArray(avaliacaoData.questoes)) {
-        // Gerar gabarito automaticamente se as questões têm resposta_correta
         const respostas = avaliacaoData.questoes
           .filter((q: any) => q.resposta_correta)
           .map((q: any) => `Questão ${q.numero}: ${q.resposta_correta}`);
@@ -399,21 +334,6 @@ export class FileDownloadService {
         }
       }
 
-      // Metadata
-      if (avaliacaoData.metadata) {
-        texto += 'INFORMAÇÕES ADICIONAIS:\n\n';
-        if (avaliacaoData.metadata.nivel_dificuldade) {
-          texto += `Nível de dificuldade: ${avaliacaoData.metadata.nivel_dificuldade}/10\n`;
-        }
-        if (avaliacaoData.metadata.estilo) {
-          texto += `Estilo: ${avaliacaoData.metadata.estilo}\n`;
-        }
-        if (avaliacaoData.metadata.permite_calculadora !== undefined) {
-          texto += `Calculadora: ${avaliacaoData.metadata.permite_calculadora ? 'Permitida' : 'Não permitida'}\n`;
-        }
-      }
-
-      console.log('formatToText - Texto gerado com sucesso, tamanho:', texto.length);
       return texto;
 
     } catch (error) {
@@ -422,22 +342,26 @@ export class FileDownloadService {
     }
   }
 
-  private static formatToPdf(avaliacaoData: any): string {
-    // Por enquanto, retorna formato TXT otimizado para impressão
+  private static formatToPdfText(avaliacaoData: any): string {
     let texto = this.formatToText(avaliacaoData);
     
-    // Adicionar quebras de página e formatação para PDF
-    texto = 'AVALIAÇÃO - FORMATO PARA IMPRESSÃO\n' + '='.repeat(50) + '\n\n' + texto;
+    // Add PDF-specific formatting notice
+    texto = 'AVALIAÇÃO - FORMATO TEXTO PARA IMPRESSÃO\n' + 
+            'AVISO: Este é um arquivo de texto formatado (.txt)\n' +
+            'Para gerar PDF real, utilize ferramentas de conversão online\n' +
+            '='.repeat(60) + '\n\n' + texto;
     
     return texto;
   }
 
-  private static formatToDoc(avaliacaoData: any): string {
-    // Por enquanto, retorna formato TXT otimizado para Word
+  private static formatToDocText(avaliacaoData: any): string {
     let texto = this.formatToText(avaliacaoData);
     
-    // Adicionar formatação específica para Word
-    texto = 'DOCUMENTO DE AVALIAÇÃO\n' + '='.repeat(50) + '\n\n' + texto;
+    // Add DOC-specific formatting notice
+    texto = 'DOCUMENTO DE AVALIAÇÃO - FORMATO TEXTO\n' + 
+            'AVISO: Este é um arquivo de texto formatado (.txt)\n' +
+            'Para gerar Word real, utilize ferramentas de conversão online\n' +
+            '='.repeat(60) + '\n\n' + texto;
     
     return texto;
   }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Edit, Eye, FileText, Code } from "lucide-react";
+import { Download, Edit, Eye, FileText, Code, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { FileDownloadService } from "@/utils/fileDownload";
 
@@ -41,7 +41,7 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
 
     let texto = '';
     
-    // Cabeçalho
+    // Header
     if (avaliacaoData.cabecalho) {
       texto += 'CABEÇALHO:\n\n';
       texto += 'ESCOLA: _________________________________\n';
@@ -57,7 +57,7 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
       texto += `DURAÇÃO: ${avaliacaoData.cabecalho.duracao || avaliacaoData.metadata?.tempo_total + ' minutos' || 'Não informada'}\n\n`;
     }
 
-    // Instruções
+    // Instructions
     if (avaliacaoData.instrucoes && Array.isArray(avaliacaoData.instrucoes) && avaliacaoData.instrucoes.length > 0) {
       texto += 'INSTRUÇÕES:\n\n';
       avaliacaoData.instrucoes.forEach((instrucao: string) => {
@@ -66,7 +66,7 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
       texto += '\n';
     }
 
-    // Questões
+    // Questions
     if (avaliacaoData.questoes && Array.isArray(avaliacaoData.questoes) && avaliacaoData.questoes.length > 0) {
       texto += 'QUESTÕES:\n\n';
       
@@ -88,11 +88,11 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
   };
 
   const formatToPdfPreview = (data: any): string => {
-    return `FORMATO PDF - VISUALIZAÇÃO\n${'='.repeat(50)}\n\n${formatToText(data)}`;
+    return `VISUALIZAÇÃO PDF (TEXTO FORMATADO)\n${'='.repeat(50)}\n\nAVISO: O download será um arquivo .txt formatado para impressão\nPara PDF real, utilize ferramentas de conversão online\n\n${'='.repeat(50)}\n\n${formatToText(data)}`;
   };
 
   const formatToDocPreview = (data: any): string => {
-    return `DOCUMENTO WORD - VISUALIZAÇÃO\n${'='.repeat(50)}\n\n${formatToText(data)}`;
+    return `VISUALIZAÇÃO WORD (TEXTO FORMATADO)\n${'='.repeat(50)}\n\nAVISO: O download será um arquivo .txt formatado\nPara Word real, utilize ferramentas de conversão online\n\n${'='.repeat(50)}\n\n${formatToText(data)}`;
   };
 
   const getCurrentContent = (format: string): string => {
@@ -109,7 +109,30 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
   const handleDownload = async (format: string) => {
     const content = getCurrentContent(format);
     const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `avaliacao_${timestamp}.${format}`;
+    
+    // Determine the correct filename and type
+    let filename: string;
+    let actualType: 'pdf' | 'doc' | 'txt' | 'json';
+    
+    switch (format) {
+      case 'json':
+        filename = `avaliacao_${timestamp}.json`;
+        actualType = 'json';
+        break;
+      case 'pdf':
+        filename = `avaliacao_${timestamp}.txt`; // Use .txt for text content
+        actualType = 'txt'; // Use txt type for proper MIME handling
+        break;
+      case 'doc':
+        filename = `avaliacao_${timestamp}.txt`; // Use .txt for text content
+        actualType = 'txt'; // Use txt type for proper MIME handling
+        break;
+      case 'txt':
+      default:
+        filename = `avaliacao_${timestamp}.txt`;
+        actualType = 'txt';
+        break;
+    }
 
     if (onDownload) {
       onDownload(format, content);
@@ -117,7 +140,8 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
       await FileDownloadService.downloadFile({
         filename,
         content,
-        type: format as 'pdf' | 'doc' | 'txt' | 'json'
+        type: actualType,
+        actualContentType: 'text'
       });
     }
   };
@@ -126,8 +150,8 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
     const labels = {
       txt: 'Texto',
       json: 'JSON',
-      pdf: 'PDF Preview',
-      doc: 'Word Preview'
+      pdf: 'PDF (Texto)',
+      doc: 'Word (Texto)'
     };
     return labels[format as keyof typeof labels] || format.toUpperCase();
   };
@@ -139,6 +163,10 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
       default:
         return <FileText className="h-4 w-4" />;
     }
+  };
+
+  const showFormatWarning = (format: string) => {
+    return format === 'pdf' || format === 'doc';
   };
 
   return (
@@ -166,9 +194,25 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
             <Badge key={format} variant="secondary" className="gap-1">
               {getFormatIcon(format)}
               {getFormatLabel(format)}
+              {showFormatWarning(format) && (
+                <AlertTriangle className="h-3 w-3 text-amber-500" />
+              )}
             </Badge>
           ))}
         </div>
+        
+        {/* Format limitations warning */}
+        {formats.some(f => f === 'pdf' || f === 'doc') && (
+          <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+              <div className="text-sm text-amber-800">
+                <p className="font-medium">Formato de Arquivo</p>
+                <p>PDF e Word serão baixados como arquivos .txt formatados. Para conversão para formato real, utilize ferramentas online de conversão.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <Tabs value={activeFormat} onValueChange={setActiveFormat}>
