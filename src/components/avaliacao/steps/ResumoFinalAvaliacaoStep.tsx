@@ -1,4 +1,3 @@
-
 import { UseFormReturn } from "react-hook-form";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Eye, Send, Loader2, AlertTriangle } from "lucide-react";
@@ -68,30 +67,50 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     console.log('Parseando resposta do webhook:', response);
     
     try {
-      // Verificar se é array com output (formato atual)
-      if (Array.isArray(response) && response.length > 0 && response[0].output) {
-        const outputText = response[0].output;
-        console.log('Output encontrado:', outputText);
-        return parseJsonAvaliacao(outputText);
-      }
-      
-      // Verificar se tem output direto
-      if (response.output) {
-        return parseJsonAvaliacao(response.output);
-      }
-      
-      // Verificar estruturas aninhadas
-      if (response.data && Array.isArray(response.data) && response.data[0]?.output) {
-        return parseJsonAvaliacao(response.data[0].output);
-      }
-      
-      if (response.avaliacao) {
-        return response.avaliacao;
+      // Primeiro, verificar se temos uma resposta válida
+      if (!response) {
+        console.warn('Resposta vazia ou null');
+        return null;
       }
 
-      // Se chegou aqui, não conseguiu extrair dados válidos
-      console.warn('Não foi possível extrair dados válidos da resposta, usando fallback');
-      return null;
+      let outputText = null;
+
+      // Caso 1: Array com output (formato atual do webhook)
+      if (Array.isArray(response) && response.length > 0 && response[0]?.output) {
+        outputText = response[0].output;
+        console.log('Formato Array detectado, output encontrado:', outputText.substring(0, 100) + '...');
+      }
+      // Caso 2: Response é um objeto de sucesso com data
+      else if (response.success && Array.isArray(response.data) && response.data.length > 0 && response.data[0]?.output) {
+        outputText = response.data[0].output;
+        console.log('Formato success.data detectado, output encontrado:', outputText.substring(0, 100) + '...');
+      }
+      // Caso 3: Response tem data direto (array)
+      else if (Array.isArray(response.data) && response.data.length > 0 && response.data[0]?.output) {
+        outputText = response.data[0].output;
+        console.log('Formato data array detectado, output encontrado:', outputText.substring(0, 100) + '...');
+      }
+      // Caso 4: Response direto com output
+      else if (response.output) {
+        outputText = response.output;
+        console.log('Output direto detectado:', outputText.substring(0, 100) + '...');
+      }
+      // Caso 5: Se response for apenas o array (sem wrapper)
+      else if (Array.isArray(response) && response.length > 0) {
+        // Verificar se o primeiro elemento é o JSON já parseado
+        const firstItem = response[0];
+        if (firstItem && typeof firstItem === 'object' && firstItem.cabecalho) {
+          console.log('Array direto com objeto JSON parseado detectado');
+          return parseJsonAvaliacao(JSON.stringify(firstItem));
+        }
+      }
+
+      if (!outputText) {
+        console.warn('Não foi possível encontrar outputText na resposta');
+        return null;
+      }
+
+      return parseJsonAvaliacao(outputText);
       
     } catch (error) {
       console.error('Erro ao processar resposta do webhook:', error);
@@ -101,14 +120,16 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
   const parseJsonAvaliacao = (outputText: string) => {
     try {
+      console.log('Fazendo parse do JSON:', outputText.substring(0, 200) + '...');
+      
       // Fazer parse do JSON
       const avaliacaoData = JSON.parse(outputText);
       
-      console.log('JSON da avaliação parseado:', avaliacaoData);
+      console.log('JSON da avaliação parseado com sucesso:', avaliacaoData);
       
       // Validar estrutura básica
       if (!avaliacaoData.questoes || !Array.isArray(avaliacaoData.questoes) || avaliacaoData.questoes.length === 0) {
-        console.warn('Estrutura de avaliação inválida, usando fallback');
+        console.warn('Estrutura de avaliação inválida - questões ausentes ou vazias');
         return null;
       }
 
@@ -181,9 +202,12 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         gabarito: gabaritoProcessado
       };
       
+      console.log('Avaliação validada com sucesso:', avaliacaoValidada);
       return avaliacaoValidada;
+      
     } catch (error) {
       console.error('Erro ao fazer parse do JSON:', error);
+      console.error('JSON recebido:', outputText);
       return null;
     }
   };
@@ -208,11 +232,20 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         const response = await WebhookService.sendAvaliacaoData(dataToSend);
         console.log('Resposta recebida do webhook:', response);
         
-        if (response.success) {
-          avaliacaoParsed = parseWebhookResponse(response);
+        // A resposta sempre vem como sucesso se chegou até aqui
+        // Vamos tentar processar a resposta diretamente
+        avaliacaoParsed = parseWebhookResponse(response);
+        
+        if (!avaliacaoParsed) {
+          console.log('Parser não conseguiu extrair dados válidos, tentando response direto');
+          // Se o parser falhou, tentar acessar diretamente os dados
+          if (response && typeof response === 'object') {
+            avaliacaoParsed = parseWebhookResponse(response);
+          }
         }
+        
       } catch (webhookError) {
-        console.error('Erro no webhook, usando fallback:', webhookError);
+        console.error('Erro no webhook:', webhookError);
         // Continue para usar o fallback abaixo
       }
 
