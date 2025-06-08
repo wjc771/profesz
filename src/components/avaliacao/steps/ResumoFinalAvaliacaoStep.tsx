@@ -134,6 +134,11 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         };
       });
 
+      // Gerar gabarito automaticamente
+      const gabaritoGerado = questoesValidadas.map((questao: any) => 
+        `${questao.numero}: ${questao.resposta_correta}`
+      );
+
       // Montar objeto final validado
       const avaliacaoValidada = {
         cabecalho: {
@@ -158,13 +163,9 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
           permite_calculadora: avaliacaoData.metadata?.permite_calculadora || false,
           tempo_total: avaliacaoData.metadata?.tempo_total || 60,
           data_criacao: new Date().toISOString()
-        }
+        },
+        gabarito: gabaritoGerado
       };
-
-      // Gerar gabarito automaticamente
-      avaliacaoValidada.gabarito = questoesValidadas.map((questao: any) => 
-        `${questao.numero}: ${questao.resposta_correta}`
-      );
       
       return avaliacaoValidada;
     } catch (error) {
