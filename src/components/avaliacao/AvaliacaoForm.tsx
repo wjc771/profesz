@@ -208,29 +208,104 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
       case 1: // Configuração Inicial
         return ['tipoAvaliacao', 'objetivoAvaliacao', 'modeloCriacao'];
       case 2: // Estrutura Curricular
-        return ['materia', 'unidade', 'capitulos', 'temas', 'incluirBncc'];
+        return ['materia', 'unidade', 'capitulos', 'temas'];
       case 3: // Modelos de Competição
-        return ['tipoCompeticao', 'modelosCompeticao'];
+        return []; // Todos campos opcionais
       case 4: // Configuração das Questões
-        return [
-          'numeroQuestoes', 'tipoQuestoes', 'proporcaoMultiplaEscolha', 
-          'nivelDificuldade', 'incluirFormulas', 'incluirImagens', 
-          'incluirTabelas', 'incluirContexto', 'incluirInterdisciplinar', 
-          'permitirCalculadora', 'incluirGabarito', 'questoesAdaptativas'
-        ];
+        return ['numeroQuestoes', 'tipoQuestoes', 'nivelDificuldade'];
       case 5: // Personalização Avançada
-        return [
-          'estiloQuestoes', 'formatoApresentacao', 'logo', 
-          'cabecalhoPersonalizado', 'rodapePersonalizado', 'estiloFonte',
-          'duracaoSugerida', 'tempoPorQuestao', 'incluirCronometro'
-        ];
+        return []; // Todos campos opcionais
       case 6: // Distribuição
-        return ['formatoSaida', 'opcaoCompartilhamento'];
+        return ['formatoSaida'];
       case 7: // Resumo Final
         return [];
       default:
         return [];
     }
+  };
+
+  // Validação específica para step 1
+  const validateStep1 = () => {
+    const values = form.getValues();
+    const errors = [];
+
+    if (!values.tipoAvaliacao || values.tipoAvaliacao.trim() === '') {
+      errors.push('Tipo de avaliação é obrigatório');
+    }
+
+    if (!values.objetivoAvaliacao || values.objetivoAvaliacao.trim() === '') {
+      errors.push('Objetivo da avaliação é obrigatório');
+    }
+
+    if (!values.modeloCriacao || values.modeloCriacao.trim() === '') {
+      errors.push('Modelo de criação é obrigatório');
+    }
+
+    return errors;
+  };
+
+  // Validação específica para step 2
+  const validateStep2 = () => {
+    const values = form.getValues();
+    const errors = [];
+
+    if (!values.materia || values.materia.trim() === '') {
+      errors.push('Matéria é obrigatória');
+    }
+
+    if (!values.unidade || values.unidade.trim() === '') {
+      errors.push('Unidade é obrigatória');
+    }
+
+    if (!values.capitulos || values.capitulos.length === 0) {
+      errors.push('Pelo menos um capítulo deve ser selecionado');
+    }
+
+    if (!values.temas || values.temas.length === 0) {
+      errors.push('Pelo menos um tema deve ser selecionado');
+    }
+
+    return errors;
+  };
+
+  // Override do nextStep com validação melhorada
+  const handleNextStep = () => {
+    let errors: string[] = [];
+
+    switch (step) {
+      case 1:
+        errors = validateStep1();
+        break;
+      case 2:
+        errors = validateStep2();
+        break;
+      case 4:
+        const values = form.getValues();
+        if (!values.numeroQuestoes || values.numeroQuestoes < 1) {
+          errors.push('Número de questões deve ser maior que 0');
+        }
+        if (!values.tipoQuestoes || values.tipoQuestoes.trim() === '') {
+          errors.push('Tipo de questões é obrigatório');
+        }
+        break;
+      case 6:
+        const formatos = form.getValues('formatoSaida');
+        if (!formatos || formatos.length === 0) {
+          errors.push('Pelo menos um formato de saída deve ser selecionado');
+        }
+        break;
+    }
+
+    if (errors.length > 0) {
+      toast({
+        title: "Campos obrigatórios",
+        description: errors.join(', '),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    nextStep();
   };
   
   const onSubmit = async (values: AvaliacaoFormValues) => {
@@ -370,7 +445,7 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
             currentStep={step}
             totalSteps={totalSteps}
             onBack={prevStep}
-            onNext={step === totalSteps ? form.handleSubmit(onSubmit) : nextStep}
+            onNext={step === totalSteps ? form.handleSubmit(onSubmit) : handleNextStep}
             canAdvance={currentStepIsValid()}
             isLastStep={step === totalSteps}
           />

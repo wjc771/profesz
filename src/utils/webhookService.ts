@@ -17,6 +17,10 @@ interface WebhookResponse {
 }
 
 export class WebhookService {
+  private static requestCount = 0;
+  private static readonly MAX_REQUESTS = 3;
+  private static readonly REQUEST_TIMEOUT = 10000; // 10 segundos
+
   static async sendData(webhookUrl: string, data: WebhookPayload): Promise<WebhookResponse> {
     if (!webhookUrl) {
       throw new Error("URL do webhook é obrigatória");
@@ -29,6 +33,14 @@ export class WebhookService {
       throw new Error("URL do webhook inválida");
     }
 
+    // Controle de limite de requisições para evitar loops
+    if (this.requestCount >= this.MAX_REQUESTS) {
+      console.warn('Limite de requisições atingido');
+      throw new Error("Limite de tentativas atingido. Tente novamente mais tarde.");
+    }
+
+    this.requestCount++;
+
     const payload = {
       ...data,
       timestamp: new Date().toISOString(),
@@ -36,11 +48,16 @@ export class WebhookService {
       platform: "PROFZi",
       metadata: {
         userAgent: navigator.userAgent,
-        source: "avaliacao_form"
+        source: "avaliacao_form",
+        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }
     };
 
     console.log('Enviando payload para webhook:', JSON.stringify(payload, null, 2));
+
+    // Criar um AbortController para timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.REQUEST_TIMEOUT);
 
     try {
       const response = await fetch(webhookUrl, {
@@ -49,9 +66,11 @@ export class WebhookService {
           'Content-Type': 'application/json',
           'User-Agent': 'PROFZi-Webhook/1.0',
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       console.log('Status da resposta:', response.status, response.statusText);
 
       if (!response.ok) {
@@ -86,13 +105,21 @@ export class WebhookService {
         }
       }
 
+      // Reset contador após sucesso
+      this.requestCount = 0;
+
       return {
         success: true,
         ...responseData
       };
 
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('Erro na requisição do webhook:', error);
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Timeout: A requisição demorou mais que o esperado.");
+      }
       
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error("Erro de conexão. Verifique sua internet e tente novamente.");
@@ -141,5 +168,10 @@ export class WebhookService {
     console.log('Enviando dados de avaliação para:', webhookUrl);
     
     return await this.sendData(webhookUrl, sanitizedData);
+  }
+
+  // Método para resetar contador em caso de necessidade
+  static resetRequestCount(): void {
+    this.requestCount = 0;
   }
 }

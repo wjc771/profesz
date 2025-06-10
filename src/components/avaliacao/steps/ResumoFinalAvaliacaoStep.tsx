@@ -1,3 +1,4 @@
+
 import { UseFormReturn } from "react-hook-form";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Eye, Send, Loader2, AlertTriangle } from "lucide-react";
@@ -20,6 +21,32 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
   const [hasError, setHasError] = useState(false);
   const { toast } = useToast();
   const formValues = form.getValues();
+
+  // Validação do formulário antes de gerar
+  const validateFormData = (data: any) => {
+    const errors = [];
+    
+    if (!data.tipoAvaliacao || data.tipoAvaliacao.trim() === '') {
+      errors.push('Tipo de avaliação é obrigatório');
+    }
+    
+    if (!data.objetivoAvaliacao || data.objetivoAvaliacao.trim() === '') {
+      errors.push('Objetivo da avaliação é obrigatório');
+    }
+    
+    if (!data.materia || data.materia.trim() === '') {
+      errors.push('Matéria é obrigatória');
+    }
+    
+    if (!data.numeroQuestoes || data.numeroQuestoes < 1) {
+      errors.push('Número de questões deve ser maior que 0');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
 
   const createFallbackAvaliacao = (formData: any) => {
     console.log('Criando avaliação de fallback com dados:', formData);
@@ -52,6 +79,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         resposta_correta: 'a'
       })),
       metadata: {
+        total_questoes: formData.numeroQuestoes || 5,
         nivel_dificuldade: formData.nivelDificuldade || 5,
         estilo: formData.estiloQuestoes || 'conceitual',
         permite_calculadora: formData.permitirCalculadora || false,
@@ -59,7 +87,9 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         data_criacao: new Date().toISOString(),
         observacoes: 'Avaliação gerada automaticamente. Revise e personalize conforme necessário.'
       },
-      gabarito: Array.from({ length: formData.numeroQuestoes || 5 }, (_, index) => `Questão ${index + 1}: a`)
+      gabarito: Array.from({ length: formData.numeroQuestoes || 5 }, (_, index) => 
+        `Questão ${index + 1}: a`
+      )
     };
   };
 
@@ -67,7 +97,6 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     console.log('Parseando resposta do webhook:', response);
     
     try {
-      // Primeiro, verificar se temos uma resposta válida
       if (!response) {
         console.warn('Resposta vazia ou null');
         return null;
@@ -75,34 +104,20 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
       let outputText = null;
 
-      // Caso 1: Array com output (formato atual do webhook)
+      // Processar resposta do webhook que vem como array
       if (Array.isArray(response) && response.length > 0 && response[0]?.output) {
         outputText = response[0].output;
-        console.log('Formato Array detectado, output encontrado:', outputText.substring(0, 100) + '...');
+        console.log('Array com output detectado:', outputText.substring(0, 100) + '...');
       }
-      // Caso 2: Response é um objeto de sucesso com data
-      else if (response.success && Array.isArray(response.data) && response.data.length > 0 && response.data[0]?.output) {
+      // Se response tem sucesso e data
+      else if (response.success && response.data && Array.isArray(response.data) && response.data[0]?.output) {
         outputText = response.data[0].output;
-        console.log('Formato success.data detectado, output encontrado:', outputText.substring(0, 100) + '...');
+        console.log('Success.data detectado:', outputText.substring(0, 100) + '...');
       }
-      // Caso 3: Response tem data direto (array)
-      else if (Array.isArray(response.data) && response.data.length > 0 && response.data[0]?.output) {
-        outputText = response.data[0].output;
-        console.log('Formato data array detectado, output encontrado:', outputText.substring(0, 100) + '...');
-      }
-      // Caso 4: Response direto com output
+      // Response direto com output
       else if (response.output) {
         outputText = response.output;
         console.log('Output direto detectado:', outputText.substring(0, 100) + '...');
-      }
-      // Caso 5: Se response for apenas o array (sem wrapper)
-      else if (Array.isArray(response) && response.length > 0) {
-        // Verificar se o primeiro elemento é o JSON já parseado
-        const firstItem = response[0];
-        if (firstItem && typeof firstItem === 'object' && firstItem.cabecalho) {
-          console.log('Array direto com objeto JSON parseado detectado');
-          return parseJsonAvaliacao(JSON.stringify(firstItem));
-        }
       }
 
       if (!outputText) {
@@ -122,9 +137,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     try {
       console.log('Fazendo parse do JSON:', outputText.substring(0, 200) + '...');
       
-      // Fazer parse do JSON
       const avaliacaoData = JSON.parse(outputText);
-      
       console.log('JSON da avaliação parseado com sucesso:', avaliacaoData);
       
       // Validar estrutura básica
@@ -155,20 +168,17 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         };
       });
 
-      // Processar gabarito do webhook ou gerar automaticamente
+      // Processar gabarito
       let gabaritoProcessado;
       if (avaliacaoData.gabarito && Array.isArray(avaliacaoData.gabarito)) {
-        // Se gabarito vem como array de objetos com explicação
         if (avaliacaoData.gabarito[0] && typeof avaliacaoData.gabarito[0] === 'object' && avaliacaoData.gabarito[0].questao) {
           gabaritoProcessado = avaliacaoData.gabarito.map((item: any) => 
             `Questão ${item.questao}: ${item.resposta?.toUpperCase()} - ${item.explicacao || ''}`
           );
         } else {
-          // Se gabarito vem como array de strings
           gabaritoProcessado = avaliacaoData.gabarito;
         }
       } else {
-        // Gerar gabarito das questões
         gabaritoProcessado = questoesValidadas.map((questao: any) => 
           `Questão ${questao.numero}: ${questao.resposta_correta?.toUpperCase()}`
         );
@@ -213,6 +223,17 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
   };
 
   const handleGeneratePreview = async () => {
+    // Validar formulário antes de prosseguir
+    const validation = validateFormData(formValues);
+    if (!validation.isValid) {
+      toast({
+        title: "Formulário incompleto",
+        description: `Por favor, preencha os campos obrigatórios: ${validation.errors.join(', ')}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setHasError(false);
     
@@ -232,13 +253,11 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         const response = await WebhookService.sendAvaliacaoData(dataToSend);
         console.log('Resposta recebida do webhook:', response);
         
-        // A resposta sempre vem como sucesso se chegou até aqui
-        // Vamos tentar processar a resposta diretamente
         avaliacaoParsed = parseWebhookResponse(response);
         
         if (!avaliacaoParsed) {
-          console.log('Parser não conseguiu extrair dados válidos, tentando response direto');
-          // Se o parser falhou, tentar acessar diretamente os dados
+          console.log('Parser não conseguiu extrair dados válidos');
+          // Tentar acessar dados diretamente se existirem
           if (response && typeof response === 'object') {
             avaliacaoParsed = parseWebhookResponse(response);
           }
@@ -251,7 +270,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
       // Se o webhook falhou ou não retornou dados válidos, usar fallback
       if (!avaliacaoParsed) {
-        console.log('Webhook falhou ou retornou dados inválidos, gerando avaliação de fallback');
+        console.log('Usando avaliação de fallback');
         avaliacaoParsed = createFallbackAvaliacao(formValues);
         setHasError(true);
         
@@ -402,7 +421,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
           {showPreview && avaliacaoGerada && (
             <FilePreview 
               data={avaliacaoGerada}
-              formats={formValues.formatoSaida || ['txt']}
+              formats={formValues.formatoSaida || ['pdf']}
             />
           )}
         </div>
