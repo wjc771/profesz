@@ -1,7 +1,7 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Eye, Send, Loader2, AlertTriangle } from "lucide-react";
+import { FileText, Send, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
   const [isGenerating, setIsGenerating] = useState(false);
   const [avaliacaoGerada, setAvaliacaoGerada] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const formValues = form.getValues();
 
@@ -48,155 +48,70 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     };
   };
 
-  const createFallbackAvaliacao = (formData: any) => {
-    console.log('Criando avaliação de fallback com dados:', formData);
-    
-    return {
-      cabecalho: {
-        disciplina: formData.materia || 'Disciplina',
-        unidade: formData.unidade || 'Unidade 1',
-        capitulo: formData.capitulos?.[0] || 'Capítulo 1',
-        tema: formData.temas?.[0] || 'Tema da Avaliação',
-        duracao: `${formData.duracaoSugerida || 60} minutos`
-      },
-      instrucoes: [
-        'Leia atentamente cada questão antes de responder.',
-        'Marque apenas uma alternativa por questão.',
-        'Use caneta azul ou preta para responder.',
-        'Não é permitido o uso de corretor.',
-        formData.permitirCalculadora ? 'É permitido o uso de calculadora.' : 'Não é permitido o uso de calculadora.'
-      ].filter(Boolean),
-      questoes: Array.from({ length: formData.numeroQuestoes || 5 }, (_, index) => ({
-        numero: index + 1,
-        enunciado: `Esta é a questão ${index + 1} sobre ${formData.temas?.[0] || 'o tema estudado'}. Complete com o conteúdo apropriado baseado nos objetivos de aprendizagem da disciplina ${formData.materia || 'estudada'}.`,
-        alternativas: [
-          { letra: 'a', texto: 'Primeira alternativa da questão' },
-          { letra: 'b', texto: 'Segunda alternativa da questão' },
-          { letra: 'c', texto: 'Terceira alternativa da questão' },
-          { letra: 'd', texto: 'Quarta alternativa da questão' }
-        ],
-        pontuacao: '1,0 ponto',
-        resposta_correta: 'a'
-      })),
-      metadata: {
-        total_questoes: formData.numeroQuestoes || 5,
-        nivel_dificuldade: formData.nivelDificuldade || 5,
-        estilo: formData.estiloQuestoes || 'conceitual',
-        permite_calculadora: formData.permitirCalculadora || false,
-        tempo_total: formData.duracaoSugerida || 60,
-        data_criacao: new Date().toISOString(),
-        observacoes: 'Avaliação gerada automaticamente. Revise e personalize conforme necessário.'
-      },
-      gabarito: Array.from({ length: formData.numeroQuestoes || 5 }, (_, index) => 
-        `Questão ${index + 1}: a`
-      )
-    };
-  };
-
   const parseWebhookResponse = (response: any) => {
     console.log('Parseando resposta do webhook:', response);
     
     try {
       if (!response) {
-        console.warn('Resposta vazia ou null');
-        return null;
+        throw new Error('Resposta vazia do servidor');
       }
 
       let outputText = null;
 
-      // Verificar se a resposta é um array com objeto que tem output
+      // Verificar diferentes estruturas de resposta
       if (Array.isArray(response) && response.length > 0 && response[0]?.output) {
         outputText = response[0].output;
-        console.log('Array response com output detectado');
-      }
-      // Se response tem success e data é um array
-      else if (response.success && response.data && Array.isArray(response.data) && response.data[0]?.output) {
+      } else if (response.success && response.data && Array.isArray(response.data) && response.data[0]?.output) {
         outputText = response.data[0].output;
-        console.log('Success.data array detectado');
-      }
-      // Response direto com output
-      else if (response.output) {
+      } else if (response.output) {
         outputText = response.output;
-        console.log('Output direto detectado');
-      }
-      // Se a própria response é a string JSON
-      else if (typeof response === 'string') {
+      } else if (typeof response === 'string') {
         outputText = response;
-        console.log('Response é string detectada');
       }
 
       if (!outputText) {
-        console.warn('Não foi possível encontrar outputText na resposta');
-        return null;
+        throw new Error('Estrutura de resposta inválida - campo "output" não encontrado');
       }
 
-      return parseJsonAvaliacao(outputText);
-      
-    } catch (error) {
-      console.error('Erro ao processar resposta do webhook:', error);
-      return null;
-    }
-  };
-
-  const parseJsonAvaliacao = (outputText: string) => {
-    try {
-      console.log('Fazendo parse do JSON da avaliação');
-      
+      // Parse do JSON
       const avaliacaoData = JSON.parse(outputText);
-      console.log('JSON da avaliação parseado com sucesso:', avaliacaoData);
       
       // Validar estrutura básica
       if (!avaliacaoData.questoes || !Array.isArray(avaliacaoData.questoes) || avaliacaoData.questoes.length === 0) {
-        console.warn('Estrutura de avaliação inválida - questões ausentes ou vazias');
-        return null;
+        throw new Error('Dados de avaliação inválidos - questões ausentes ou vazias');
       }
 
-      // Validar e normalizar questões
+      // Validar questões
       const questoesValidadas = avaliacaoData.questoes.map((questao: any, index: number) => {
+        if (!questao.enunciado) {
+          throw new Error(`Questão ${index + 1} não possui enunciado`);
+        }
+        
+        if (!questao.alternativas || !Array.isArray(questao.alternativas) || questao.alternativas.length === 0) {
+          throw new Error(`Questão ${index + 1} não possui alternativas válidas`);
+        }
+
         return {
           numero: questao.numero || (index + 1),
           pontuacao: questao.pontuacao || '1,0 ponto',
-          enunciado: questao.enunciado || `Questão ${index + 1}`,
+          enunciado: questao.enunciado,
           tipo: questao.tipo || 'multipla_escolha',
-          alternativas: questao.alternativas && Array.isArray(questao.alternativas) 
-            ? questao.alternativas.map((alt: any) => ({
-                letra: alt.letra || 'a',
-                texto: alt.texto || 'Alternativa'
-              }))
-            : [
-                { letra: 'a', texto: 'Primeira alternativa' },
-                { letra: 'b', texto: 'Segunda alternativa' },
-                { letra: 'c', texto: 'Terceira alternativa' },
-                { letra: 'd', texto: 'Quarta alternativa' }
-              ],
+          alternativas: questao.alternativas.map((alt: any) => ({
+            letra: alt.letra || 'a',
+            texto: alt.texto || 'Alternativa'
+          })),
           resposta_correta: questao.resposta_correta || 'a'
         };
       });
 
-      // Processar gabarito
-      let gabaritoProcessado;
-      if (avaliacaoData.gabarito && Array.isArray(avaliacaoData.gabarito)) {
-        if (avaliacaoData.gabarito[0] && typeof avaliacaoData.gabarito[0] === 'object' && avaliacaoData.gabarito[0].questao) {
-          gabaritoProcessado = avaliacaoData.gabarito.map((item: any) => 
-            `Questão ${item.questao}: ${item.resposta?.toUpperCase()} - ${item.explicacao || ''}`
-          );
-        } else {
-          gabaritoProcessado = avaliacaoData.gabarito;
-        }
-      } else {
-        gabaritoProcessado = questoesValidadas.map((questao: any) => 
-          `Questão ${questao.numero}: ${questao.resposta_correta?.toUpperCase()}`
-        );
-      }
-
       // Montar objeto final validado
       const avaliacaoValidada = {
         cabecalho: {
-          disciplina: avaliacaoData.cabecalho?.disciplina || 'Disciplina',
-          unidade: avaliacaoData.cabecalho?.unidade || 'Unidade',
-          capitulo: avaliacaoData.cabecalho?.capitulo || '',
-          tema: avaliacaoData.cabecalho?.tema || 'Tema',
-          duracao: avaliacaoData.cabecalho?.duracao || '60 minutos'
+          disciplina: avaliacaoData.cabecalho?.disciplina || formValues.materia || 'Disciplina',
+          unidade: avaliacaoData.cabecalho?.unidade || formValues.unidade || 'Unidade',
+          capitulo: avaliacaoData.cabecalho?.capitulo || formValues.capitulos?.[0] || '',
+          tema: avaliacaoData.cabecalho?.tema || formValues.temas?.[0] || 'Tema',
+          duracao: avaliacaoData.cabecalho?.duracao || `${formValues.duracaoSugerida || 60} minutos`
         },
         instrucoes: Array.isArray(avaliacaoData.instrucoes) 
           ? avaliacaoData.instrucoes 
@@ -208,22 +123,23 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         questoes: questoesValidadas,
         metadata: {
           total_questoes: questoesValidadas.length,
-          nivel_dificuldade: avaliacaoData.metadata?.nivel_dificuldade || 5,
-          estilo: avaliacaoData.metadata?.estilo || 'conceitual',
-          permite_calculadora: avaliacaoData.metadata?.permite_calculadora || false,
-          tempo_total: avaliacaoData.metadata?.tempo_total || 60,
+          nivel_dificuldade: avaliacaoData.metadata?.nivel_dificuldade || formValues.nivelDificuldade || 5,
+          estilo: avaliacaoData.metadata?.estilo || formValues.estiloQuestoes || 'conceitual',
+          permite_calculadora: avaliacaoData.metadata?.permite_calculadora || formValues.permitirCalculadora || false,
+          tempo_total: avaliacaoData.metadata?.tempo_total || formValues.duracaoSugerida || 60,
           data_criacao: new Date().toISOString()
         },
-        gabarito: gabaritoProcessado
+        gabarito: questoesValidadas.map((questao: any) => 
+          `Questão ${questao.numero}: ${questao.resposta_correta?.toUpperCase()}`
+        )
       };
       
       console.log('Avaliação validada com sucesso:', avaliacaoValidada);
       return avaliacaoValidada;
       
     } catch (error) {
-      console.error('Erro ao fazer parse do JSON:', error);
-      console.error('JSON recebido:', outputText);
-      return null;
+      console.error('Erro ao processar resposta:', error);
+      throw error;
     }
   };
 
@@ -231,19 +147,23 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
     // Validar formulário antes de prosseguir
     const validation = validateFormData(formValues);
     if (!validation.isValid) {
+      const errorMessage = `Formulário incompleto: ${validation.errors.join(', ')}`;
+      setError(errorMessage);
       toast({
         title: "Formulário incompleto",
-        description: `Por favor, preencha os campos obrigatórios: ${validation.errors.join(', ')}`,
+        description: errorMessage,
         variant: "destructive",
       });
       return;
     }
 
     setIsGenerating(true);
-    setHasError(false);
+    setError(null);
+    setAvaliacaoGerada(null);
+    setShowPreview(false);
     
     try {
-      console.log('Enviando dados para webhook (prévia):', formValues);
+      console.log('Iniciando geração de avaliação...');
       
       const dataToSend = {
         ...formValues,
@@ -252,65 +172,35 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         plataforma: "PROFZi"
       };
 
-      let avaliacaoParsed = null;
-
-      try {
-        const response = await WebhookService.sendAvaliacaoData(dataToSend);
-        console.log('Resposta recebida do webhook:', response);
-        
-        avaliacaoParsed = parseWebhookResponse(response);
-        
-        if (!avaliacaoParsed) {
-          console.log('Parser não conseguiu extrair dados válidos, tentando acesso direto');
-          // Tentar acessar dados diretamente se existirem
-          if (response && typeof response === 'object') {
-            // Verificar se há dados na propriedade data
-            if (response.data) {
-              avaliacaoParsed = parseWebhookResponse(response.data);
-            }
-          }
-        }
-        
-      } catch (webhookError) {
-        console.error('Erro no webhook:', webhookError);
-        // Continue para usar o fallback abaixo
+      console.log('Enviando dados para webhook:', dataToSend);
+      
+      const response = await WebhookService.sendAvaliacaoData(dataToSend);
+      console.log('Resposta recebida do webhook:', response);
+      
+      if (!response || !response.success) {
+        throw new Error(response?.error || 'Falha na comunicação com o servidor');
       }
-
-      // Se o webhook falhou ou não retornou dados válidos, usar fallback
-      if (!avaliacaoParsed) {
-        console.log('Usando avaliação de fallback');
-        avaliacaoParsed = createFallbackAvaliacao(formValues);
-        setHasError(true);
-        
-        toast({
-          title: "Avaliação gerada localmente",
-          description: "Houve um problema na conexão, mas geramos uma prévia para você. Revise e personalize conforme necessário.",
-          variant: "default",
-        });
-      } else {
-        toast({
-          title: "Prévia gerada com sucesso!",
-          description: `Avaliação com ${avaliacaoParsed.questoes?.length || 0} questões foi gerada.`,
-        });
-      }
-
+      
+      const avaliacaoParsed = parseWebhookResponse(response);
+      
       setAvaliacaoGerada(avaliacaoParsed);
       setShowPreview(true);
       
-    } catch (error: any) {
-      console.error('Erro geral ao gerar prévia:', error);
+      toast({
+        title: "Avaliação gerada com sucesso!",
+        description: `Avaliação com ${avaliacaoParsed.questoes?.length || 0} questões foi gerada.`,
+      });
       
-      // Usar fallback mesmo em caso de erro geral
-      console.log('Gerando avaliação de fallback devido a erro geral');
-      const fallbackAvaliacao = createFallbackAvaliacao(formValues);
-      setAvaliacaoGerada(fallbackAvaliacao);
-      setShowPreview(true);
-      setHasError(true);
+    } catch (error: any) {
+      console.error('Erro ao gerar avaliação:', error);
+      
+      const errorMessage = error.message || 'Erro desconhecido ao gerar avaliação';
+      setError(errorMessage);
       
       toast({
-        title: "Prévia gerada localmente",
-        description: "Houve um problema técnico, mas geramos uma prévia básica para você. Personalize conforme necessário.",
-        variant: "default",
+        title: "Erro ao gerar avaliação",
+        description: errorMessage,
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
@@ -415,13 +305,27 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
             </Button>
           </div>
 
-          {hasError && (
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+          {/* Error Display */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
-                <div className="text-sm text-amber-800">
-                  <p className="font-medium mb-1">Avaliação gerada localmente</p>
-                  <p>Houve um problema na conexão com o servidor, mas geramos uma prévia básica para você. Revise e personalize o conteúdo conforme necessário.</p>
+                <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                <div className="text-sm text-red-800">
+                  <p className="font-medium mb-1">Erro ao gerar avaliação</p>
+                  <p>{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Display */}
+          {showPreview && avaliacaoGerada && !error && (
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
+              <div className="flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                <div className="text-sm text-green-800">
+                  <p className="font-medium mb-1">Avaliação gerada com sucesso!</p>
+                  <p>Sua avaliação foi criada e está pronta para download.</p>
                 </div>
               </div>
             </div>
@@ -433,19 +337,6 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
               formats={formValues.formatoSaida || ['pdf']}
             />
           )}
-        </div>
-
-        <Separator />
-
-        {/* Preview Note */}
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-          <div className="flex items-start gap-2">
-            <Eye className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Preview e Validação</p>
-              <p>Agora você pode visualizar e editar o conteúdo antes de baixar. Isso garante que o arquivo esteja correto antes do download.</p>
-            </div>
-          </div>
         </div>
       </CardContent>
     </>
