@@ -106,6 +106,16 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         console.log('✅ Estrutura encontrada: response.avaliacao');
         outputText = JSON.stringify(response.avaliacao);
       }
+      // NOVA ESTRUTURA 8: response["0"].output (chaves numéricas)
+      else if (response["0"] && response["0"].output) {
+        console.log('✅ Estrutura encontrada: response["0"].output');
+        outputText = response["0"].output;
+      }
+      // NOVA ESTRUTURA 9: response[0].output (índice numérico)
+      else if (response[0] && response[0].output) {
+        console.log('✅ Estrutura encontrada: response[0].output');
+        outputText = response[0].output;
+      }
 
       console.log('=== RESULTADO DA BUSCA ===');
       console.log('Output encontrado:', outputText ? 'SIM' : 'NÃO');
@@ -120,6 +130,8 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         console.log('5. { result: { output: "..." } }');
         console.log('6. "string direta"');
         console.log('7. { avaliacao: {...} }');
+        console.log('8. { "0": { output: "..." } }');
+        console.log('9. { 0: { output: "..." } }');
         
         throw new Error(`Estrutura de resposta inválida. Recebido: ${JSON.stringify(response, null, 2)}`);
       }
