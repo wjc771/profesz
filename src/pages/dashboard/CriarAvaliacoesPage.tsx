@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AvaliacaoForm } from '@/components/avaliacao/AvaliacaoForm';
 import { SubscriptionPlanType } from '@/types/profile';
+import { DebugBlocker } from '@/components/avaliacao/DebugBlocker';
 
 export default function CriarAvaliacoesPage() {
   const { user } = useAuth();
@@ -76,29 +77,32 @@ export default function CriarAvaliacoesPage() {
   }, [user, toast]);
   
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Criar Avaliação</h1>
-        <p className="text-muted-foreground">
-          Gere provas, quizzes e listas de exercícios personalizados em minutos
-        </p>
+    <>
+      <DebugBlocker />
+      <div className="space-y-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold">Criar Avaliação</h1>
+          <p className="text-muted-foreground">
+            Gere provas, quizzes e listas de exercícios personalizados em minutos
+          </p>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Criar Nova Avaliação</CardTitle>
+            <CardDescription>
+              Configure e gere uma avaliação personalizada para seus alunos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AvaliacaoForm 
+              plano={plano} 
+              usageCount={usageCount} 
+              usageLimit={usageLimit} 
+            />
+          </CardContent>
+        </Card>
       </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Criar Nova Avaliação</CardTitle>
-          <CardDescription>
-            Configure e gere uma avaliação personalizada para seus alunos
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AvaliacaoForm 
-            plano={plano} 
-            usageCount={usageCount} 
-            usageLimit={usageLimit} 
-          />
-        </CardContent>
-      </Card>
-    </div>
+    </>
   );
 }

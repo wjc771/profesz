@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WebhookService } from "@/utils/webhookService";
 import { FilePreview } from "@/components/ui/file-preview";
+import { DebugBlocker } from "../DebugBlocker";
 
 interface ResumoFinalAvaliacaoStepProps {
   form: UseFormReturn<any>;
@@ -22,7 +23,6 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
   const { toast } = useToast();
   const formValues = form.getValues();
 
-  // Validação do formulário antes de gerar
   const validateFormData = (data: any) => {
     const errors = [];
     
@@ -104,20 +104,25 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
       let outputText = null;
 
-      // Processar resposta do webhook que vem como array
+      // Verificar se a resposta é um array com objeto que tem output
       if (Array.isArray(response) && response.length > 0 && response[0]?.output) {
         outputText = response[0].output;
-        console.log('Array com output detectado:', outputText.substring(0, 100) + '...');
+        console.log('Array response com output detectado');
       }
-      // Se response tem sucesso e data
+      // Se response tem success e data é um array
       else if (response.success && response.data && Array.isArray(response.data) && response.data[0]?.output) {
         outputText = response.data[0].output;
-        console.log('Success.data detectado:', outputText.substring(0, 100) + '...');
+        console.log('Success.data array detectado');
       }
       // Response direto com output
       else if (response.output) {
         outputText = response.output;
-        console.log('Output direto detectado:', outputText.substring(0, 100) + '...');
+        console.log('Output direto detectado');
+      }
+      // Se a própria response é a string JSON
+      else if (typeof response === 'string') {
+        outputText = response;
+        console.log('Response é string detectada');
       }
 
       if (!outputText) {
@@ -135,7 +140,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
   const parseJsonAvaliacao = (outputText: string) => {
     try {
-      console.log('Fazendo parse do JSON:', outputText.substring(0, 200) + '...');
+      console.log('Fazendo parse do JSON da avaliação');
       
       const avaliacaoData = JSON.parse(outputText);
       console.log('JSON da avaliação parseado com sucesso:', avaliacaoData);
@@ -256,10 +261,13 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
         avaliacaoParsed = parseWebhookResponse(response);
         
         if (!avaliacaoParsed) {
-          console.log('Parser não conseguiu extrair dados válidos');
+          console.log('Parser não conseguiu extrair dados válidos, tentando acesso direto');
           // Tentar acessar dados diretamente se existirem
           if (response && typeof response === 'object') {
-            avaliacaoParsed = parseWebhookResponse(response);
+            // Verificar se há dados na propriedade data
+            if (response.data) {
+              avaliacaoParsed = parseWebhookResponse(response.data);
+            }
           }
         }
         
@@ -311,6 +319,7 @@ export function ResumoFinalAvaliacaoStep({ form }: ResumoFinalAvaliacaoStepProps
 
   return (
     <>
+      <DebugBlocker />
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />

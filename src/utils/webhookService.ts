@@ -18,12 +18,18 @@ interface WebhookResponse {
 
 export class WebhookService {
   private static requestCount = 0;
-  private static readonly MAX_REQUESTS = 3;
-  private static readonly REQUEST_TIMEOUT = 10000; // 10 segundos
+  private static readonly MAX_REQUESTS = 5;
+  private static readonly REQUEST_TIMEOUT = 15000; // 15 segundos
+  private static isBlocked = false;
 
   static async sendData(webhookUrl: string, data: WebhookPayload): Promise<WebhookResponse> {
     if (!webhookUrl) {
       throw new Error("URL do webhook é obrigatória");
+    }
+
+    // Se estiver bloqueado, não fazer requisição
+    if (this.isBlocked) {
+      throw new Error("Serviço temporariamente bloqueado para evitar loops");
     }
 
     // Validar se a URL é válida
@@ -35,8 +41,14 @@ export class WebhookService {
 
     // Controle de limite de requisições para evitar loops
     if (this.requestCount >= this.MAX_REQUESTS) {
-      console.warn('Limite de requisições atingido');
-      throw new Error("Limite de tentativas atingido. Tente novamente mais tarde.");
+      console.warn('Limite de requisições atingido, bloqueando serviço');
+      this.isBlocked = true;
+      // Reset após 30 segundos
+      setTimeout(() => {
+        this.isBlocked = false;
+        this.requestCount = 0;
+      }, 30000);
+      throw new Error("Limite de tentativas atingido. Tente novamente em alguns minutos.");
     }
 
     this.requestCount++;
@@ -106,7 +118,7 @@ export class WebhookService {
       }
 
       // Reset contador após sucesso
-      this.requestCount = 0;
+      this.requestCount = Math.max(0, this.requestCount - 1);
 
       return {
         success: true,
@@ -173,5 +185,15 @@ export class WebhookService {
   // Método para resetar contador em caso de necessidade
   static resetRequestCount(): void {
     this.requestCount = 0;
+    this.isBlocked = false;
+  }
+
+  // Método para verificar status do serviço
+  static getServiceStatus(): { isBlocked: boolean; requestCount: number; maxRequests: number } {
+    return {
+      isBlocked: this.isBlocked,
+      requestCount: this.requestCount,
+      maxRequests: this.MAX_REQUESTS
+    };
   }
 }
