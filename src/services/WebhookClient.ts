@@ -1,4 +1,3 @@
-
 interface WebhookPayload {
   [key: string]: any;
 }
@@ -16,6 +15,8 @@ interface WebhookResponse {
   error?: string;
 }
 
+import { globalCache } from "@/utils/requestCache";
+
 export class WebhookService {
   private static requestCount = 0;
   private static readonly MAX_REQUESTS = 3;
@@ -27,6 +28,18 @@ export class WebhookService {
   static async sendData(webhookUrl: string, data: WebhookPayload): Promise<WebhookResponse> {
     if (!webhookUrl) {
       throw new Error("URL do webhook é obrigatória");
+    }
+
+    // Gerar chave de cache baseada na URL e dados
+    const cacheKey = this.generateCacheKey(webhookUrl, data);
+    
+    // Verificar cache apenas para requests GET-like (consultas)
+    if (data.action === 'get_templates' || data.action === 'validate_only') {
+      const cachedResponse = globalCache.get<WebhookResponse>(cacheKey);
+      if (cachedResponse) {
+        console.log('🚀 Resposta obtida do cache:', cacheKey);
+        return cachedResponse;
+      }
     }
 
     // Rate limiting com exponential backoff
@@ -114,10 +127,17 @@ export class WebhookService {
       // Reset contador após sucesso
       this.requestCount = Math.max(0, this.requestCount - 1);
 
-      return {
+      const result = {
         success: true,
         ...responseData
       };
+
+      // Cache apenas respostas de consulta bem-sucedidas
+      if (data.action === 'get_templates' || data.action === 'validate_only') {
+        globalCache.set(cacheKey, result, 2 * 60 * 1000); // 2 minutos para consultas
+      }
+
+      return result;
 
     } catch (error) {
       clearTimeout(timeoutId);
@@ -136,6 +156,17 @@ export class WebhookService {
       
       throw new Error("Erro desconhecido ao comunicar com o servidor.");
     }
+  }
+
+  private static generateCacheKey(url: string, data: WebhookPayload): string {
+    const sortedData = Object.keys(data)
+      .sort()
+      .reduce((result, key) => {
+        result[key] = data[key];
+        return result;
+      }, {} as WebhookPayload);
+    
+    return `webhook_${btoa(url)}_${btoa(JSON.stringify(sortedData))}`;
   }
 
   static sanitizeData(data: WebhookPayload): WebhookPayload {
@@ -175,5 +206,14 @@ export class WebhookService {
       maxRequests: this.MAX_REQUESTS,
       canRequest: canRequest && !this.isBlocked
     };
+  }
+
+  static clearCache(): void {
+    globalCache.clear();
+    console.log('Cache do WebhookService limpo');
+  }
+
+  static getCacheStats() {
+    return globalCache.getStats();
   }
 }
