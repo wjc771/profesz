@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { OnboardingRequired } from './components/auth/OnboardingRequired';
 import { Toaster } from './components/ui/toaster';
 import MainLayout from './components/layout/MainLayout';
 
@@ -80,14 +81,25 @@ const InitCheck = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Layout wrapper component
+// Layout wrapper component for pages that need OnboardingRequired
+const ProtectedPageLayout = ({ element }: { element: React.ReactNode }) => {
+  return (
+    <OnboardingRequired>
+      <MainLayout>{element}</MainLayout>
+    </OnboardingRequired>
+  );
+};
+
+// Layout wrapper component for public pages
 const PageLayout = ({ element }: { element: React.ReactNode }) => {
   const currentPath = window.location.pathname;
   
   if (
     currentPath === '/login' || 
     currentPath === '/register' || 
-    currentPath === '/'
+    currentPath === '/' ||
+    currentPath === '/onboarding' ||
+    currentPath === '/verification-pending'
   ) {
     return <>{element}</>;
   }
@@ -102,20 +114,25 @@ function App() {
         <Suspense fallback={<Loading />}>
           <InitCheck>
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/contact" element={<PageLayout element={<Contact />} />} />
+              <Route path="/verification-pending" element={<VerificationPending />} />
               
-              {/* Dashboard Routes */}
-              <Route path="/dashboard" element={<PageLayout element={<Dashboard />} />} />
-              <Route path="/dashboard/planejamento" element={<PageLayout element={<PlanejamentoPedagogicoPage />} />} />
-              <Route path="/dashboard/atividades" element={<PageLayout element={<CentralAtividadesPage />} />} />
-              <Route path="/dashboard/atividades/criar" element={<PageLayout element={<CriarAvaliacoesPage />} />} />
-              <Route path="/dashboard/verificacao" element={<PageLayout element={<CentralVerificacaoPage />} />} />
-              <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
+              {/* Onboarding Route - Requires Auth but not Onboarding completion */}
+              <Route path="/onboarding" element={<NewOnboarding />} />
+              
+              {/* Protected Routes - Require Auth + Onboarding */}
+              <Route path="/dashboard" element={<ProtectedPageLayout element={<Dashboard />} />} />
+              <Route path="/dashboard/planejamento" element={<ProtectedPageLayout element={<PlanejamentoPedagogicoPage />} />} />
+              <Route path="/dashboard/atividades" element={<ProtectedPageLayout element={<CentralAtividadesPage />} />} />
+              <Route path="/dashboard/atividades/criar" element={<ProtectedPageLayout element={<CriarAvaliacoesPage />} />} />
+              <Route path="/dashboard/verificacao" element={<ProtectedPageLayout element={<CentralVerificacaoPage />} />} />
+              <Route path="/dashboard/comunicacao" element={<ProtectedPageLayout element={<ComunicacaoPage />} />} />
               
               {/* Legacy redirects */}
               <Route path="/dashboard/planos" element={<Navigate to="/dashboard/planejamento" replace />} />
@@ -124,25 +141,23 @@ function App() {
               <Route path="/dashboard/correcao" element={<Navigate to="/dashboard/verificacao" replace />} />
               
               {/* New routes for students and parents */}
-              <Route path="/dashboard/tarefas" element={<PageLayout element={<TarefasPage />} />} />
-              <Route path="/dashboard/ajuda" element={<PageLayout element={<AjudaPage />} />} />
-              <Route path="/dashboard/acompanhamento" element={<PageLayout element={<AcompanhamentoPage />} />} />
+              <Route path="/dashboard/tarefas" element={<ProtectedPageLayout element={<TarefasPage />} />} />
+              <Route path="/dashboard/ajuda" element={<ProtectedPageLayout element={<AjudaPage />} />} />
+              <Route path="/dashboard/acompanhamento" element={<ProtectedPageLayout element={<AcompanhamentoPage />} />} />
               
-              {/* Other Routes */}
-              <Route path="/plano-de-aula" element={<PageLayout element={<PlanoDeAula />} />} />
-              <Route path="/profile" element={<PageLayout element={<Profile />} />} />
-              <Route path="/property/:id" element={<PageLayout element={<PropertyDetails />} />} />
-              <Route path="/property-management" element={<PageLayout element={<PropertyManagement />} />} />
-              <Route path="/demand-management" element={<PageLayout element={<DemandManagement />} />} />
-              <Route path="/demands" element={<PageLayout element={<DemandManagement />} />} />
-              <Route path="/matches/:demandId" element={<PageLayout element={<MatchManagement />} />} />
-              <Route path="/subscription" element={<PageLayout element={<Subscription />} />} />
-              <Route path="/verification-pending" element={<PageLayout element={<VerificationPending />} />} />
-              <Route path="/database-seed" element={<PageLayout element={<DatabaseSeed />} />} />
-              <Route path="/settings" element={<PageLayout element={<Settings />} />} />
-              <Route path="/swipe" element={<PageLayout element={<Swipe />} />} />
-              <Route path="/onboarding" element={<PageLayout element={<Onboarding />} />} />
-              <Route path="*" element={<PageLayout element={<NotFound />} />} />
+              {/* Other Protected Routes */}
+              <Route path="/plano-de-aula" element={<ProtectedPageLayout element={<PlanoDeAula />} />} />
+              <Route path="/profile" element={<ProtectedPageLayout element={<Profile />} />} />
+              <Route path="/property/:id" element={<ProtectedPageLayout element={<PropertyDetails />} />} />
+              <Route path="/property-management" element={<ProtectedPageLayout element={<PropertyManagement />} />} />
+              <Route path="/demand-management" element={<ProtectedPageLayout element={<DemandManagement />} />} />
+              <Route path="/demands" element={<ProtectedPageLayout element={<DemandManagement />} />} />
+              <Route path="/matches/:demandId" element={<ProtectedPageLayout element={<MatchManagement />} />} />
+              <Route path="/subscription" element={<ProtectedPageLayout element={<Subscription />} />} />
+              <Route path="/database-seed" element={<ProtectedPageLayout element={<DatabaseSeed />} />} />
+              <Route path="/settings" element={<ProtectedPageLayout element={<Settings />} />} />
+              <Route path="/swipe" element={<ProtectedPageLayout element={<Swipe />} />} />
+              <Route path="*" element={<ProtectedPageLayout element={<NotFound />} />} />
             </Routes>
           </InitCheck>
         </Suspense>

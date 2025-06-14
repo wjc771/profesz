@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 import { OnboardingWelcome } from '@/components/onboarding/OnboardingWelcome';
@@ -8,6 +9,7 @@ import { InteractiveTutorial } from '@/components/onboarding/InteractiveTutorial
 import { OnboardingComplete } from '@/components/onboarding/OnboardingComplete';
 import { UserType } from '@/types/profile';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface QuestionnaireData {
   subjects?: string[];
@@ -24,13 +26,38 @@ export default function NewOnboarding() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { user, loading } = useAuth();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [userType, setUserType] = useState<UserType | undefined>();
   const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>({});
   
-  const isFirstLogin = location.state?.firstLogin;
-  const userName = location.state?.name;
+  // Verificar se o usuário já completou o onboarding
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      
+      const onboardingCompleted = localStorage.getItem('onboarding_completed');
+      if (onboardingCompleted) {
+        navigate('/dashboard');
+        return;
+      }
+    }
+  }, [user, loading, navigate]);
+  
+  const isFirstLogin = location.state?.firstLogin ?? true;
+  const userName = location.state?.name || user?.user_metadata?.name || user?.email?.split('@')[0];
+  const preselectedUserType = location.state?.userType;
+  
+  // Definir userType se foi preselectionado
+  useEffect(() => {
+    if (preselectedUserType && !userType) {
+      setUserType(preselectedUserType);
+    }
+  }, [preselectedUserType, userType]);
   
   const steps = ['Boas-vindas', 'Perfil', 'Preferências', 'Tutorial', 'Concluído'];
   const totalSteps = steps.length;
@@ -62,14 +89,21 @@ export default function NewOnboarding() {
     
     toast({
       title: 'Onboarding concluído!',
-      description: 'Sua conta foi configurada com sucesso. Bem-vindo ao Profzi!',
+      description: 'Sua conta foi configurada com sucesso. Bem-vindo ao ProfesZ!',
     });
     
     navigate('/dashboard');
   };
 
-  if (!isFirstLogin) {
-    navigate('/dashboard');
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return null;
   }
 

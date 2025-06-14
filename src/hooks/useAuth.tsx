@@ -1,4 +1,3 @@
-
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -69,7 +68,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: 'Bem-vindo de volta!'
       });
       
-      navigate('/dashboard');
+      // Verificar se onboarding foi completado antes de redirecionar
+      const onboardingCompleted = localStorage.getItem('onboarding_completed');
+      if (!onboardingCompleted) {
+        navigate('/onboarding', { 
+          state: { 
+            firstLogin: false, 
+            name: data.user?.user_metadata?.name || data.user?.email?.split('@')[0] 
+          } 
+        });
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       console.error('Login error details:', error);
       toast({
@@ -109,10 +119,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       toast({
         title: 'Cadastro realizado com sucesso',
-        description: 'Enviamos um email para confirmar sua conta. Verifique sua caixa de entrada.'
+        description: 'Sua conta foi criada! Complete seu perfil no próximo passo.'
       });
       
-      navigate('/verification-pending');
+      // Não redirecionar automaticamente - deixar o Register.tsx fazer isso
     } catch (error: any) {
       console.error('Signup error:', error);
       toast({

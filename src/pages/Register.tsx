@@ -69,7 +69,15 @@ const Register = () => {
 
     try {
       await signUp(data.email, data.password, data.name, data.type);
-      navigate('/onboarding', { state: { firstLogin: true, name: data.name } });
+      
+      // Redirecionar diretamente para o onboarding após cadastro
+      navigate('/onboarding', { 
+        state: { 
+          firstLogin: true, 
+          name: data.name,
+          userType: data.type 
+        } 
+      });
     } catch (err: any) {
       setError(err.message || 'Falha ao criar conta. Este email pode já estar em uso.');
     } finally {
