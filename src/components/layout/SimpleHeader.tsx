@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -54,7 +55,7 @@ export function SimpleHeader() {
     >
       <div className="container flex h-14 items-center justify-between">
         <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2">
-          <img src="/lovable-uploads/c36b1c8e-bb9e-4e4e-9a44-98fd7b4f15a6.png" alt="Profzi Logo" className="h-8 w-8" />
+          <img src="/lovable-uploads/4ef9779b-e5f9-48f1-b21b-1557995e0fff.png" alt="Profzi Logo" className="h-8 w-8" />
           {!isMobile && (
             <span className="font-semibold text-xl">Profzi</span>
           )}

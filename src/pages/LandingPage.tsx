@@ -109,7 +109,7 @@ const LandingPage = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/lovable-uploads/c36b1c8e-bb9e-4e4e-9a44-98fd7b4f15a6.png" alt="Logo Profzi" className="h-8 w-8" />
+            <img src="/lovable-uploads/4ef9779b-e5f9-48f1-b21b-1557995e0fff.png" alt="Logo Profzi" className="h-8 w-8" />
             <span className="text-xl font-bold text-indigo-700">Profzi</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -626,7 +626,7 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row gap-8 justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <img src="/lovable-uploads/c36b1c8e-bb9e-4e4e-9a44-98fd7b4f15a6.png" alt="Logo Profzi" className="h-6 w-6" />
+                <img src="/lovable-uploads/4ef9779b-e5f9-48f1-b21b-1557995e0fff.png" alt="Logo Profzi" className="h-6 w-6" />
                 <span className="text-lg font-bold text-indigo-700">Profzi</span>
               </div>
               <p className="text-sm text-muted-foreground max-w-xs">
