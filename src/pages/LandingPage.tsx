@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, FilePen, PieChart, FileText, Book, User, Star, MessageSquare, Building, Database, CheckCircle, Clock, Target, Users, Zap, Shield } from 'lucide-react';
+import { ClipboardList, FilePen, PieChart, FileText, Book, User, Star, MessageSquare, Building, Database, CheckCircle, Clock, Target, Users, Zap, Shield, Play } from 'lucide-react';
 import PlanSelection from '@/components/subscription/PlanSelection';
 import WhatsAppButton from '@/components/landing/WhatsAppButton';
 import FeatureCard from '@/components/landing/FeatureCard';
@@ -14,15 +14,6 @@ import TestimonialCard from '@/components/landing/TestimonialCard';
 const LandingPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
-  const [formData, setFormData] = useState({
-    nome: '',
-    email: '',
-    whatsapp: '',
-    rede: '',
-    nivel: '',
-    disciplina: '',
-    necessidade: ''
-  });
 
   const handleGetStarted = () => {
     navigate('/register', { state: { email } });
@@ -33,11 +24,6 @@ const LandingPage = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate('/register', { state: formData });
   };
 
   const funcionalidades = [
@@ -179,7 +165,6 @@ const LandingPage = () => {
             <a onClick={() => scrollToSection('pricing')} className="text-sm font-medium cursor-pointer hover:text-primary">Planos</a>
             <a onClick={() => scrollToSection('tipos-conteudo')} className="text-sm font-medium cursor-pointer hover:text-primary">Tipos de Conteúdo</a>
             <a onClick={() => scrollToSection('depoimentos')} className="text-sm font-medium cursor-pointer hover:text-primary">Depoimentos</a>
-            <a onClick={() => scrollToSection('contato')} className="text-sm font-medium cursor-pointer hover:text-primary">Contato</a>
           </nav>
           <div className="flex items-center gap-4">
             <Link to="/login">
@@ -225,8 +210,8 @@ const LandingPage = () => {
               <Button variant="secondary" onClick={() => scrollToSection('funcionalidades')} className="font-medium">
                 Ver Funcionalidades Completas
               </Button>
-              <Button variant="outline" onClick={() => scrollToSection('contato')} className="font-medium">
-                Falar com Consultora Educacional
+              <Button variant="outline" onClick={() => scrollToSection('video')} className="font-medium">
+                Ver Como Funciona
               </Button>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 text-center">
@@ -250,8 +235,61 @@ const LandingPage = () => {
           </div>
         </section>
 
+        {/* Seção de Vídeo */}
+        <section id="video" className="py-16 md:py-20 bg-white dark:bg-gray-900">
+          <div className="container px-4 md:px-6">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800">
+                Veja como é simples gerar conteúdo profissional
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+                Em poucos minutos você terá planos de aula completos, provas estruturadas e atividades criativas
+              </p>
+            </div>
+            
+            <div className="max-w-4xl mx-auto">
+              <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center relative overflow-hidden shadow-2xl">
+                <img 
+                  src="/lovable-uploads/d1692790-1887-44f3-9157-6cd1ade4b2a6.png" 
+                  alt="Professora usando PROFZI" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <Button size="lg" className="bg-white/90 text-indigo-700 hover:bg-white font-bold text-lg px-8 py-4 rounded-full">
+                    <Play className="h-6 w-6 mr-2" />
+                    Assistir Demonstração
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="grid md:grid-cols-4 gap-6 mt-8 text-center">
+                <div>
+                  <Clock className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+                  <div className="text-lg font-bold">3 minutos</div>
+                  <div className="text-sm text-muted-foreground">Plano de aula completo</div>
+                </div>
+                <div>
+                  <Zap className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+                  <div className="text-lg font-bold">5 minutos</div>
+                  <div className="text-sm text-muted-foreground">Lista de 20 exercícios</div>
+                </div>
+                <div>
+                  <Target className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+                  <div className="text-lg font-bold">10 minutos</div>
+                  <div className="text-sm text-muted-foreground">Quiz interativo completo</div>
+                </div>
+                <div>
+                  <Star className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+                  <div className="text-lg font-bold">15 minutos</div>
+                  <div className="text-sm text-muted-foreground">Simulado ENEM completo</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Proposta de Valor */}
-        <section className="py-16 md:py-20 bg-white dark:bg-gray-900">
+        <section className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800">
@@ -338,36 +376,11 @@ const LandingPage = () => {
                 </CardContent>
               </Card>
             </div>
-
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-8 text-center">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div>
-                  <Clock className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                  <div className="text-lg font-bold">3 minutos</div>
-                  <div className="text-sm text-muted-foreground">Plano de aula completo</div>
-                </div>
-                <div>
-                  <Zap className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                  <div className="text-lg font-bold">5 minutos</div>
-                  <div className="text-sm text-muted-foreground">Lista de 20 exercícios</div>
-                </div>
-                <div>
-                  <Target className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                  <div className="text-lg font-bold">10 minutos</div>
-                  <div className="text-sm text-muted-foreground">Quiz interativo completo</div>
-                </div>
-                <div>
-                  <Star className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                  <div className="text-lg font-bold">15 minutos</div>
-                  <div className="text-sm text-muted-foreground">Simulado ENEM completo</div>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
         {/* Funcionalidades Detalhadas */}
-        <section id="funcionalidades" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
+        <section id="funcionalidades" className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800">
@@ -391,7 +404,7 @@ const LandingPage = () => {
         </section>
 
         {/* Diferenciação */}
-        <section className="py-16 md:py-20 bg-white dark:bg-gray-900">
+        <section className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800">
@@ -468,7 +481,7 @@ const LandingPage = () => {
         </section>
 
         {/* Tipos de Conteúdo por Nível */}
-        <section id="tipos-conteudo" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
+        <section id="tipos-conteudo" className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800">
@@ -503,7 +516,7 @@ const LandingPage = () => {
         </section>
 
         {/* Prova Social */}
-        <section className="py-16 md:py-20 bg-white dark:bg-gray-900">
+        <section className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800">
@@ -536,7 +549,7 @@ const LandingPage = () => {
         </section>
 
         {/* Depoimentos */}
-        <section id="depoimentos" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
+        <section id="depoimentos" className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800">
@@ -560,129 +573,8 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Formulário de Lead Qualificado */}
-        <section id="contato" className="py-16 md:py-20 bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-          <div className="container px-4 md:px-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                  Comece a gerar conteúdo hoje:
-                </h2>
-                <p className="text-xl text-indigo-100">
-                  Preencha os dados abaixo e nossa consultora educacional entrará em contato
-                </p>
-              </div>
-              
-              <Card className="shadow-2xl">
-                <CardContent className="p-8">
-                  <form onSubmit={handleFormSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Nome completo *</label>
-                        <Input
-                          required
-                          value={formData.nome}
-                          onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                          className="h-12"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email profissional *</label>
-                        <Input
-                          type="email"
-                          required
-                          value={formData.email}
-                          onChange={(e) => setFormData({...formData, email: e.target.value})}
-                          className="h-12"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp *</label>
-                        <Input
-                          required
-                          placeholder="(11) 99999-9999"
-                          value={formData.whatsapp}
-                          onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
-                          className="h-12"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Rede de ensino *</label>
-                        <select
-                          required
-                          value={formData.rede}
-                          onChange={(e) => setFormData({...formData, rede: e.target.value})}
-                          className="w-full h-12 px-3 border border-gray-300 rounded-md"
-                        >
-                          <option value="">Selecione...</option>
-                          <option value="publica">Pública</option>
-                          <option value="privada">Privada</option>
-                          <option value="ambas">Ambas</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Nível que leciona *</label>
-                        <select
-                          required
-                          value={formData.nivel}
-                          onChange={(e) => setFormData({...formData, nivel: e.target.value})}
-                          className="w-full h-12 px-3 border border-gray-300 rounded-md"
-                        >
-                          <option value="">Selecione...</option>
-                          <option value="infantil">Educação Infantil</option>
-                          <option value="fundamental1">Fundamental I</option>
-                          <option value="fundamental2">Fundamental II</option>
-                          <option value="medio">Ensino Médio</option>
-                          <option value="multiplos">Múltiplos níveis</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Disciplina principal</label>
-                        <Input
-                          placeholder="Ex: Matemática, Português..."
-                          value={formData.disciplina}
-                          onChange={(e) => setFormData({...formData, disciplina: e.target.value})}
-                          className="h-12"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Maior necessidade *</label>
-                      <select
-                        required
-                        value={formData.necessidade}
-                        onChange={(e) => setFormData({...formData, necessidade: e.target.value})}
-                        className="w-full h-12 px-3 border border-gray-300 rounded-md"
-                      >
-                        <option value="">Selecione...</option>
-                        <option value="planos">Planos de Aula</option>
-                        <option value="provas">Provas e Avaliações</option>
-                        <option value="atividades">Atividades e Exercícios</option>
-                        <option value="simulados">Simulados</option>
-                        <option value="verificacao">Verificação de Respostas</option>
-                        <option value="todos">Todos os recursos</option>
-                      </select>
-                    </div>
-                    
-                    <Button type="submit" size="lg" className="w-full h-12 bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-lg">
-                      Receber Contato da Consultora
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
         {/* Planos e Preços Reformulados */}
-        <section id="pricing" className="py-16 md:py-20 bg-white dark:bg-gray-900">
+        <section id="pricing" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800">
@@ -696,46 +588,8 @@ const LandingPage = () => {
             <div className="grid md:grid-cols-3 gap-8 mb-12">
               <Card className="shadow-lg hover:shadow-xl transition-shadow relative">
                 <CardHeader>
-                  <CardTitle className="text-xl">👩‍🏫 PROFZI Professora</CardTitle>
-                  <div className="text-3xl font-bold text-indigo-700">R$ 59<span className="text-lg text-muted-foreground">/mês</span></div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Gere planos, provas, quiz, listas e atividades ilimitadas. Funcionalidades essenciais.
-                  </p>
-                  <ul className="space-y-2">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="text-sm">Planos de aula automatizados</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="text-sm">Provas e avaliações personalizadas</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="text-sm">Verificação com gabarito</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <span className="text-sm">Suporte dedicado</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" onClick={() => navigate('/register', { state: { planId: 'professor' }})}>
-                    Começar Agora
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card className="shadow-lg hover:shadow-xl transition-shadow relative border-indigo-200">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-indigo-700 text-white px-4 py-1">Mais Popular</Badge>
-                </div>
-                <CardHeader>
                   <CardTitle className="text-xl">👨‍🎓 PROFZI Estudante</CardTitle>
-                  <div className="text-3xl font-bold text-indigo-700">R$ 59<span className="text-lg text-muted-foreground">/mês</span></div>
+                  <div className="text-3xl font-bold text-indigo-700">R$ 0,00<span className="text-lg text-muted-foreground">/mês</span></div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
@@ -761,7 +615,45 @@ const LandingPage = () => {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-indigo-700" onClick={() => navigate('/register', { state: { planId: 'estudante' }})}>
+                  <Button className="w-full" onClick={() => navigate('/register', { state: { planId: 'estudante' }})}>
+                    Começar Agora
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className="shadow-lg hover:shadow-xl transition-shadow relative border-indigo-200">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-indigo-700 text-white px-4 py-1">Mais Popular</Badge>
+                </div>
+                <CardHeader>
+                  <CardTitle className="text-xl">👩‍🏫 PROFZI Professora</CardTitle>
+                  <div className="text-3xl font-bold text-indigo-700">R$ 0,00<span className="text-lg text-muted-foreground">/mês</span></div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Gere planos, provas, quiz, listas e atividades ilimitadas. Funcionalidades essenciais.
+                  </p>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-sm">Planos de aula automatizados</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-sm">Provas e avaliações personalizadas</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-sm">Verificação com gabarito</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-sm">Suporte dedicado</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button className="w-full bg-indigo-700" onClick={() => navigate('/register', { state: { planId: 'professor' }})}>
                     Começar Agora
                   </Button>
                 </CardFooter>
@@ -770,7 +662,7 @@ const LandingPage = () => {
               <Card className="shadow-lg hover:shadow-xl transition-shadow relative">
                 <CardHeader>
                   <CardTitle className="text-xl">👨‍👩‍👧‍👦 PROFZI Família</CardTitle>
-                  <div className="text-3xl font-bold text-indigo-700">R$ 129<span className="text-lg text-muted-foreground">/mês</span></div>
+                  <div className="text-3xl font-bold text-indigo-700">R$ 0,00<span className="text-lg text-muted-foreground">/mês</span></div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
@@ -806,10 +698,10 @@ const LandingPage = () => {
             <div className="text-center bg-green-50 dark:bg-green-900/20 rounded-xl p-8">
               <Shield className="w-12 h-12 text-green-600 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-green-800 dark:text-green-200 mb-2">
-                Garantia de 30 dias
+                Garantia de 7 dias
               </h3>
               <p className="text-green-700 dark:text-green-300 max-w-2xl mx-auto">
-                30 dias para testar. Se não conseguir gerar pelo menos 20 atividades de qualidade por semana, devolvemos seu dinheiro.
+                7 dias para testar. Se não conseguir gerar pelo menos 20 atividades de qualidade por semana, devolvemos seu dinheiro.
               </p>
             </div>
             
@@ -822,12 +714,12 @@ const LandingPage = () => {
                     🏫 PROFZI Escola - Valor personalizado
                   </h3>
                   <p className="text-muted-foreground mb-6 text-lg">
-                    Para instituições. Fale com nossa equipe comercial para funcionalidades avançadas.
+                    Para instituições. Solicite proposta comercial para funcionalidades avançadas.
                   </p>
                   <Button 
                     size="lg"
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
-                    onClick={() => navigate('/contact', { state: { subject: 'Proposta Comercial Institucional' }})}
+                    onClick={() => navigate('/register', { state: { planId: 'institucional' }})}
                   >
                     Solicitar Proposta Institucional
                   </Button>
@@ -838,7 +730,7 @@ const LandingPage = () => {
         </section>
 
         {/* FAQ Atualizado */}
-        <section className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
+        <section className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-indigo-800 mb-4">
@@ -882,7 +774,7 @@ const LandingPage = () => {
                 </Button>
               </div>
               <p className="text-sm text-indigo-200 mt-4">
-                ✅ 30 dias para testar todas as funcionalidades. Se não ficar satisfeita, devolvemos 100% do valor.
+                ✅ 7 dias para testar todas as funcionalidades. Se não ficar satisfeita, devolvemos 100% do valor.
               </p>
             </div>
           </div>
@@ -936,16 +828,6 @@ const LandingPage = () => {
                 <li>
                   <Link to="/privacy" className="hover:text-indigo-700">Política de Privacidade</Link>
                 </li>
-                <li>
-                  <Link to="/contact" className="hover:text-indigo-700">Contato</Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3 text-indigo-700">Contato</h3>
-              <ul className="text-sm space-y-2">
-                <li>Email: <a href="mailto:contato@profzi.com.br" className="hover:text-indigo-700">contato@profzi.com.br</a></li>
-                <li>WhatsApp: <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-700">(11) 99999-9999</a></li>
               </ul>
             </div>
           </div>
