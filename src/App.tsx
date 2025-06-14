@@ -1,3 +1,4 @@
+
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -24,6 +25,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Swipe = lazy(() => import('./pages/Swipe'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
+const NewOnboarding = lazy(() => import('./pages/NewOnboarding'));
 const PlanoDeAula = lazy(() => import('./pages/PlanoDeAula'));
 const Contact = lazy(() => import('./pages/Contact'));
 
