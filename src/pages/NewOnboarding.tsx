@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
@@ -57,20 +56,18 @@ export default function NewOnboarding() {
   };
 
   const handleFinish = () => {
-    // Salvar configurações do onboarding
     localStorage.setItem('onboarding_completed', 'true');
     localStorage.setItem('user_type', userType || '');
     localStorage.setItem('questionnaire_data', JSON.stringify(questionnaireData));
     
     toast({
       title: 'Onboarding concluído!',
-      description: 'Sua conta foi configurada com sucesso. Bem-vindo ao ProfesZ!',
+      description: 'Sua conta foi configurada com sucesso. Bem-vindo ao Profzi!',
     });
     
     navigate('/dashboard');
   };
 
-  // Redirecionar se não for o primeiro login
   if (!isFirstLogin) {
     navigate('/dashboard');
     return null;

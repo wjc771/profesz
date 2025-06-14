@@ -17,7 +17,7 @@ export function OnboardingWelcome({ userName, onNext }: OnboardingWelcomeProps) 
             <GraduationCap className="w-8 h-8 text-primary" />
           </div>
           <CardTitle className="text-3xl font-bold">
-            {userName ? `Bem-vindo, ${userName.split(' ')[0]}!` : 'Bem-vindo ao ProfesZ!'}
+            {userName ? `Bem-vindo, ${userName.split(' ')[0]}!` : 'Bem-vindo ao Profzi!'}
           </CardTitle>
           <CardDescription className="text-lg">
             Sua plataforma educacional completa para criar, ensinar e aprender

@@ -73,7 +73,7 @@ export function UserTypeSelector({ selectedType, onSelect, onNext }: UserTypeSel
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold mb-2">Como você vai usar o ProfesZ?</h2>
+        <h2 className="text-2xl font-bold mb-2">Como você vai usar o Profzi?</h2>
         <p className="text-muted-foreground">
           Selecione a opção que melhor descreve seu perfil para personalizar sua experiência
         </p>

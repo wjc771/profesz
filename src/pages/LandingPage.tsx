@@ -63,26 +63,26 @@ const LandingPage = () => {
     {
       name: 'Larissa Matos',
       role: 'Professora de Ciências (Ensino Fundamental)',
-      content: 'Nunca consegui preparar aulas tão rápido! O ProfesZ mudou meu planejamento e liberou horas da minha semana.',
+      content: 'Nunca consegui preparar aulas tão rápido! O Profzi mudou meu planejamento e liberou horas da minha semana.',
       image: 'https://randomuser.me/api/portraits/women/45.jpg'
     },
     {
       name: 'Pedro Ventura',
       role: 'Diretor Escolar',
-      content: 'Nossos professores relataram menos estresse e mais tempo para inovar. A IA do ProfesZ faz a diferença!',
+      content: 'Nossos professores relataram menos estresse e mais tempo para inovar. A IA do Profzi faz a diferença!',
       image: 'https://randomuser.me/api/portraits/men/56.jpg'
     },
     {
       name: 'Ana Lúcia Silva',
       role: 'Mãe de aluno do 7º ano',
-      content: 'Agora consigo auxiliar meu filho nas tarefas mesmo sem dominar o conteúdo. O ProfesZ nos ajuda muito!',
+      content: 'Agora consigo auxiliar meu filho nas tarefas mesmo sem dominar o conteúdo. O Profzi nos ajuda muito!',
       image: 'https://randomuser.me/api/portraits/women/33.jpg'
     }
   ];
 
   const faqs = [
     {
-      question: "Como o ProfesZ protege meus dados?",
+      question: "Como o Profzi protege meus dados?",
       answer: "A segurança dos dados é prioridade máxima. Utilizamos protocolos avançados e nunca compartilhamos informações pessoais sem consentimento."
     },
     {
@@ -94,7 +94,7 @@ const LandingPage = () => {
       answer: "Sim! Basta acessar sua área logada para solicitar cancelamento, upgrade ou downgrade, sem burocracia."
     },
     {
-      question: "O ProfesZ serve para qual nível de ensino?",
+      question: "O Profzi serve para qual nível de ensino?",
       answer: "Atendemos professores, alunos e pais da educação básica ao ensino superior, com recursos flexíveis para cada etapa."
     },
     {
@@ -109,8 +109,8 @@ const LandingPage = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/lovable-uploads/d1692790-1887-44f3-9157-6cd1ade4b2a6.png" alt="Logo ProfesZ" className="h-8 w-8" />
-            <span className="text-xl font-bold text-indigo-700">ProfesZ</span>
+            <img src="/lovable-uploads/c36b1c8e-bb9e-4e4e-9a44-98fd7b4f15a6.png" alt="Logo Profzi" className="h-8 w-8" />
+            <span className="text-xl font-bold text-indigo-700">Profzi</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a onClick={() => scrollToSection('features')} className="text-sm font-medium cursor-pointer hover:text-primary">Recursos</a>
@@ -164,7 +164,7 @@ const LandingPage = () => {
             <div className="mt-8">
               <img
                 src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=800&q=80"
-                alt="Interface do ProfesZ"
+                alt="Interface do Profzi"
                 className="mx-auto rounded-xl shadow-lg max-h-72 object-cover"
               />
             </div>
@@ -176,7 +176,7 @@ const LandingPage = () => {
           <div className="container px-4 md:px-6 grid md:grid-cols-2 gap-10 items-center">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-indigo-800 mb-4">
-                Falta de tempo? Dificuldades? ProfesZ resolve isso.
+                Falta de tempo? Dificuldades? Profzi resolve isso.
               </h2>
               <ul className="text-md space-y-2 text-muted-foreground">
                 <li>• Ajuda para professores, alunos e pais.</li>
@@ -209,7 +209,7 @@ const LandingPage = () => {
         <section id="features" className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-3 mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Principais Recursos do ProfesZ</h2>
+              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Principais Recursos do Profzi</h2>
               <p className="text-muted-foreground max-w-[700px] mx-auto">
                 Soluções completas para professores, estudantes e pais.
               </p>
@@ -231,7 +231,7 @@ const LandingPage = () => {
         <section className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-3 mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Para quem é o ProfesZ?</h2>
+              <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Para quem é o Profzi?</h2>
               <p className="text-muted-foreground max-w-[700px] mx-auto">
                 Nossa plataforma atende diferentes perfis do universo educacional
               </p>
@@ -424,7 +424,7 @@ const LandingPage = () => {
           <div className="container px-4 md:px-6 grid md:grid-cols-2 gap-10 items-center">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-indigo-800 mb-4">
-                Veja o ProfesZ em ação!
+                Veja o Profzi em ação!
               </h2>
               <p className="text-muted-foreground mb-4">
                 Interface simples, navegação intuitiva e resultados visíveis desde os primeiros minutos de uso.
@@ -439,7 +439,7 @@ const LandingPage = () => {
             <div className="flex justify-center">
               <img
                 src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80"
-                alt="Demonstração do ProfesZ"
+                alt="Demonstração do Profzi"
                 className="rounded-xl shadow-xl w-full max-w-lg"
               />
             </div>
@@ -452,7 +452,7 @@ const LandingPage = () => {
             <div className="text-center space-y-3 mb-12">
               <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">O que os usuários dizem</h2>
               <p className="text-muted-foreground max-w-[700px] mx-auto">
-                ProfesZ é aprovado por professores, estudantes e pais em diferentes níveis educacionais.
+                Profzi é aprovado por professores, estudantes e pais em diferentes níveis educacionais.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -482,7 +482,7 @@ const LandingPage = () => {
               plans={[
                 {
                   id: "professor",
-                  name: "ProfesZ Professor",
+                  name: "Profzi Professor",
                   price: "R$ 29,90",
                   description: "Acesso completo ao gerador de planos, banco de questões avançado, assistente de feedback e adaptador de materiais.",
                   features: [
@@ -503,7 +503,7 @@ const LandingPage = () => {
                 },
                 {
                   id: "estudante",
-                  name: "ProfesZ Estudante",
+                  name: "Profzi Estudante",
                   price: "R$ 19,90",
                   description: "Auxílio em tarefas escolares, resolução de dúvidas, preparação para provas e geração de exercícios personalizados.",
                   features: [
@@ -523,7 +523,7 @@ const LandingPage = () => {
                 },
                 {
                   id: "familia",
-                  name: "ProfesZ Família",
+                  name: "Profzi Família",
                   price: "R$ 39,90",
                   description: "Ideal para pais ajudarem seus filhos. Inclui auxílio em tarefas, explicações de conteúdos e recomendações de atividades.",
                   features: [
@@ -543,7 +543,7 @@ const LandingPage = () => {
                 },
                 {
                   id: "instituicao",
-                  name: "ProfesZ Institucional",
+                  name: "Profzi Institucional",
                   price: "Personalizado",
                   description: "Para escolas e instituições de ensino. Inclui ingestão de material próprio e recursos personalizados para colaboradores.",
                   features: [
@@ -626,8 +626,8 @@ const LandingPage = () => {
           <div className="flex flex-col md:flex-row gap-8 justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <img src="/logo.svg" alt="Logo ProfesZ" className="h-6 w-6" />
-                <span className="text-lg font-bold text-indigo-700">ProfesZ</span>
+                <img src="/lovable-uploads/c36b1c8e-bb9e-4e4e-9a44-98fd7b4f15a6.png" alt="Logo Profzi" className="h-6 w-6" />
+                <span className="text-lg font-bold text-indigo-700">Profzi</span>
               </div>
               <p className="text-sm text-muted-foreground max-w-xs">
                 Mais inovação e tempo livre para todos os envolvidos no processo educacional.
@@ -658,7 +658,7 @@ const LandingPage = () => {
             <div>
               <h3 className="font-semibold mb-2 text-indigo-700">Contato</h3>
               <ul className="text-sm space-y-1">
-                <li>Email: <a href="mailto:contato@profesz.com.br" className="hover:text-indigo-700">contato@profesz.com.br</a></li>
+                <li>Email: <a href="mailto:contato@profzi.com.br" className="hover:text-indigo-700">contato@profzi.com.br</a></li>
                 <li>WhatsApp: <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-700">(11) 99999-9999</a></li>
               </ul>
               <div className="mt-4">
@@ -670,7 +670,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} ProfesZ. Todos os direitos reservados.</p>
+            <p>© {new Date().getFullYear()} Profzi. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

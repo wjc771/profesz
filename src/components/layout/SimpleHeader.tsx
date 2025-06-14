@@ -54,11 +54,9 @@ export function SimpleHeader() {
     >
       <div className="container flex h-14 items-center justify-between">
         <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2">
-          <span className="bg-primary text-primary-foreground px-2 py-1 rounded text-lg font-bold">
-            PZ
-          </span>
+          <img src="/lovable-uploads/c36b1c8e-bb9e-4e4e-9a44-98fd7b4f15a6.png" alt="Profzi Logo" className="h-8 w-8" />
           {!isMobile && (
-            <span className="font-semibold text-xl">ProfesZ</span>
+            <span className="font-semibold text-xl">Profzi</span>
           )}
         </Link>
         
