@@ -100,6 +100,39 @@ export type Database = {
           },
         ]
       }
+      answer_keys: {
+        Row: {
+          answers: Json
+          created_at: string
+          essay_criteria: Json | null
+          id: string
+          subject: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          essay_criteria?: Json | null
+          id?: string
+          subject: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          essay_criteria?: Json | null
+          id?: string
+          subject?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       communication_templates: {
         Row: {
           category: string
@@ -143,6 +176,95 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      correction_uploads: {
+        Row: {
+          correction_id: string
+          created_at: string
+          file_type: string
+          file_url: string
+          id: string
+          ocr_text: string | null
+          processing_status: string
+        }
+        Insert: {
+          correction_id: string
+          created_at?: string
+          file_type: string
+          file_url: string
+          id?: string
+          ocr_text?: string | null
+          processing_status?: string
+        }
+        Update: {
+          correction_id?: string
+          created_at?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          ocr_text?: string | null
+          processing_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correction_uploads_correction_id_fkey"
+            columns: ["correction_id"]
+            isOneToOne: false
+            referencedRelation: "corrections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      corrections: {
+        Row: {
+          ai_feedback: Json | null
+          correction_results: Json | null
+          created_at: string
+          evaluation_type: string
+          id: string
+          max_score: number | null
+          ocr_results: Json | null
+          processed_images: Json | null
+          score: number | null
+          status: string
+          title: string
+          total_questions: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: Json | null
+          correction_results?: Json | null
+          created_at?: string
+          evaluation_type?: string
+          id?: string
+          max_score?: number | null
+          ocr_results?: Json | null
+          processed_images?: Json | null
+          score?: number | null
+          status?: string
+          title: string
+          total_questions?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: Json | null
+          correction_results?: Json | null
+          created_at?: string
+          evaluation_type?: string
+          id?: string
+          max_score?: number | null
+          ocr_results?: Json | null
+          processed_images?: Json | null
+          score?: number | null
+          status?: string
+          title?: string
+          total_questions?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       educational_resources: {
         Row: {

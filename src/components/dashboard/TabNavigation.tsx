@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Book, FileText, Star,
-  Search, Settings, CheckCircle,
+  Search, Settings, Search as SearchIcon,
   Clock, HelpCircle, UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -67,10 +67,10 @@ export function TabNavigation() {
       userTypes: ["professor", "instituicao"]
     },
     {
-      id: "correcao",
-      label: "Central de Correção",
-      icon: CheckCircle,
-      route: "/dashboard/correcao",
+      id: "verificacao",
+      label: "Central de Verificação",
+      icon: SearchIcon,
+      route: "/dashboard/verificacao",
       available: true,
       userTypes: ["professor", "instituicao"]
     },

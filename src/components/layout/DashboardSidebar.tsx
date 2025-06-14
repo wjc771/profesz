@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Book, Star, CheckCircle, Settings, Clock, HelpCircle, UserCheck } from "lucide-react";
+import { Home, Book, Star, Search, Settings, Clock, HelpCircle, UserCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { mockProfiles } from "@/lib/mockData";
 import { UserType } from "@/types/profile";
@@ -28,14 +28,14 @@ export default function DashboardSidebar() {
       { label: "Painel", icon: Home, to: "/dashboard" },
       { label: "Planejamento", icon: Book, to: "/dashboard/planejamento" },
       { label: "Atividades", icon: Star, to: "/dashboard/atividades" },
-      { label: "Correção", icon: CheckCircle, to: "/dashboard/correcao" },
+      { label: "Verificação", icon: Search, to: "/dashboard/verificacao" },
       { label: "Configurações", icon: Settings, to: "/settings" },
     ],
     instituicao: [
       { label: "Painel", icon: Home, to: "/dashboard" },
       { label: "Planejamento", icon: Book, to: "/dashboard/planejamento" },
       { label: "Atividades", icon: Star, to: "/dashboard/atividades" },
-      { label: "Correção", icon: CheckCircle, to: "/dashboard/correcao" },
+      { label: "Verificação", icon: Search, to: "/dashboard/verificacao" },
       { label: "Configurações", icon: Settings, to: "/settings" },
     ],
     aluno: [
