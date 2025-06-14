@@ -8,25 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
-import UserProperties from '@/components/dashboard/UserProperties';
+import { UserStats } from '@/components/profile/UserStats';
+import { RecentActivities } from '@/components/profile/RecentActivities';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2, Save, Upload } from 'lucide-react';
+import { Loader2, Save, Upload, Crown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserType } from '@/types/profile';
 import { mockProfiles } from '@/lib/mockData';
-
-// Estendendo o tipo do perfil para incluir os campos adicionais
-interface ExtendedProfile {
-  id: string;
-  name: string | null;
-  email: string;
-  phone: string | null;
-  type: UserType;
-  avatarUrl: string | null;
-  updatedAt: string;
-  createdAt: string;
-  schoolName?: string | null;
-}
 
 const ProfilePage = () => {
   const { toast } = useToast();
@@ -53,7 +41,6 @@ const ProfilePage = () => {
     try {
       if (!user) return;
       
-      // Use the mock data instead of Supabase query
       const mockProfile = mockProfiles.find(p => p.id === user.id);
       const userMetadata = user.user_metadata || {};
       
@@ -65,7 +52,6 @@ const ProfilePage = () => {
         setAvatarUrl(mockProfile.avatarUrl || '');
         setSchoolName(mockProfile.schoolName || '');
       } else {
-        // Fallback to user metadata if available
         setName(userMetadata.name || '');
         setEmail(user.email || '');
         setType((userMetadata.type as UserType) || 'professor');
@@ -89,7 +75,6 @@ const ProfilePage = () => {
     try {
       if (!user) return;
       
-      // Just simulate a save operation, would normally update Supabase
       setTimeout(() => {
         toast({
           title: 'Perfil atualizado',
@@ -120,9 +105,7 @@ const ProfilePage = () => {
       
       if (!user) throw new Error('Usuário não autenticado');
       
-      // Simulate file upload - would normally upload to Supabase Storage
       setTimeout(() => {
-        // Create a local object URL just for demonstration
         const objectUrl = URL.createObjectURL(event.target.files![0]);
         setAvatarUrl(objectUrl);
         
@@ -154,20 +137,21 @@ const ProfilePage = () => {
 
   return (
     <MainLayout>
-      <div className="container max-w-6xl">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Seu Perfil</h1>
-          <p className="text-muted-foreground">
-            Gerencie suas informações e visualize seus materiais
+      <div className="container max-w-6xl space-y-6">
+        <div className="text-center md:text-left">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Meu Perfil</h1>
+          <p className="text-muted-foreground text-sm md:text-base">
+            Gerencie suas informações e acompanhe seu progresso
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Profile Info */}
+          <div className="lg:col-span-1 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Informações Pessoais</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg">Informações Pessoais</CardTitle>
+                <CardDescription className="text-sm">
                   Gerencie seus dados de perfil
                 </CardDescription>
               </CardHeader>
@@ -175,9 +159,9 @@ const ProfilePage = () => {
                 {!isEditing ? (
                   <div className="space-y-4">
                     <div className="flex justify-center mb-4">
-                      <Avatar className="h-24 w-24">
+                      <Avatar className="h-20 w-20 md:h-24 md:w-24">
                         <AvatarImage src={avatarUrl || '/placeholder.svg'} alt="Avatar" />
-                        <AvatarFallback className="text-2xl">{name ? name.split(' ').map(n => n[0]).join('') : 'U'}</AvatarFallback>
+                        <AvatarFallback className="text-lg md:text-2xl">{name ? name.split(' ').map(n => n[0]).join('') : 'U'}</AvatarFallback>
                       </Avatar>
                     </div>
                     <div>
@@ -186,7 +170,7 @@ const ProfilePage = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{email || 'Não informado'}</p>
+                      <p className="font-medium text-sm break-all">{email || 'Não informado'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Telefone</p>
@@ -199,21 +183,19 @@ const ProfilePage = () => {
                       </p>
                     </div>
                     {type === 'instituicao' && (
-                      <>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Nome da Instituição</p>
-                          <p className="font-medium">{schoolName || 'Não informado'}</p>
-                        </div>
-                      </>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Nome da Instituição</p>
+                        <p className="font-medium">{schoolName || 'Não informado'}</p>
+                      </div>
                     )}
                   </div>
                 ) : (
                   <form onSubmit={handleSaveProfile} className="space-y-4">
                     <div className="flex justify-center mb-4">
                       <div className="relative">
-                        <Avatar className="h-24 w-24">
+                        <Avatar className="h-20 w-20 md:h-24 md:w-24">
                           <AvatarImage src={avatarUrl || '/placeholder.svg'} alt="Avatar" />
-                          <AvatarFallback className="text-2xl">{name ? name.split(' ').map(n => n[0]).join('') : 'U'}</AvatarFallback>
+                          <AvatarFallback className="text-lg md:text-2xl">{name ? name.split(' ').map(n => n[0]).join('') : 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="absolute -bottom-2 -right-2">
                           <label htmlFor="avatar-upload" className="cursor-pointer">
@@ -278,23 +260,21 @@ const ProfilePage = () => {
                     </div>
                     
                     {type === 'instituicao' && (
-                      <>
-                        <div className="space-y-2">
-                          <Label htmlFor="schoolName">Nome da Instituição</Label>
-                          <Input 
-                            id="schoolName" 
-                            value={schoolName} 
-                            onChange={e => setSchoolName(e.target.value)} 
-                          />
-                        </div>
-                      </>
+                      <div className="space-y-2">
+                        <Label htmlFor="schoolName">Nome da Instituição</Label>
+                        <Input 
+                          id="schoolName" 
+                          value={schoolName} 
+                          onChange={e => setSchoolName(e.target.value)} 
+                        />
+                      </div>
                     )}
                     
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col gap-2">
                       <Button 
                         type="submit" 
                         disabled={isSubmitting}
-                        className="flex-1"
+                        className="w-full"
                       >
                         {isSubmitting ? (
                           <>
@@ -313,7 +293,7 @@ const ProfilePage = () => {
                         variant="outline"
                         onClick={() => setIsEditing(false)}
                         disabled={isSubmitting}
-                        className="flex-1"
+                        className="w-full"
                       >
                         Cancelar
                       </Button>
@@ -334,35 +314,53 @@ const ProfilePage = () => {
               )}
             </Card>
 
-            <Card className="mt-6">
+            {/* Plan Card */}
+            <Card>
               <CardHeader>
-                <CardTitle>Plano de Assinatura</CardTitle>
-                <CardDescription>
-                  Seu plano atual e limites de uso
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Crown className="h-5 w-5 text-yellow-500" />
+                  Plano Atual
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  Seus limites e recursos
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium">Plano Inicial</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-medium">Plano Gratuito</p>
                       <Link to="/subscription">
-                        <Button variant="link" className="p-0 h-auto">
+                        <Button variant="link" className="p-0 h-auto text-xs">
                           Fazer upgrade
                         </Button>
                       </Link>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      2 de 5 materiais utilizados
-                    </p>
-                    <div className="w-full h-2 bg-muted rounded-full mt-2">
-                      <div className="bg-primary h-2 rounded-full" style={{ width: '40%' }}></div>
+                    <div className="space-y-2">
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span>Planos de aula</span>
+                          <span>12/50</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-muted rounded-full">
+                          <div className="bg-primary h-1.5 rounded-full" style={{ width: '24%' }}></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span>Atividades</span>
+                          <span>8/30</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-muted rounded-full">
+                          <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '27%' }}></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    <p>• 5 materiais por mês</p>
-                    <p>• Acesso básico aos recursos</p>
-                    <p>• Compartilhamento limitado</p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>• 50 planos de aula por mês</p>
+                    <p>• 30 atividades personalizadas</p>
+                    <p>• Correção automática básica</p>
                   </div>
                 </div>
               </CardContent>
@@ -376,8 +374,10 @@ const ProfilePage = () => {
             </Card>
           </div>
 
-          <div className="md:col-span-2">
-            <UserProperties />
+          {/* Stats and Activities */}
+          <div className="lg:col-span-2 space-y-6">
+            <UserStats />
+            <RecentActivities />
           </div>
         </div>
       </div>
