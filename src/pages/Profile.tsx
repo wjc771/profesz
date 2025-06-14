@@ -1,6 +1,4 @@
-
 import { useState, useEffect } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,17 +125,17 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <MainLayout>
+      <div className="min-h-screen flex flex-col bg-background">
         <div className="container max-w-6xl flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   return (
-    <MainLayout>
-      <div className="container max-w-6xl space-y-6">
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="container max-w-6xl px-4 md:px-6 lg:px-8 py-8 space-y-6">
         <div className="text-center md:text-left">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Meu Perfil</h1>
           <p className="text-muted-foreground text-sm md:text-base">
@@ -381,7 +379,7 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 

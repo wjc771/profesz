@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,8 +70,8 @@ const Settings = () => {
   };
 
   return (
-    <MainLayout>
-      <div className="container max-w-4xl space-y-6">
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="container max-w-4xl px-4 md:px-6 lg:px-8 py-8 space-y-6">
         <div className="text-center md:text-left">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Configurações</h1>
           <p className="text-muted-foreground text-sm md:text-base">
@@ -354,7 +353,7 @@ const Settings = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 
