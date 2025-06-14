@@ -467,8 +467,8 @@ const LandingPage = () => {
               
               <div className="relative">
                 <img
-                  src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"
-                  alt="PROFZI em ação"
+                  src="/lovable-uploads/2f4ede20-376a-4df2-9888-472dce876203.png"
+                  alt="Professora usando PROFZI"
                   className="rounded-xl shadow-xl"
                 />
                 <div className="absolute -bottom-6 -right-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border">
