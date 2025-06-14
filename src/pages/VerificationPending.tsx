@@ -3,22 +3,35 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { Check, Mail } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check, Mail, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const VerificationPending = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [resending, setResending] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>('');
+
+  useEffect(() => {
+    // Verificar se já existe uma sessão e obter o email
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user?.email) {
+        setUserEmail(data.session.user.email);
+      }
+    };
+    checkSession();
+  }, []);
 
   const handleResendEmail = async () => {
     setResending(true);
     
     try {
-      // Recuperar o email da sessão atual
+      // Verificar se temos email na sessão atual
       const { data } = await supabase.auth.getSession();
-      const email = data.session?.user?.email;
+      const email = data.session?.user?.email || userEmail;
       
       if (!email) {
         throw new Error('Email não encontrado. Tente fazer login novamente.');
@@ -32,28 +45,56 @@ const VerificationPending = () => {
       if (error) throw error;
       
       toast({
-        title: 'Email enviado',
-        description: 'Um novo email de verificação foi enviado para o seu endereço de email.'
+        title: 'Email reenviado',
+        description: 'Um novo email de verificação foi enviado para o seu endereço.'
       });
     } catch (error: any) {
       console.error('Error resending verification:', error);
       toast({
         variant: 'destructive',
         title: 'Erro',
-        description: error.message || 'Não foi possível enviar o email de verificação. Tente novamente mais tarde.'
+        description: error.message || 'Não foi possível reenviar o email. Tente novamente mais tarde.'
       });
     } finally {
       setResending(false);
     }
   };
 
-  // Função temporária até que a verificação real seja feita pelo Supabase
-  const handleVerified = () => {
+  const handleSkipVerification = async () => {
+    // Para desenvolvimento, permitir skip da verificação
     toast({
-      title: 'Conta verificada',
-      description: 'Simulando verificação para fins de desenvolvimento.'
+      title: 'Verificação ignorada',
+      description: 'Redirecionando para o dashboard...'
     });
-    navigate('/login');
+    navigate('/dashboard');
+  };
+
+  const handleCheckVerification = async () => {
+    try {
+      // Verificar se o usuário já confirmou o email
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user?.email_confirmed_at) {
+        toast({
+          title: 'Email verificado!',
+          description: 'Sua conta foi verificada com sucesso.'
+        });
+        navigate('/dashboard');
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Email ainda não verificado',
+          description: 'Verifique sua caixa de entrada e clique no link de verificação.'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error checking verification:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível verificar o status do email.'
+      });
+    }
   };
 
   return (
@@ -65,10 +106,11 @@ const VerificationPending = () => {
           </div>
           <CardTitle className="text-2xl font-bold">Verifique seu email</CardTitle>
           <CardDescription className="mt-2">
-            Enviamos um email de verificação para o seu endereço.
+            Enviamos um email de verificação para {userEmail || 'seu endereço'}.
             Por favor, clique no link enviado para verificar sua conta.
           </CardDescription>
         </CardHeader>
+        
         <CardContent className="space-y-4">
           <div className="rounded-lg border bg-muted/50 p-4">
             <div className="flex items-start space-x-3">
@@ -81,30 +123,48 @@ const VerificationPending = () => {
               </div>
             </div>
           </div>
+
+          {/* Aviso sobre configuração de email */}
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Problema com emails?</strong> Se você não está recebendo emails, pode ser que o Supabase 
+              não esteja configurado para enviar emails. Durante o desenvolvimento, você pode pular esta etapa.
+            </AlertDescription>
+          </Alert>
         </CardContent>
+        
         <CardFooter className="flex flex-col space-y-2">
+          <Button 
+            onClick={handleCheckVerification} 
+            className="w-full"
+          >
+            Verificar se já confirmei
+          </Button>
+          
           <Button 
             onClick={handleResendEmail} 
             variant="outline" 
             className="w-full"
             disabled={resending}
           >
-            {resending ? 'Enviando...' : 'Reenviar email de verificação'}
+            {resending ? 'Reenviando...' : 'Reenviar email de verificação'}
           </Button>
+          
+          {/* Botão para desenvolvimento */}
+          <Button 
+            onClick={handleSkipVerification} 
+            variant="secondary" 
+            className="w-full"
+          >
+            Pular verificação (Desenvolvimento)
+          </Button>
+          
           <p className="text-center text-sm text-muted-foreground">
-            Já verificou?{' '}
             <Link to="/login" className="text-primary hover:underline">
               Voltar para login
             </Link>
           </p>
-          {/* Botão temporário para fins de desenvolvimento */}
-          <Button 
-            onClick={handleVerified} 
-            variant="link" 
-            className="text-xs text-muted-foreground"
-          >
-            (Demo: Simular verificação)
-          </Button>
         </CardFooter>
       </Card>
     </div>

@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -37,6 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -47,9 +49,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       
-      if (error) throw error;
+      if (error) {
+        // Se o erro for de email não confirmado, redirecionar para página de verificação
+        if (error.message === 'Email not confirmed') {
+          toast({
+            title: 'Email não verificado',
+            description: 'Você precisa verificar seu email antes de fazer login. Redirecionando...'
+          });
+          navigate('/verification-pending');
+          return;
+        }
+        throw error;
+      }
       
       toast({
         title: 'Login realizado com sucesso',
@@ -58,6 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       navigate('/dashboard');
     } catch (error: any) {
+      console.error('Login error details:', error);
       toast({
         variant: 'destructive',
         title: 'Erro no login',
@@ -74,22 +88,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error('Tipo de usuário inválido');
       }
       
-      const { error } = await supabase.auth.signUp({ 
+      // Configurar URL de redirecionamento para verificação
+      const redirectUrl = `${window.location.origin}/dashboard`;
+      
+      const { error, data } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
           data: {
             name,
             type: userType
-          }
+          },
+          emailRedirectTo: redirectUrl
         }
       });
       
       if (error) throw error;
       
+      console.log('Signup successful:', data);
+      
       toast({
         title: 'Cadastro realizado com sucesso',
-        description: 'Enviamos um email para confirmar sua conta. Por favor, verifique sua caixa de entrada.'
+        description: 'Enviamos um email para confirmar sua conta. Verifique sua caixa de entrada.'
       });
       
       navigate('/verification-pending');
