@@ -1,11 +1,10 @@
-
 import { UseFormReturn } from "react-hook-form";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Eye } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { JsonExporter } from "../JsonExporter";
-import { WebhookService } from "@/utils/webhookService";
+import { WebhookService } from "@/services/WebhookClient";
 
 interface ResumoFinalStepProps {
   form: UseFormReturn<any>;
