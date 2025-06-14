@@ -39,7 +39,7 @@ const AcompanhamentoPage = lazy(() => import('./pages/dashboard/AcompanhamentoPa
 // New dashboard pages for ProfesZ
 const PlanejamentoPedagogicoPage = lazy(() => import('./pages/dashboard/PlanejamentoPedagogicoPage'));
 const CentralAtividadesPage = lazy(() => import('./pages/dashboard/CentralAtividadesPage'));
-const CentralCorrecaoPage = lazy(() => import('./pages/dashboard/CentralCorrecaoPage'));
+const CentralVerificacaoPage = lazy(() => import('./pages/dashboard/CentralVerificacaoPage'));
 
 // Loading component
 const Loading = () => (
@@ -110,13 +110,14 @@ function App() {
               <Route path="/dashboard/planejamento" element={<PageLayout element={<PlanejamentoPedagogicoPage />} />} />
               <Route path="/dashboard/atividades" element={<PageLayout element={<CentralAtividadesPage />} />} />
               <Route path="/dashboard/atividades/criar" element={<PageLayout element={<CriarAvaliacoesPage />} />} />
-              <Route path="/dashboard/correcao" element={<PageLayout element={<CentralCorrecaoPage />} />} />
+              <Route path="/dashboard/verificacao" element={<PageLayout element={<CentralVerificacaoPage />} />} />
               <Route path="/dashboard/comunicacao" element={<PageLayout element={<ComunicacaoPage />} />} />
               
               {/* Legacy redirects */}
               <Route path="/dashboard/planos" element={<Navigate to="/dashboard/planejamento" replace />} />
               <Route path="/dashboard/avaliacoes" element={<Navigate to="/dashboard/atividades" replace />} />
               <Route path="/dashboard/materiais" element={<Navigate to="/dashboard/correcao" replace />} />
+              <Route path="/dashboard/correcao" element={<Navigate to="/dashboard/verificacao" replace />} />
               
               {/* New routes for students and parents */}
               <Route path="/dashboard/tarefas" element={<PageLayout element={<TarefasPage />} />} />
