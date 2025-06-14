@@ -81,17 +81,17 @@ const Register = () => {
     {
       value: 'professor',
       label: 'Professor(a)',
-      description: 'Crie materiais educacionais e gerencie suas turmas'
+      description: 'Crie materiais educacionais e use ferramentas de verificação pedagógica'
     },
     {
       value: 'aluno',
       label: 'Aluno(a)',
-      description: 'Acesse atividades e acompanhe seu progresso'
+      description: 'Acesse atividades e acompanhe seu progresso educacional'
     },
     {
       value: 'pais',
       label: 'Pais/Responsável',
-      description: 'Acompanhe o progresso educacional dos seus filhos'
+      description: 'Acompanhe o desenvolvimento educacional dos seus filhos'
     }
   ];
 
@@ -101,7 +101,7 @@ const Register = () => {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">Crie sua conta</CardTitle>
           <CardDescription>
-            Cadastre-se para usar o Profzi. Suas preferências serão configuradas na próxima etapa.
+            Cadastre-se para usar o ProfesZ. Suas preferências serão configuradas na próxima etapa.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -205,6 +205,17 @@ const Register = () => {
                 )}
               />
 
+              {/* Aviso educacional sobre verificação */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+                <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2 text-sm">
+                  ⚠️ Sobre nossas ferramentas de verificação
+                </h3>
+                <p className="text-xs text-amber-700 dark:text-amber-300 mb-2">
+                  O ProfesZ oferece ferramentas de <strong>verificação</strong> e <strong>avaliação assistida</strong>, 
+                  não correção definitiva. A avaliação final e decisões pedagógicas sempre cabem ao educador.
+                </p>
+              </div>
+
               {/* Aviso para Instituições */}
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                 <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
@@ -238,10 +249,11 @@ const Register = () => {
                         <Link to="/terms" className="text-primary hover:underline">
                           Termos de Serviço
                         </Link>{' '}
-                        e{' '}
+                        (incluindo ciência de que oferecemos verificação, não correção definitiva) e{' '}
                         <Link to="/privacy" className="text-primary hover:underline">
                           Política de Privacidade
-                        </Link>
+                        </Link>{' '}
+                        (conformidade LGPD)
                       </FormLabel>
                       <FormMessage />
                     </div>
