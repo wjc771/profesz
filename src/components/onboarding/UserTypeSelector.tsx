@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Building, User, Users } from 'lucide-react';
+import { GraduationCap, User, Users } from 'lucide-react';
 import { UserType } from '@/types/profile';
 
 interface UserTypeOption {
@@ -30,18 +30,6 @@ export function UserTypeSelector({ selectedType, onSelect, onNext }: UserTypeSel
         'Gerar atividades e avaliações',
         'Correção automática',
         'Relatórios de desempenho'
-      ]
-    },
-    {
-      type: 'instituicao',
-      title: 'Instituição de Ensino',
-      description: 'Gerencie professores, alunos e recursos institucionais',
-      icon: <Building className="w-8 h-8" />,
-      features: [
-        'Gestão de múltiplos usuários',
-        'Relatórios institucionais',
-        'Padronização de materiais',
-        'Dashboard administrativo'
       ]
     },
     {
@@ -79,7 +67,7 @@ export function UserTypeSelector({ selectedType, onSelect, onNext }: UserTypeSel
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {userTypes.map((option) => (
           <Card 
             key={option.type}

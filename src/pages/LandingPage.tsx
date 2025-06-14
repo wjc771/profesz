@@ -98,8 +98,8 @@ const LandingPage = () => {
       answer: "Atendemos professores, alunos e pais da educação básica ao ensino superior, com recursos flexíveis para cada etapa."
     },
     {
-      question: "Há planos específicos para alunos e pais?",
-      answer: "Sim! Oferecemos planos especiais para alunos que precisam de auxílio nas tarefas e para pais que querem apoiar seus filhos nas atividades escolares."
+      question: "E para instituições de ensino?",
+      answer: "Temos planos especiais para escolas e universidades com recursos exclusivos, integração personalizada e suporte dedicado. Entre em contato com nossa equipe comercial para mais informações."
     }
   ];
 
@@ -237,7 +237,7 @@ const LandingPage = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card className="shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader className="bg-blue-50 dark:bg-blue-900/30">
                   <CardTitle className="flex items-center gap-2">
@@ -339,82 +339,82 @@ const LandingPage = () => {
                   </Button>
                 </CardFooter>
               </Card>
-              
-              <Card className="shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="bg-amber-50 dark:bg-amber-900/30">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="h-6 w-6 text-amber-600" />
-                    Instituições
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <span>Integração com material próprio</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <span>Personalização para colaboradores</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <span>Gestão de conteúdo educacional</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <span>Base de conhecimento institucional</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter className="pt-2">
-                  <Button className="w-full" onClick={() => navigate('/register', { state: { type: 'instituicao' }})}>
-                    Sou Instituição
-                  </Button>
-                </CardFooter>
-              </Card>
             </div>
           </div>
         </section>
 
-        {/* Instituições de Ensino */}
-        <section className="py-16 md:py-20 bg-indigo-50 dark:bg-gray-900" id="instituicoes">
-          <div className="container px-4 md:px-6 grid md:grid-cols-2 gap-10 items-center">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-indigo-800 mb-4">
-                Soluções para Instituições de Ensino
+        {/* Instituições de Ensino - Seção Especial */}
+        <section className="py-16 md:py-20 bg-gradient-to-r from-indigo-600 to-blue-600 text-white" id="instituicoes">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-12">
+              <Building className="w-16 h-16 mx-auto mb-4 text-indigo-200" />
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Soluções Especiais para Instituições de Ensino
               </h2>
-              <p className="text-muted-foreground mb-4">
-                Transforme seu material escolar existente em uma poderosa base de conhecimento para criação de recursos pedagógicos personalizados.
+              <p className="text-xl text-indigo-100 max-w-3xl mx-auto">
+                Transforme sua instituição com tecnologia educacional avançada, recursos personalizados e suporte dedicado
               </p>
-              <ul className="text-md space-y-2 mb-6">
-                <li className="flex items-start gap-2">
-                  <Database className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <span>Ingestão e processamento de material didático proprietário</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Database className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <span>Criação automatizada de planos de aula baseados no seu conteúdo</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Database className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <span>Geração de questões e avaliações alinhadas ao seu currículo</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Database className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <span>Portal personalizado para docentes e equipe pedagógica</span>
-                </li>
-              </ul>
-              <Button className="w-full sm:w-auto" onClick={() => navigate('/contact', { state: { subject: 'Plano Institucional' }})}>
-                Solicitar demonstração
-              </Button>
             </div>
-            <div className="flex justify-center">
-              <img
-                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
-                alt="Instituições de Ensino"
-                className="rounded-xl shadow-xl w-full max-w-lg"
-              />
+            
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h3 className="text-2xl font-bold mb-6">Por que escolher nosso plano institucional?</h3>
+                <ul className="space-y-4">
+                  <li className="flex items-start gap-3">
+                    <Database className="h-6 w-6 text-indigo-200 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Integração com seu material didático</strong>
+                      <p className="text-indigo-100">Transformamos seu conteúdo proprietário em uma base de conhecimento inteligente</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Building className="h-6 w-6 text-indigo-200 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Portal personalizado</strong>
+                      <p className="text-indigo-100">Interface customizada com a identidade visual da sua instituição</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <User className="h-6 w-6 text-indigo-200 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Gestão de usuários</strong>
+                      <p className="text-indigo-100">Controle total sobre professores, alunos e recursos da plataforma</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Star className="h-6 w-6 text-indigo-200 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Suporte premium</strong>
+                      <p className="text-indigo-100">Atendimento especializado e treinamento para sua equipe</p>
+                    </div>
+                  </li>
+                </ul>
+                
+                <div className="mt-8 space-y-4">
+                  <Button 
+                    size="lg" 
+                    className="bg-white text-indigo-600 hover:bg-indigo-50 font-bold"
+                    onClick={() => navigate('/contact', { state: { subject: 'Proposta Comercial Institucional' }})}
+                  >
+                    Solicitar Proposta Comercial
+                  </Button>
+                  <p className="text-sm text-indigo-100">
+                    Agende uma demonstração personalizada e descubra como podemos transformar sua instituição
+                  </p>
+                </div>
+              </div>
+              
+              <div className="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
+                  alt="Instituições de Ensino usando Profzi"
+                  className="rounded-xl shadow-2xl"
+                />
+                <div className="absolute -bottom-6 -right-6 bg-white text-indigo-600 p-6 rounded-xl shadow-lg">
+                  <div className="text-2xl font-bold">500+</div>
+                  <div className="text-sm">Instituições Atendidas</div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -469,13 +469,13 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Planos e Preços */}
+        {/* Planos e Preços - Atualizado */}
         <section id="pricing" className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center space-y-3 mb-12">
               <h2 className="text-3xl font-bold tracking-tighter text-indigo-800">Planos para todos os perfis</h2>
               <p className="text-muted-foreground max-w-[700px] mx-auto">
-                Escolha o plano ideal para você, seja professor, estudante ou pai.
+                Escolha o plano ideal para você, seja professor, estudante ou pai
               </p>
             </div>
             <PlanSelection
@@ -540,39 +540,37 @@ const LandingPage = () => {
                     matchesPerMonth: -1,
                     contactsPerMonth: -1
                   }
-                },
-                {
-                  id: "instituicao",
-                  name: "Profzi Institucional",
-                  price: "Personalizado",
-                  description: "Para escolas e instituições de ensino. Inclui ingestão de material próprio e recursos personalizados para colaboradores.",
-                  features: [
-                    { name: "Integração com material próprio", included: true },
-                    { name: "Personalização para colaboradores", included: true },
-                    { name: "Gestão de conteúdo educacional", included: true },
-                    { name: "Base de conhecimento institucional", included: true },
-                    { name: "Portal personalizado", included: true },
-                    { name: "Suporte premium dedicado", included: true },
-                  ],
-                  limits: {
-                    activeListings: -1,
-                    activeSearches: -1,
-                    matchesPerMonth: -1,
-                    contactsPerMonth: -1
-                  }
                 }
               ]}
               currentPlanId={undefined}
               onSelectPlan={(planId) => {
-                if (planId === "instituicao") {
-                  navigate("/contact", { state: { subject: "Plano Institucional" } });
-                } else {
-                  navigate("/register", { state: { planId } });
-                }
+                navigate("/register", { state: { planId } });
               }}
               showAllFeatures={true}
               compact={true}
             />
+            
+            {/* Call-to-action para Instituições */}
+            <div className="mt-12 text-center">
+              <Card className="max-w-2xl mx-auto bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-indigo-200 dark:border-indigo-800">
+                <CardContent className="p-8">
+                  <Building className="w-12 h-12 text-indigo-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-indigo-800 mb-2">
+                    Você representa uma instituição de ensino?
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Temos soluções especiais com recursos exclusivos, integração personalizada e suporte dedicado para escolas e universidades.
+                  </p>
+                  <Button 
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                    onClick={() => navigate('/contact', { state: { subject: 'Proposta Comercial Institucional' }})}
+                  >
+                    Falar com Equipe Comercial
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+            
             <div className="text-center mt-6">
               <Link to="/plans">
                 <Button variant="link" className="text-indigo-700 font-semibold underline">Veja detalhes e comparação de todos os planos</Button>
@@ -581,7 +579,7 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* FAQ */}
+        {/* FAQ - Atualizado */}
         <section id="faq" className="py-16 md:py-20 bg-white dark:bg-gray-900">
           <div className="container px-4 md:px-6">
             <div className="text-center mb-10">

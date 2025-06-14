@@ -30,7 +30,7 @@ const registerSchema = z.object({
     .regex(/^(?=.*[a-zA-Z])(?=.*[0-9])/, {
       message: 'Senha deve conter pelo menos uma letra e um número',
     }),
-  type: z.enum(['professor', 'instituicao', 'aluno', 'pais']).default('professor'),
+  type: z.enum(['professor', 'aluno', 'pais']).default('professor'),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Você precisa aceitar os termos e condições',
   }),
@@ -82,11 +82,6 @@ const Register = () => {
       value: 'professor',
       label: 'Professor(a)',
       description: 'Crie materiais educacionais e gerencie suas turmas'
-    },
-    {
-      value: 'instituicao',
-      label: 'Instituição',
-      description: 'Gerencie professores, alunos e recursos institucionais'
     },
     {
       value: 'aluno',
@@ -209,6 +204,21 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Aviso para Instituições */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                  Você representa uma instituição de ensino?
+                </h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                  Temos planos especiais para escolas e universidades com recursos exclusivos e suporte dedicado.
+                </p>
+                <Link to="/contact" state={{ subject: 'Plano Institucional' }}>
+                  <Button variant="outline" size="sm" className="w-full border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-900/40">
+                    Falar com nossa equipe comercial
+                  </Button>
+                </Link>
+              </div>
 
               <FormField
                 control={form.control}
