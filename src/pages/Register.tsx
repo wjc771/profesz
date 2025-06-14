@@ -18,32 +18,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
-
-const educationLevels = [
-  { label: 'Ensino Fundamental', value: 'fundamental' },
-  { label: 'Ensino Médio', value: 'medio' },
-  { label: 'Ensino Superior', value: 'superior' },
-  { label: 'Técnico', value: 'tecnico' },
-  { label: 'Concurso', value: 'concurso' },
-];
-
-const subjects = [
-  'Matemática',
-  'Português',
-  'História',
-  'Geografia',
-  'Ciências',
-  'Biologia',
-  'Física',
-  'Química',
-  'Literatura',
-  'Redação',
-  'Inglês',
-  'Educação Física'
-];
 
 const registerSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
@@ -55,16 +31,9 @@ const registerSchema = z.object({
       message: 'Senha deve conter pelo menos uma letra e um número',
     }),
   type: z.enum(['professor', 'instituicao', 'aluno', 'pais']).default('professor'),
-  educationLevel: z.enum(['fundamental', 'medio', 'superior', 'tecnico', 'concurso'], {
-    required_error: 'Selecione o nível de ensino',
-  }).optional().nullable(),
-  subjects: z.array(z.string()).optional(),
-  manualSubject: z.string().optional(),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Você precisa aceitar os termos e condições',
   }),
-  gradeLevel: z.string().optional(),
-  parentOf: z.string().optional(),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -83,17 +52,9 @@ const Register = () => {
       email: '',
       password: '',
       type: 'professor',
-      educationLevel: undefined,
-      subjects: [],
-      manualSubject: '',
       acceptTerms: false,
-      gradeLevel: '',
-      parentOf: '',
     },
   });
-
-  // Watch the user type to conditionally show fields
-  const userType = form.watch('type');
 
   useEffect(() => {
     const emailFromLanding = location.state?.email;
@@ -101,14 +62,6 @@ const Register = () => {
       form.setValue('email', emailFromLanding);
     }
   }, [location.state, form]);
-
-  useEffect(() => {
-    // Reset fields when user type changes
-    if (userType === 'aluno' || userType === 'pais') {
-      form.setValue('subjects', []);
-      form.setValue('educationLevel', null);
-    }
-  }, [userType, form]);
 
   const handleSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
@@ -124,23 +77,36 @@ const Register = () => {
     }
   };
 
-  const handleSubjectChange = (subject: string) => {
-    const current = form.getValues('subjects') || [];
-    if (current.includes(subject)) {
-      form.setValue('subjects', current.filter(s => s !== subject));
-    } else {
-      form.setValue('subjects', [...current, subject]);
+  const userTypeOptions = [
+    {
+      value: 'professor',
+      label: 'Professor(a)',
+      description: 'Crie materiais educacionais e gerencie suas turmas'
+    },
+    {
+      value: 'instituicao',
+      label: 'Instituição',
+      description: 'Gerencie professores, alunos e recursos institucionais'
+    },
+    {
+      value: 'aluno',
+      label: 'Aluno(a)',
+      description: 'Acesse atividades e acompanhe seu progresso'
+    },
+    {
+      value: 'pais',
+      label: 'Pais/Responsável',
+      description: 'Acompanhe o progresso educacional dos seus filhos'
     }
-    form.trigger('subjects');
-  };
+  ];
 
   return (
     <div className="container flex items-center justify-center min-h-screen py-10">
-      <Card className="w-full max-w-md mx-auto" aria-label="Cadastro de usuário">
+      <Card className="w-full max-w-lg mx-auto" aria-label="Cadastro de usuário">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">Crie sua conta</CardTitle>
           <CardDescription>
-            Cadastre-se para usar o ProfesZ
+            Cadastre-se para usar o Profzi. Suas preferências serão configuradas na próxima etapa.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -168,6 +134,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="email"
@@ -186,6 +153,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="password"
@@ -207,6 +175,7 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+              
               <FormField
                 control={form.control}
                 name="type"
@@ -217,149 +186,29 @@ const Register = () => {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="grid grid-cols-2 gap-4"
+                        className="space-y-3"
                       >
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="professor" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">Professor(a)</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="instituicao" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">Instituição</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="aluno" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">Aluno(a)</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="pais" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">Pais/Responsável</FormLabel>
-                        </FormItem>
+                        {userTypeOptions.map((option) => (
+                          <FormItem key={option.value} className="flex items-start space-x-3 space-y-0 p-3 border rounded-lg hover:bg-accent/50 cursor-pointer">
+                            <FormControl>
+                              <RadioGroupItem value={option.value} className="mt-1" />
+                            </FormControl>
+                            <div className="flex-1">
+                              <FormLabel className="font-medium cursor-pointer">
+                                {option.label}
+                              </FormLabel>
+                              <p className="text-sm text-muted-foreground">
+                                {option.description}
+                              </p>
+                            </div>
+                          </FormItem>
+                        ))}
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              {/* Campos específicos para professores e instituições */}
-              {(userType === 'professor' || userType === 'instituicao') && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="educationLevel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nível de ensino</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || ''}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o nível de ensino" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {educationLevels.map(level => (
-                              <SelectItem key={level.value} value={level.value}>
-                                {level.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="subjects"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel>Disciplinas</FormLabel>
-                        <div className="grid gap-1 grid-cols-2 mb-1">
-                          {subjects.map(subject => (
-                            <label key={subject} className="flex items-center gap-2 cursor-pointer">
-                              <Checkbox
-                                checked={form.getValues('subjects')?.includes(subject) || false}
-                                onCheckedChange={() => handleSubjectChange(subject)}
-                                aria-label={`Selecionar disciplina ${subject}`}
-                              />
-                              <span className="text-sm">{subject}</span>
-                            </label>
-                          ))}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="manualSubject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Outra disciplina (opcional)</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Digite outra disciplina"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              {/* Campos específicos para alunos */}
-              {userType === 'aluno' && (
-                <FormField
-                  control={form.control}
-                  name="gradeLevel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Qual série você está cursando?</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Ex: 2º ano do Ensino Médio"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* Campos específicos para pais */}
-              {userType === 'pais' && (
-                <FormField
-                  control={form.control}
-                  name="parentOf"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do seu filho(a)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Nome do seu filho(a)"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
 
               <FormField
                 control={form.control}
@@ -389,11 +238,13 @@ const Register = () => {
                   </FormItem>
                 )}
               />
+              
               <Button type="submit" className="w-full" disabled={isLoading} aria-busy={isLoading}>
                 {isLoading ? 'Criando conta...' : 'Criar conta'}
               </Button>
             </form>
           </Form>
+          
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border"></div>
@@ -402,11 +253,13 @@ const Register = () => {
               <span className="bg-card px-2 text-muted-foreground">Ou continue com</span>
             </div>
           </div>
+          
           <Button variant="outline" className="w-full" disabled={isLoading}>
             <Mail className="mr-2 h-4 w-4" />
             Google
           </Button>
         </CardContent>
+        
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
             Já possui cadastro?{' '}
