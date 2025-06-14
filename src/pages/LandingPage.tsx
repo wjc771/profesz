@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,10 +12,9 @@ import TestimonialCard from '@/components/landing/TestimonialCard';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
 
   const handleGetStarted = () => {
-    navigate('/register', { state: { email } });
+    navigate('/register');
   };
 
   const scrollToSection = (id: string) => {
@@ -194,14 +192,7 @@ const LandingPage = () => {
             <p className="text-lg font-medium text-indigo-800">
               Planos completos, provas estruturadas e atividades criativas em poucos cliques
             </p>
-            <div className="flex flex-col sm:flex-row w-full max-w-md gap-3 mx-auto mt-8">
-              <Input
-                placeholder="Seu e-mail profissional"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 text-lg"
-              />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <Button onClick={handleGetStarted} size="lg" className="h-12 bg-indigo-700 text-white font-bold text-lg px-8">
                 Começar a Gerar Conteúdo Agora
               </Button>
