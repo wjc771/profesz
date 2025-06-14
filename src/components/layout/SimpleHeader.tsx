@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -6,6 +5,7 @@ import { mockProfiles } from "@/lib/mockData";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export function SimpleHeader() {
   const { user, signOut } = useAuth();
