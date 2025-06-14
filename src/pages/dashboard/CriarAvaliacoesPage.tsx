@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from '@/hooks/useAuth';
@@ -7,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AvaliacaoForm } from '@/components/avaliacao/AvaliacaoForm';
 import { SubscriptionPlanType } from '@/types/profile';
 import { DebugBlocker } from '@/components/avaliacao/DebugBlocker';
+import { Star } from 'lucide-react';
 
 export default function CriarAvaliacoesPage() {
   const { user } = useAuth();
@@ -80,28 +80,22 @@ export default function CriarAvaliacoesPage() {
     <>
       <DebugBlocker />
       <div className="space-y-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold">Criar Avaliação</h1>
-          <p className="text-muted-foreground">
+        {/* Page Header */}
+        <div className="text-center md:text-left">
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center justify-center md:justify-start gap-2">
+            <Star className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            Criar Avaliação
+          </h1>
+          <p className="text-muted-foreground mt-2 text-sm md:text-lg">
             Gere provas, quizzes e listas de exercícios personalizados em minutos
           </p>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Criar Nova Avaliação</CardTitle>
-            <CardDescription>
-              Configure e gere uma avaliação personalizada para seus alunos
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AvaliacaoForm 
-              plano={plano} 
-              usageCount={usageCount} 
-              usageLimit={usageLimit} 
-            />
-          </CardContent>
-        </Card>
+        <AvaliacaoForm 
+          plano={plano} 
+          usageCount={usageCount} 
+          usageLimit={usageLimit} 
+        />
       </div>
     </>
   );
