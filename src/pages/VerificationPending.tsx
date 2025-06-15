@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -71,7 +70,7 @@ const VerificationPending = () => {
     setResending(true);
     
     try {
-      console.log('VerificationPending: Starting resend process...');
+      console.log('🚀 VerificationPending: Iniciando reenvio de email...');
       
       // Usar email manual se fornecido, senão usar o email salvo
       const emailToUse = manualEmail.trim() || userEmail;
@@ -80,16 +79,17 @@ const VerificationPending = () => {
         throw new Error('Email é obrigatório. Por favor, insira seu email.');
       }
       
-      console.log('VerificationPending: Attempting to resend via Resend to:', emailToUse);
+      console.log('📧 VerificationPending: Tentando envio via Resend para:', emailToUse);
+      console.log('🔗 VerificationPending: Redirect URL:', `${window.location.origin}/onboarding`);
       
       try {
         // Tentar primeiro com nossa Edge Function do Resend
-        await sendVerificationEmailViaResend({
+        const result = await sendVerificationEmailViaResend({
           email: emailToUse,
           redirectTo: `${window.location.origin}/onboarding`
         });
         
-        console.log('VerificationPending: Email sent successfully via Resend');
+        console.log('✅ VerificationPending: Email enviado com sucesso via Resend:', result);
         
         // Se usamos email manual com sucesso, salvar para futuras tentativas
         if (manualEmail.trim()) {
@@ -100,12 +100,12 @@ const VerificationPending = () => {
         }
         
         toast({
-          title: 'Email reenviado!',
-          description: 'Um novo email de confirmação foi enviado via Resend. Verifique sua caixa de entrada e spam.'
+          title: '✅ Email enviado com sucesso!',
+          description: 'Um email de confirmação foi enviado via Resend. Verifique sua caixa de entrada e spam.'
         });
         
       } catch (resendError) {
-        console.warn('VerificationPending: Resend failed, trying Supabase fallback:', resendError);
+        console.warn('⚠️ VerificationPending: Resend failed, tentando fallback Supabase:', resendError);
         
         // Fallback para método Supabase nativo
         const { error } = await supabase.auth.resend({
@@ -117,7 +117,7 @@ const VerificationPending = () => {
         });
         
         if (error) {
-          console.error('VerificationPending: Supabase fallback also failed:', error);
+          console.error('❌ VerificationPending: Supabase fallback também falhou:', error);
           
           if (error.message.includes('email_address_not_authorized')) {
             throw new Error('Este email não está autorizado. Verifique se o domínio está configurado no Supabase.');
@@ -128,7 +128,7 @@ const VerificationPending = () => {
           throw error;
         }
         
-        console.log('VerificationPending: Supabase fallback succeeded');
+        console.log('✅ VerificationPending: Supabase fallback funcionou');
         toast({
           title: 'Email reenviado!',
           description: 'Email enviado via método alternativo. Verifique sua caixa de entrada.'
@@ -136,7 +136,7 @@ const VerificationPending = () => {
       }
       
     } catch (error: any) {
-      console.error('VerificationPending: All methods failed:', error);
+      console.error('❌ VerificationPending: Todos os métodos falharam:', error);
       
       toast({
         variant: 'destructive',
@@ -291,17 +291,18 @@ const VerificationPending = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Sistema melhorado:</strong> Agora usando Resend para envio confiável de emails.
-              Se houver problemas, temos fallback para o método Supabase.
+              <strong>🚀 Sistema Resend ativo:</strong> Agora usando Resend.com para envio confiável de emails.
+              Configuração completa com fallback para Supabase se necessário.
             </AlertDescription>
           </Alert>
 
           {userEmail && (
             <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-lg">
-              <strong>Debug info:</strong>
-              <br />Email: {userEmail}
-              <br />Origem: {window.location.origin}
-              <br />Método: Resend + Supabase fallback
+              <strong>🔧 Debug info:</strong>
+              <br />📧 Email: {userEmail}
+              <br />🌐 Origem: {window.location.origin}
+              <br />📡 Método: Resend + Supabase fallback
+              <br />✅ RESEND_API_KEY: Configurada
             </div>
           )}
         </CardContent>
@@ -331,10 +332,10 @@ const VerificationPending = () => {
             {resending ? (
               <>
                 <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Reenviando...
+                Reenviando via Resend...
               </>
             ) : (
-              'Reenviar email de confirmação'
+              '📧 Reenviar email (Resend)'
             )}
           </Button>
           

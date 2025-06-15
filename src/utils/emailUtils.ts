@@ -11,7 +11,8 @@ export const sendVerificationEmailViaResend = async ({
   redirectTo 
 }: SendVerificationEmailParams) => {
   try {
-    console.log('sendVerificationEmailViaResend: Enviando para', email);
+    console.log('🚀 sendVerificationEmailViaResend: Iniciando envio para', email);
+    console.log('🔗 sendVerificationEmailViaResend: Redirect URL:', redirectTo);
     
     const { data, error } = await supabase.functions.invoke('send-verification-email', {
       body: {
@@ -21,15 +22,25 @@ export const sendVerificationEmailViaResend = async ({
     });
     
     if (error) {
-      console.error('sendVerificationEmailViaResend: Erro na Edge Function:', error);
+      console.error('❌ sendVerificationEmailViaResend: Erro na Edge Function:', error);
       throw error;
     }
     
-    console.log('sendVerificationEmailViaResend: Sucesso:', data);
+    console.log('✅ sendVerificationEmailViaResend: Sucesso:', data);
     return data;
     
   } catch (error: any) {
-    console.error('sendVerificationEmailViaResend: Erro geral:', error);
-    throw new Error(error.message || 'Falha ao enviar email de verificação');
+    console.error('❌ sendVerificationEmailViaResend: Erro geral:', error);
+    
+    // Melhor detalhamento dos erros
+    if (error.message?.includes('Function not found')) {
+      throw new Error('Edge Function não encontrada. Verifique se está deployada.');
+    } else if (error.message?.includes('RESEND_API_KEY')) {
+      throw new Error('API Key do Resend não configurada. Verifique os secrets do Supabase.');
+    } else if (error.message?.includes('Invalid email')) {
+      throw new Error('Email inválido. Verifique o formato do email.');
+    }
+    
+    throw new Error(error.message || 'Falha ao enviar email de verificação via Resend');
   }
 };
