@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Check, Mail, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { sendVerificationEmailViaResend } from '@/utils/emailUtils';
 
 const VerificationPending = () => {
   const { toast } = useToast();
@@ -79,57 +80,68 @@ const VerificationPending = () => {
         throw new Error('Email é obrigatório. Por favor, insira seu email.');
       }
       
-      console.log('VerificationPending: Attempting to resend confirmation email to:', emailToUse);
-      console.log('VerificationPending: Current origin:', window.location.origin);
+      console.log('VerificationPending: Attempting to resend via Resend to:', emailToUse);
       
-      // Usar o método correto para reenviar email de confirmação de cadastro
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: emailToUse,
-        options: {
-          emailRedirectTo: `${window.location.origin}/onboarding`
-        }
-      });
-      
-      if (error) {
-        console.error('VerificationPending: Resend error details:', error);
+      try {
+        // Tentar primeiro com nossa Edge Function do Resend
+        await sendVerificationEmailViaResend({
+          email: emailToUse,
+          redirectTo: `${window.location.origin}/onboarding`
+        });
         
-        // Verificar tipos específicos de erro
-        if (error.message.includes('email_address_not_authorized')) {
-          throw new Error('Este email não está autorizado. Verifique se o domínio está configurado no Supabase.');
-        } else if (error.message.includes('rate_limit')) {
-          throw new Error('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
-        } else if (error.message.includes('email_not_confirmed')) {
-          throw new Error('Email ainda não foi confirmado. Aguarde o primeiro email chegar.');
-        } else if (error.message.includes('already_registered')) {
-          throw new Error('Este email já está confirmado. Tente fazer login diretamente.');
+        console.log('VerificationPending: Email sent successfully via Resend');
+        
+        // Se usamos email manual com sucesso, salvar para futuras tentativas
+        if (manualEmail.trim()) {
+          setUserEmail(manualEmail.trim());
+          localStorage.setItem('pending_verification_email', manualEmail.trim());
+          setManualEmail('');
+          setShowManualInput(false);
         }
         
-        throw error;
+        toast({
+          title: 'Email reenviado!',
+          description: 'Um novo email de confirmação foi enviado via Resend. Verifique sua caixa de entrada e spam.'
+        });
+        
+      } catch (resendError) {
+        console.warn('VerificationPending: Resend failed, trying Supabase fallback:', resendError);
+        
+        // Fallback para método Supabase nativo
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email: emailToUse,
+          options: {
+            emailRedirectTo: `${window.location.origin}/onboarding`
+          }
+        });
+        
+        if (error) {
+          console.error('VerificationPending: Supabase fallback also failed:', error);
+          
+          if (error.message.includes('email_address_not_authorized')) {
+            throw new Error('Este email não está autorizado. Verifique se o domínio está configurado no Supabase.');
+          } else if (error.message.includes('rate_limit')) {
+            throw new Error('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
+          }
+          
+          throw error;
+        }
+        
+        console.log('VerificationPending: Supabase fallback succeeded');
+        toast({
+          title: 'Email reenviado!',
+          description: 'Email enviado via método alternativo. Verifique sua caixa de entrada.'
+        });
       }
-      
-      console.log('VerificationPending: Confirmation email resent successfully');
-      
-      // Se usamos email manual com sucesso, salvar para futuras tentativas
-      if (manualEmail.trim()) {
-        setUserEmail(manualEmail.trim());
-        localStorage.setItem('pending_verification_email', manualEmail.trim());
-        setManualEmail('');
-        setShowManualInput(false);
-      }
-      
-      toast({
-        title: 'Email reenviado!',
-        description: 'Um novo email de confirmação foi enviado. Verifique sua caixa de entrada e spam.'
-      });
       
     } catch (error: any) {
-      console.error('VerificationPending: Resend failed:', error);
+      console.error('VerificationPending: All methods failed:', error);
       
       toast({
         variant: 'destructive',
         title: 'Erro ao reenviar email',
-        description: error.message || 'Não foi possível reenviar o email. Verifique as configurações do Supabase.'
+        description: error.message || 'Não foi possível reenviar o email. Tente novamente.'
       });
     } finally {
       setResending(false);
@@ -279,8 +291,8 @@ const VerificationPending = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Testando configurações:</strong> Se você configurou o Supabase para enviar emails,
-              clique em "Verificar se já confirmei" ou "Reenviar email" para testar.
+              <strong>Sistema melhorado:</strong> Agora usando Resend para envio confiável de emails.
+              Se houver problemas, temos fallback para o método Supabase.
             </AlertDescription>
           </Alert>
 
@@ -289,6 +301,7 @@ const VerificationPending = () => {
               <strong>Debug info:</strong>
               <br />Email: {userEmail}
               <br />Origem: {window.location.origin}
+              <br />Método: Resend + Supabase fallback
             </div>
           )}
         </CardContent>
