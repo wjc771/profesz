@@ -136,18 +136,32 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
   const validateStep = (stepNumber: number): boolean => {
     const values = form.getValues();
     
+    console.log("Validating step", stepNumber, "with values:", values);
+    
     switch (stepNumber) {
       case 1:
-        return !!(values.tipoAvaliacao && values.objetivoAvaliacao);
+        const step1Valid = !!(values.tipoAvaliacao && values.objetivoAvaliacao);
+        console.log("Step 1 validation:", step1Valid, { tipoAvaliacao: values.tipoAvaliacao, objetivoAvaliacao: values.objetivoAvaliacao });
+        return step1Valid;
       case 2:
-        return !!(values.materia && values.capitulos?.length > 0 && values.temas?.length > 0);
+        const step2Valid = !!(values.materia && values.capitulos?.length > 0 && values.temas?.length > 0);
+        console.log("Step 2 validation:", step2Valid, { 
+          materia: values.materia, 
+          capitulos: values.capitulos?.length, 
+          temas: values.temas?.length 
+        });
+        return step2Valid;
       case 3:
-        return !!(values.numeroQuestoes && values.numeroQuestoes > 0 && values.tipoQuestoes);
+        const step3Valid = !!(values.numeroQuestoes && values.numeroQuestoes > 0 && values.tipoQuestoes);
+        console.log("Step 3 validation:", step3Valid, { numeroQuestoes: values.numeroQuestoes, tipoQuestoes: values.tipoQuestoes });
+        return step3Valid;
       case 4:
       case 5:
         return true; // Steps opcionais
       case 6:
-        return !!(values.formatoSaida?.length > 0);
+        const step6Valid = !!(values.formatoSaida?.length > 0);
+        console.log("Step 6 validation:", step6Valid, { formatoSaida: values.formatoSaida?.length });
+        return step6Valid;
       default:
         return true;
     }
@@ -155,6 +169,8 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
 
   const handleNextStep = () => {
     const isValid = validateStep(step);
+    
+    console.log("HandleNextStep - Step:", step, "IsValid:", isValid);
     
     if (!isValid) {
       let errorMessage = '';

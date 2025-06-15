@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -38,9 +37,24 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
   const [selectedUnidades, setSelectedUnidades] = useState<string[]>([]);
   const [selectedTemas, setSelectedTemas] = useState<string[]>([]);
 
-  const materias = form.watch("materia");
+  // Watch form values
+  const materia = form.watch("materia");
   const capitulos = form.watch("capitulos") || [];
   const temas = form.watch("temas") || [];
+
+  // Debug log
+  useEffect(() => {
+    console.log("EstruturaStep Debug:", {
+      materia,
+      capitulos: capitulos.length,
+      temas: temas.length,
+      selectedArea,
+      selectedComponente,
+      selectedAno,
+      selectedUnidades: selectedUnidades.length,
+      selectedTemas: selectedTemas.length
+    });
+  }, [materia, capitulos, temas, selectedArea, selectedComponente, selectedAno, selectedUnidades, selectedTemas]);
 
   // Pré-selecionar baseado nas preferências do usuário
   useEffect(() => {
@@ -134,6 +148,10 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
     
     // Carregar objetos de conhecimento para as unidades selecionadas
     if (newSelectedUnidades.length > 0) {
+      // Clear existing objetos first
+      setSelectedTemas([]);
+      form.setValue("temas", []);
+      
       newSelectedUnidades.forEach(id => {
         fetchObjetosConhecimentoByUnidade(id);
       });
@@ -165,6 +183,15 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Debug Info */}
+          <div className="p-3 bg-blue-50 rounded-lg text-sm">
+            <strong>Status da Validação:</strong>
+            <div>Matéria: {materia ? '✓' : '✗'} ({materia || 'não selecionada'})</div>
+            <div>Capítulos: {capitulos?.length > 0 ? '✓' : '✗'} ({capitulos?.length || 0} selecionados)</div>
+            <div>Temas: {temas?.length > 0 ? '✓' : '✗'} ({temas?.length || 0} selecionados)</div>
+            <div>Pode avançar: {(materia && capitulos?.length > 0 && temas?.length > 0) ? '✓ SIM' : '✗ NÃO'}</div>
+          </div>
+
           {/* Área de Conhecimento */}
           <FormField
             control={form.control}
@@ -366,19 +393,6 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
               )}
             />
           </div>
-
-          {/* Área de debug para mostrar valores atuais */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-6 p-4 bg-gray-100 rounded text-xs">
-              <strong>Debug Info:</strong>
-              <div>Matéria: {materias || 'não selecionada'}</div>
-              <div>Capítulos: {capitulos?.length || 0} selecionados</div>
-              <div>Temas: {temas?.length || 0} selecionados</div>
-              <div>Selected Area: {selectedArea || 'none'}</div>
-              <div>Selected Component: {selectedComponente || 'none'}</div>
-              <div>Selected Year: {selectedAno || 'none'}</div>
-            </div>
-          )}
         </CardContent>
       </>
     </TooltipProvider>
