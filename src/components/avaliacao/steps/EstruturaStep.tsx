@@ -224,7 +224,7 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {areas.map((area) => (
+                    {areas.filter(area => area.id && area.id.trim() !== "").map((area) => (
                       <SelectItem key={area.id} value={area.id}>
                         {area.nome}
                       </SelectItem>
@@ -261,7 +261,7 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {componentesFiltrados.map((componente) => (
+                    {componentesFiltrados.filter(componente => componente.id && componente.id.trim() !== "").map((componente) => (
                       <SelectItem key={componente.id} value={componente.id}>
                         {componente.nome}
                       </SelectItem>
@@ -294,7 +294,7 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {anosEscolaresFiltrados.map((ano) => (
+                    {anosEscolaresFiltrados.filter(ano => ano.id && ano.id.trim() !== "").map((ano) => (
                       <SelectItem key={ano.id} value={ano.id}>
                         {ano.nome}
                       </SelectItem>
