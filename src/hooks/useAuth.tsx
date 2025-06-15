@@ -138,67 +138,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, name: string, userType: UserType) => {
     try {
-      console.log('Attempting sign up for:', email, 'as', userType);
+      console.log('Attempting sign up via Edge Function for:', email, 'as', userType);
       
       const validTypes: UserType[] = ['professor', 'instituicao', 'aluno', 'pais'];
       if (!validTypes.includes(userType)) {
         throw new Error('Tipo de usuário inválido');
       }
-      
-      // Configure redirect URL for verification with more detail
-      const redirectUrl = `${window.location.origin}/onboarding`;
-      
-      console.log('Using redirect URL:', redirectUrl);
-      
-      const { error, data } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          data: {
-            name,
-            type: userType
-          },
-          // NOTA: Estamos enviando um email de verificação customizado via Edge Function.
-          // A opção `emailRedirectTo` do Supabase não será usada primariamente.
-        }
+
+      // 1. Call custom-signup edge function to create the user
+      const { data: responseData, error: invokeError } = await supabase.functions.invoke('custom-signup', {
+        body: { email, password, name, userType },
       });
-      
-      if (error) {
-        console.error('Sign up error details:', error);
-        
-        // Melhor tratamento de erros específicos
-        if (error.message.includes('User already registered')) {
-          throw new Error('Este email já está cadastrado. Tente fazer login ou use outro email.');
-        } else if (error.message.includes('Invalid email')) {
-          throw new Error('Email inválido. Verifique o formato do email.');
-        } else if (error.message.includes('Password')) {
-          throw new Error('Senha inválida. Verifique se atende aos critérios.');
-        }
-        
-        throw error;
+
+      if (invokeError) {
+        console.error('Custom signup function invoke error:', invokeError);
+        throw new Error(invokeError.message || 'Falha ao se comunicar com o servidor de cadastro.');
       }
       
-      console.log('Signup successful, user created:', data.user?.id);
+      // The edge function itself might return an error in its body
+      if (responseData.error) {
+         console.error('Error returned from custom-signup function:', responseData.error);
+         throw new Error(responseData.error);
+      }
 
-      if (data.user) {
-        console.log('Invoking custom verification email function.');
-        const { error: functionError } = await supabase.functions.invoke('send-verification-email', {
-          body: {
-            userId: data.user.id,
-            email: email,
-            redirectTo: redirectUrl,
-          },
+      const { user } = responseData;
+
+      if (!user) {
+        throw new Error('Usuário não foi criado. Tente novamente.');
+      }
+
+      console.log('Signup successful, user created:', user.id);
+
+      // 2. Invoke custom verification email function
+      const redirectUrl = `${window.location.origin}/onboarding`;
+      console.log('Invoking custom verification email function with redirect to:', redirectUrl);
+      const { error: functionError } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          userId: user.id,
+          email: email,
+          redirectTo: redirectUrl,
+        },
+      });
+
+      if (functionError) {
+        // Log the error but don't block the flow. User can resend on the next screen.
+        console.error('Error invoking send-verification-email function:', functionError);
+        toast({
+          variant: 'destructive',
+          title: 'Erro ao enviar email de verificação',
+          description: 'Você pode tentar reenviar o email na próxima tela.',
         });
-
-        if (functionError) {
-          // Loga o erro mas não bloqueia o fluxo. O usuário pode reenviar na próxima tela.
-          console.error('Error invoking send-verification-email function:', functionError);
-          toast({
-            variant: 'destructive',
-            title: 'Erro ao enviar email de verificação',
-            description: 'Você pode tentar reenviar o email na próxima tela.',
-          });
-        }
       }
       
       toast({
@@ -206,7 +195,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: 'Verifique seu email para confirmar sua conta.'
       });
       
-      // Não redirecionar automaticamente - Register.tsx cuida disso
+      // Register.tsx handles navigation to /verification-pending
     } catch (error: any) {
       console.error('Signup error:', error);
       toast({
