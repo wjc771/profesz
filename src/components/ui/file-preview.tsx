@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -134,15 +133,22 @@ export function FilePreview({ data, formats, onDownload }: FilePreviewProps) {
         break;
     }
 
-    if (onDownload) {
-      onDownload(format, content);
-    } else {
-      await FileDownloadService.downloadFile({
-        filename,
-        content,
-        type: actualType,
-        actualContentType: 'text'
-      });
+    try {
+      console.log("[FilePreview] Downloading...", { format, filename, actualType, content: content?.slice?.(0, 100) });
+      if (onDownload) {
+        onDownload(format, content);
+      } else {
+        await FileDownloadService.downloadFile({
+          filename,
+          content,
+          type: actualType,
+          actualContentType: 'text'
+        });
+      }
+      console.log("[FilePreview] Download disparado com sucesso");
+    } catch (err) {
+      console.error("[FilePreview] Erro ao tentar baixar:", err);
+      alert("Erro ao baixar arquivo. Tente novamente ou entre em contato com o suporte.");
     }
   };
 
