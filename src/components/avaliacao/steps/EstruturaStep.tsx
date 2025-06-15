@@ -39,7 +39,6 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
   const [selectedTemas, setSelectedTemas] = useState<string[]>([]);
 
   const materias = form.watch("materia");
-  const unidade = form.watch("unidade");
   const capitulos = form.watch("capitulos") || [];
   const temas = form.watch("temas") || [];
 
@@ -87,7 +86,6 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
     setSelectedUnidades([]);
     setSelectedTemas([]);
     form.setValue("materia", "");
-    form.setValue("unidade", "");
     form.setValue("capitulos", []);
     form.setValue("temas", []);
     fetchComponentesByArea(areaId);
@@ -97,7 +95,6 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
     setSelectedComponente(componenteId);
     setSelectedUnidades([]);
     setSelectedTemas([]);
-    form.setValue("unidade", "");
     form.setValue("capitulos", []);
     form.setValue("temas", []);
     
@@ -114,7 +111,6 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
     setSelectedAno(anoId);
     setSelectedUnidades([]);
     setSelectedTemas([]);
-    form.setValue("unidade", "");
     form.setValue("capitulos", []);
     form.setValue("temas", []);
     
@@ -141,6 +137,10 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
       newSelectedUnidades.forEach(id => {
         fetchObjetosConhecimentoByUnidade(id);
       });
+    } else {
+      // Limpar temas se nenhuma unidade estiver selecionada
+      setSelectedTemas([]);
+      form.setValue("temas", []);
     }
   };
 
@@ -153,7 +153,6 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
     form.setValue("temas", newSelectedTemas);
   };
 
-  const isAdmin = plano === 'maestro' || plano === 'institucional';
   const canUseBncc = plano !== 'inicial';
 
   return (
@@ -173,7 +172,7 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2">
-                  Área de Conhecimento *
+                  Área de Conhecimento
                   <Tooltip>
                     <TooltipTrigger>
                       <Info className="h-4 w-4 text-muted-foreground" />
@@ -246,7 +245,7 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2">
-                  Ano Escolar *
+                  Ano Escolar
                   {preferences?.grade_level && (
                     <Badge variant="outline" className="text-xs">
                       Pré-selecionado
@@ -349,7 +348,7 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
                 <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       disabled={!canUseBncc}
                     />
@@ -367,6 +366,19 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
               )}
             />
           </div>
+
+          {/* Área de debug para mostrar valores atuais */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-6 p-4 bg-gray-100 rounded text-xs">
+              <strong>Debug Info:</strong>
+              <div>Matéria: {materias || 'não selecionada'}</div>
+              <div>Capítulos: {capitulos?.length || 0} selecionados</div>
+              <div>Temas: {temas?.length || 0} selecionados</div>
+              <div>Selected Area: {selectedArea || 'none'}</div>
+              <div>Selected Component: {selectedComponente || 'none'}</div>
+              <div>Selected Year: {selectedAno || 'none'}</div>
+            </div>
+          )}
         </CardContent>
       </>
     </TooltipProvider>

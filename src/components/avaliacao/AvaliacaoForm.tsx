@@ -133,113 +133,52 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
     }
   };
   
-  const currentStepIsValid = () => {
-    const currentFields = getCurrentStepFields();
+  const validateStep = (stepNumber: number): boolean => {
+    const values = form.getValues();
     
-    if (currentFields.length === 0) {
-      return true;
-    }
-    
-    return currentFields.every((field) => {
-      const fieldState = form.getFieldState(field as any);
-      const value = form.getValues(field as any);
-      
-      if (isOptionalField(field)) {
-        return true;
-      }
-      
-      if (fieldState.error) {
-        return false;
-      }
-      
-      if (isEmptyValue(value)) {
-        return false;
-      }
-      
-      return true;
-    });
-  };
-  
-  const isOptionalField = (field: string) => {
-    const optionalFields = [
-      'incluirBncc', 'proporcaoMultiplaEscolha', 'area', 'anoEscolar', 'unidade',
-      'incluirFormulas', 'incluirImagens', 'incluirTabelas', 
-      'incluirContexto', 'incluirInterdisciplinar', 'permitirCalculadora', 
-      'incluirGabarito', 'questoesAdaptativas', 'estiloQuestoes',
-      'formatoApresentacao', 'logo', 'cabecalhoPersonalizado',
-      'rodapePersonalizado', 'estiloFonte', 'duracaoSugerida',
-      'tempoPorQuestao', 'incluirCronometro', 'opcaoCompartilhamento',
-      'tipoCompeticao', 'modelosCompeticao'
-    ];
-    
-    return optionalFields.includes(field);
-  };
-  
-  const isEmptyValue = (value: any) => {
-    if (value === undefined || value === null) {
-      return true;
-    }
-    
-    if (Array.isArray(value)) {
-      return value.length === 0;
-    }
-    
-    if (typeof value === 'string') {
-      return value.trim() === '';
-    }
-    
-    return false;
-  };
-
-  const getCurrentStepFields = () => {
-    switch (step) {
-      case 1: // Configuração Básica
-        return ['tipoAvaliacao', 'objetivoAvaliacao'];
-      case 2: // Estrutura Curricular
-        return ['materia', 'capitulos', 'temas'];
-      case 3: // Configuração das Questões
-        return ['numeroQuestoes', 'tipoQuestoes', 'nivelDificuldade'];
-      case 4: // Personalização Avançada
-        return []; // Todos campos opcionais
-      case 5: // Modelos de Competição
-        return []; // Todos campos opcionais
-      case 6: // Distribuição
-        return ['formatoSaida'];
+    switch (stepNumber) {
+      case 1:
+        return !!(values.tipoAvaliacao && values.objetivoAvaliacao);
+      case 2:
+        return !!(values.materia && values.capitulos?.length > 0 && values.temas?.length > 0);
+      case 3:
+        return !!(values.numeroQuestoes && values.numeroQuestoes > 0 && values.tipoQuestoes);
+      case 4:
+      case 5:
+        return true; // Steps opcionais
+      case 6:
+        return !!(values.formatoSaida?.length > 0);
       default:
-        return [];
+        return true;
     }
   };
 
   const handleNextStep = () => {
-    let errors: string[] = [];
-
-    switch (step) {
-      case 1:
-        const values1 = form.getValues();
-        if (!values1.tipoAvaliacao) errors.push('Tipo de avaliação é obrigatório');
-        if (!values1.objetivoAvaliacao) errors.push('Objetivo da avaliação é obrigatório');
-        break;
-      case 2:
-        const values2 = form.getValues();
-        if (!values2.materia) errors.push('Matéria é obrigatória');
-        if (!values2.capitulos || values2.capitulos.length === 0) errors.push('Selecione pelo menos uma unidade temática');
-        if (!values2.temas || values2.temas.length === 0) errors.push('Selecione pelo menos um objeto de conhecimento');
-        break;
-      case 3:
-        const values3 = form.getValues();
-        if (!values3.numeroQuestoes || values3.numeroQuestoes < 1) errors.push('Número de questões deve ser maior que 0');
-        if (!values3.tipoQuestoes) errors.push('Tipo de questões é obrigatório');
-        break;
-      case 6:
-        const formatos = form.getValues('formatoSaida');
-        if (!formatos || formatos.length === 0) errors.push('Selecione pelo menos um formato de saída');
-        break;
-    }
-
-    if (errors.length > 0) {
+    const isValid = validateStep(step);
+    
+    if (!isValid) {
+      let errorMessage = '';
+      
+      switch (step) {
+        case 1:
+          errorMessage = 'Preencha o tipo e objetivo da avaliação';
+          break;
+        case 2:
+          errorMessage = 'Selecione a matéria, unidades temáticas e objetos de conhecimento';
+          break;
+        case 3:
+          errorMessage = 'Configure o número e tipo de questões';
+          break;
+        case 6:
+          errorMessage = 'Selecione pelo menos um formato de saída';
+          break;
+        default:
+          errorMessage = 'Preencha os campos obrigatórios';
+      }
+      
       toast({
         title: "Campos obrigatórios",
-        description: errors.join(', '),
+        description: errorMessage,
         variant: "destructive",
       });
       return;
@@ -375,7 +314,7 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
             totalSteps={totalSteps}
             onBack={prevStep}
             onNext={step === totalSteps ? form.handleSubmit(onSubmit) : handleNextStep}
-            canAdvance={currentStepIsValid()}
+            canAdvance={validateStep(step)}
             isLastStep={step === totalSteps}
           />
         </form>
