@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
@@ -64,9 +63,10 @@ const VerificationPending = () => {
         throw new Error('Email não encontrado. Tente fazer login novamente.');
       }
       
-      console.log('VerificationPending: Attempting to resend email to:', email);
+      console.log('VerificationPending: Attempting to resend confirmation email to:', email);
       console.log('VerificationPending: Current origin:', window.location.origin);
       
+      // Usar o método correto para reenviar email de confirmação de cadastro
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
@@ -85,16 +85,18 @@ const VerificationPending = () => {
           throw new Error('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
         } else if (error.message.includes('email_not_confirmed')) {
           throw new Error('Email ainda não foi confirmado. Aguarde o primeiro email chegar.');
+        } else if (error.message.includes('already_registered')) {
+          throw new Error('Este email já está confirmado. Tente fazer login diretamente.');
         }
         
         throw error;
       }
       
-      console.log('VerificationPending: Email resent successfully');
+      console.log('VerificationPending: Confirmation email resent successfully');
       
       toast({
         title: 'Email reenviado!',
-        description: 'Um novo email de verificação foi enviado. Verifique sua caixa de entrada e spam.'
+        description: 'Um novo email de confirmação foi enviado. Verifique sua caixa de entrada e spam.'
       });
       
     } catch (error: any) {
@@ -253,7 +255,7 @@ const VerificationPending = () => {
                 Reenviando...
               </>
             ) : (
-              'Reenviar email de verificação'
+              'Reenviar email de confirmação'
             )}
           </Button>
           
