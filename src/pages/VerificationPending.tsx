@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { Check, Mail, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { sendVerificationEmailViaSupabase } from '@/utils/emailUtils';
+import { resendCustomVerificationEmail } from '@/utils/emailUtils';
 
 const VerificationPending = () => {
   const { toast } = useToast();
@@ -79,9 +78,10 @@ const VerificationPending = () => {
         throw new Error('Email é obrigatório. Por favor, insira seu email.');
       }
       
-      console.log('📧 VerificationPending: Reenviando email via Supabase para:', emailToUse);
+      console.log('📧 VerificationPending: Reenviando email via Edge Function para:', emailToUse);
       
-      await sendVerificationEmailViaSupabase({
+      // Usa a nova função que chama a Edge Function
+      await resendCustomVerificationEmail({
         email: emailToUse,
         redirectTo: `${window.location.origin}/onboarding`
       });
@@ -256,7 +256,7 @@ const VerificationPending = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>📧 Sistema simplificado:</strong> Usando método nativo do Supabase para envio de emails.
+              <strong>📧 Sistema de email customizado:</strong> Usando Resend para garantir a entrega dos emails a partir do nosso domínio.
             </AlertDescription>
           </Alert>
 
@@ -265,7 +265,7 @@ const VerificationPending = () => {
               <strong>🔧 Debug info:</strong>
               <br />📧 Email: {userEmail}
               <br />🌐 Origem: {window.location.origin}
-              <br />📡 Método: Supabase nativo
+              <br />📡 Método: Edge Function + Resend
             </div>
           )}
         </CardContent>

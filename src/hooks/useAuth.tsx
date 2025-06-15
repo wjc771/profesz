@@ -158,7 +158,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             name,
             type: userType
           },
-          emailRedirectTo: redirectUrl
+          // NOTA: Estamos enviando um email de verificação customizado via Edge Function.
+          // A opção `emailRedirectTo` do Supabase não será usada primariamente.
         }
       });
       
@@ -177,14 +178,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw error;
       }
       
-      console.log('Signup successful:', data);
+      console.log('Signup successful, user created:', data.user?.id);
+
+      if (data.user) {
+        console.log('Invoking custom verification email function.');
+        const { error: functionError } = await supabase.functions.invoke('send-verification-email', {
+          body: {
+            userId: data.user.id,
+            email: email,
+            redirectTo: redirectUrl,
+          },
+        });
+
+        if (functionError) {
+          // Loga o erro mas não bloqueia o fluxo. O usuário pode reenviar na próxima tela.
+          console.error('Error invoking send-verification-email function:', functionError);
+          toast({
+            variant: 'destructive',
+            title: 'Erro ao enviar email de verificação',
+            description: 'Você pode tentar reenviar o email na próxima tela.',
+          });
+        }
+      }
       
       toast({
         title: 'Cadastro realizado com sucesso!',
         description: 'Verifique seu email para confirmar sua conta.'
       });
       
-      // Don't redirect automatically - let Register.tsx handle it
+      // Não redirecionar automaticamente - Register.tsx cuida disso
     } catch (error: any) {
       console.error('Signup error:', error);
       toast({
