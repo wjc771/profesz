@@ -27,6 +27,16 @@ export function AnoEscolarSelector({
   hasGradeLevelInProfile,
   onAnoChange 
 }: AnoEscolarSelectorProps) {
+  // Filtro mais rigoroso para garantir que não há IDs vazios
+  const validAnosEscolares = anosEscolares.filter(ano => 
+    ano && 
+    ano.id && 
+    typeof ano.id === 'string' && 
+    ano.id.trim().length > 0 &&
+    ano.nome && 
+    ano.nome.trim().length > 0
+  );
+
   return (
     <FormField
       control={form.control}
@@ -48,7 +58,7 @@ export function AnoEscolarSelector({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {anosEscolares.filter(ano => ano.id && ano.id.trim() !== "").map((ano) => (
+              {validAnosEscolares.map((ano) => (
                 <SelectItem key={ano.id} value={ano.id}>
                   {ano.nome}
                 </SelectItem>

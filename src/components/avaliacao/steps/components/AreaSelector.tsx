@@ -20,6 +20,16 @@ interface AreaSelectorProps {
 }
 
 export function AreaSelector({ form, areas, selectedArea, onAreaChange }: AreaSelectorProps) {
+  // Filtro mais rigoroso para garantir que não há IDs vazios
+  const validAreas = areas.filter(area => 
+    area && 
+    area.id && 
+    typeof area.id === 'string' && 
+    area.id.trim().length > 0 &&
+    area.nome && 
+    area.nome.trim().length > 0
+  );
+
   return (
     <FormField
       control={form.control}
@@ -44,7 +54,7 @@ export function AreaSelector({ form, areas, selectedArea, onAreaChange }: AreaSe
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {areas.filter(area => area.id && area.id.trim() !== "").map((area) => (
+              {validAreas.map((area) => (
                 <SelectItem key={area.id} value={area.id}>
                   {area.nome}
                 </SelectItem>

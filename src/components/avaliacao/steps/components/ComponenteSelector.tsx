@@ -28,6 +28,16 @@ export function ComponenteSelector({
   hasSubjectsInProfile,
   onComponenteChange 
 }: ComponenteSelectorProps) {
+  // Filtro mais rigoroso para garantir que não há IDs vazios
+  const validComponentes = componentes.filter(componente => 
+    componente && 
+    componente.id && 
+    typeof componente.id === 'string' && 
+    componente.id.trim().length > 0 &&
+    componente.nome && 
+    componente.nome.trim().length > 0
+  );
+
   return (
     <FormField
       control={form.control}
@@ -53,7 +63,7 @@ export function ComponenteSelector({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {componentes.filter(componente => componente.id && componente.id.trim() !== "").map((componente) => (
+              {validComponentes.map((componente) => (
                 <SelectItem key={componente.id} value={componente.id}>
                   {componente.nome}
                 </SelectItem>
