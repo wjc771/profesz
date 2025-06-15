@@ -13,12 +13,17 @@ export const OnboardingRequired = ({ children }: OnboardingRequiredProps) => {
   const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   useEffect(() => {
+    console.log('OnboardingRequired: checking...', { user: !!user, loading });
+    
     if (!loading && user) {
       // Verificar se o onboarding foi completado
       const onboardingCompleted = localStorage.getItem('onboarding_completed');
       
+      console.log('OnboardingRequired: onboarding status', { onboardingCompleted });
+      
       if (!onboardingCompleted) {
         // Redirecionar para onboarding se não foi completado
+        console.log('OnboardingRequired: Redirecting to onboarding');
         navigate('/onboarding', { 
           state: { 
             firstLogin: true, 
@@ -26,6 +31,7 @@ export const OnboardingRequired = ({ children }: OnboardingRequiredProps) => {
           } 
         });
       } else {
+        console.log('OnboardingRequired: Onboarding completed, allowing access');
         setOnboardingChecked(true);
       }
     }

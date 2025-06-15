@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
@@ -34,17 +33,25 @@ export default function NewOnboarding() {
   
   // Verificar se o usuário já completou o onboarding
   useEffect(() => {
+    console.log('NewOnboarding: Component mounted', { user: !!user, loading });
+    
     if (!loading) {
       if (!user) {
+        console.log('NewOnboarding: No user, redirecting to login');
         navigate('/login');
         return;
       }
       
       const onboardingCompleted = localStorage.getItem('onboarding_completed');
+      console.log('NewOnboarding: Checking onboarding status', { onboardingCompleted });
+      
       if (onboardingCompleted) {
+        console.log('NewOnboarding: Onboarding already completed, redirecting to dashboard');
         navigate('/dashboard');
         return;
       }
+      
+      console.log('NewOnboarding: User authenticated, onboarding not completed - proceeding');
     }
   }, [user, loading, navigate]);
   
@@ -55,6 +62,7 @@ export default function NewOnboarding() {
   // Definir userType se foi preselectionado
   useEffect(() => {
     if (preselectedUserType && !userType) {
+      console.log('NewOnboarding: Setting preselected user type', { preselectedUserType });
       setUserType(preselectedUserType);
     }
   }, [preselectedUserType, userType]);
@@ -83,6 +91,8 @@ export default function NewOnboarding() {
   };
 
   const handleFinish = () => {
+    console.log('NewOnboarding: Finishing onboarding', { userType, questionnaireData });
+    
     localStorage.setItem('onboarding_completed', 'true');
     localStorage.setItem('user_type', userType || '');
     localStorage.setItem('questionnaire_data', JSON.stringify(questionnaireData));
@@ -92,10 +102,12 @@ export default function NewOnboarding() {
       description: 'Sua conta foi configurada com sucesso. Bem-vindo ao ProfesZ!',
     });
     
+    console.log('NewOnboarding: Redirecting to dashboard');
     navigate('/dashboard');
   };
 
   if (loading) {
+    console.log('NewOnboarding: Still loading...');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -104,8 +116,11 @@ export default function NewOnboarding() {
   }
 
   if (!user) {
+    console.log('NewOnboarding: No user found');
     return null;
   }
+
+  console.log('NewOnboarding: Rendering step', { currentStep });
 
   const renderCurrentStep = () => {
     switch (currentStep) {

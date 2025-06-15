@@ -1,8 +1,8 @@
-
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { OnboardingRequired } from './components/auth/OnboardingRequired';
+import { AuthOnlyRequired } from './components/auth/AuthOnlyRequired';
 import { Toaster } from './components/ui/toaster';
 import MainLayout from './components/layout/MainLayout';
 
@@ -92,6 +92,15 @@ const ProtectedPageLayout = ({ element }: { element: React.ReactNode }) => {
   );
 };
 
+// Layout wrapper component for onboarding (only requires auth, not completed onboarding)
+const OnboardingLayout = ({ element }: { element: React.ReactNode }) => {
+  return (
+    <AuthOnlyRequired>
+      {element}
+    </AuthOnlyRequired>
+  );
+};
+
 // Layout wrapper component for public pages
 const PageLayout = ({ element }: { element: React.ReactNode }) => {
   const currentPath = window.location.pathname;
@@ -126,7 +135,7 @@ function App() {
               <Route path="/verification-pending" element={<VerificationPending />} />
               
               {/* Onboarding Route - Requires Auth but not Onboarding completion */}
-              <Route path="/onboarding" element={<NewOnboarding />} />
+              <Route path="/onboarding" element={<OnboardingLayout element={<NewOnboarding />} />} />
               
               {/* Protected Routes - Require Auth + Onboarding */}
               <Route path="/dashboard" element={<ProtectedPageLayout element={<Dashboard />} />} />
