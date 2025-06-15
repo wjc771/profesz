@@ -37,6 +37,9 @@ export function AnoEscolarSelector({
     ano.nome.trim().length > 0
   );
 
+  // Garantir que selectedAno nunca seja uma string vazia
+  const safeSelectedAno = selectedAno && selectedAno.trim() !== "" ? selectedAno : undefined;
+
   return (
     <FormField
       control={form.control}
@@ -51,7 +54,7 @@ export function AnoEscolarSelector({
               </Badge>
             )}
           </FormLabel>
-          <Select onValueChange={onAnoChange} value={selectedAno}>
+          <Select onValueChange={onAnoChange} value={safeSelectedAno}>
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o ano escolar" />

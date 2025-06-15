@@ -30,6 +30,9 @@ export function AreaSelector({ form, areas, selectedArea, onAreaChange }: AreaSe
     area.nome.trim().length > 0
   );
 
+  // Garantir que selectedArea nunca seja uma string vazia
+  const safeSelectedArea = selectedArea && selectedArea.trim() !== "" ? selectedArea : undefined;
+
   return (
     <FormField
       control={form.control}
@@ -47,7 +50,7 @@ export function AreaSelector({ form, areas, selectedArea, onAreaChange }: AreaSe
               </TooltipContent>
             </Tooltip>
           </FormLabel>
-          <Select onValueChange={onAreaChange} value={selectedArea}>
+          <Select onValueChange={onAreaChange} value={safeSelectedArea}>
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma área de conhecimento" />

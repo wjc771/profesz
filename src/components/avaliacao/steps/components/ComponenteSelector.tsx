@@ -38,6 +38,9 @@ export function ComponenteSelector({
     componente.nome.trim().length > 0
   );
 
+  // Garantir que selectedComponente nunca seja uma string vazia
+  const safeSelectedComponente = selectedComponente && selectedComponente.trim() !== "" ? selectedComponente : undefined;
+
   return (
     <FormField
       control={form.control}
@@ -54,7 +57,7 @@ export function ComponenteSelector({
           </FormLabel>
           <Select 
             onValueChange={onComponenteChange} 
-            value={selectedComponente}
+            value={safeSelectedComponente}
             disabled={!selectedArea}
           >
             <FormControl>
