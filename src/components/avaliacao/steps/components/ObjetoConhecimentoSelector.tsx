@@ -27,7 +27,19 @@ export function ObjetoConhecimentoSelector({
   loading,
   onTemaToggle 
 }: ObjetoConhecimentoSelectorProps) {
-  if (objetosConhecimento.length === 0) return null;
+  // Filtro mais rigoroso para garantir que não há IDs vazios
+  const validObjetosConhecimento = objetosConhecimento.filter(objeto => 
+    objeto && 
+    objeto.id && 
+    typeof objeto.id === 'string' && 
+    objeto.id.trim().length > 0 &&
+    objeto.nome && 
+    objeto.nome.trim().length > 0
+  );
+
+  console.log("ObjetoConhecimentoSelector - Valid objects:", validObjetosConhecimento.length, "Total objects:", objetosConhecimento.length);
+
+  if (validObjetosConhecimento.length === 0) return null;
 
   return (
     <FormField
@@ -41,7 +53,7 @@ export function ObjetoConhecimentoSelector({
             <Badge variant="outline" className="text-xs">Opcional</Badge>
           </FormLabel>
           <div className="grid grid-cols-1 gap-3 mt-2 max-h-48 overflow-y-auto">
-            {objetosConhecimento.map((objeto) => (
+            {validObjetosConhecimento.map((objeto) => (
               <div key={objeto.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={objeto.id}

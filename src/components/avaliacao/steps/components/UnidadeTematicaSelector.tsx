@@ -27,7 +27,19 @@ export function UnidadeTematicaSelector({
   loading,
   onUnidadeToggle 
 }: UnidadeTematicaSelectorProps) {
-  if (unidadesTematicas.length === 0) return null;
+  // Filtro mais rigoroso para garantir que não há IDs vazios
+  const validUnidadesTematicas = unidadesTematicas.filter(unidade => 
+    unidade && 
+    unidade.id && 
+    typeof unidade.id === 'string' && 
+    unidade.id.trim().length > 0 &&
+    unidade.nome && 
+    unidade.nome.trim().length > 0
+  );
+
+  console.log("UnidadeTematicaSelector - Valid units:", validUnidadesTematicas.length, "Total units:", unidadesTematicas.length);
+
+  if (validUnidadesTematicas.length === 0) return null;
 
   return (
     <FormField
@@ -40,7 +52,7 @@ export function UnidadeTematicaSelector({
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           </FormLabel>
           <div className="grid grid-cols-1 gap-3 mt-2">
-            {unidadesTematicas.map((unidade) => (
+            {validUnidadesTematicas.map((unidade) => (
               <div key={unidade.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={unidade.id}
