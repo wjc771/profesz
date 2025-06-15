@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -54,9 +53,10 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
       selectedComponente,
       selectedAno,
       selectedUnidades: selectedUnidades.length,
-      selectedTemas: selectedTemas.length
+      selectedTemas: selectedTemas.length,
+      plano: plano // Adicionar plano ao debug para verificar
     });
-  }, [materia, capitulos, temas, selectedArea, selectedComponente, selectedAno, selectedUnidades, selectedTemas]);
+  }, [materia, capitulos, temas, selectedArea, selectedComponente, selectedAno, selectedUnidades, selectedTemas, plano]);
 
   // Pré-selecionar baseado nas preferências do usuário
   useEffect(() => {
@@ -192,6 +192,7 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
           {/* Status da Validação */}
           <div className="p-3 bg-blue-50 rounded-lg text-sm">
             <strong>Status da Validação:</strong>
+            <div>Plano: {plano} {plano === 'maestro' && '✓ (Admin)'}</div>
             <div>Matéria: {materia ? '✓' : '✗'} ({materia || 'não selecionada'})</div>
             <div>Unidades Temáticas: {capitulos?.length > 0 ? '✓' : '✗'} ({capitulos?.length || 0} selecionadas)</div>
             <div>Objetos de Conhecimento: {temas?.length > 0 ? '✓' : hasObjetosConhecimento ? '✗' : 'N/A'} ({temas?.length || 0} selecionados)</div>
@@ -404,6 +405,7 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
                     <FormLabel className="flex items-center gap-2">
                       Incluir alinhamento detalhado com BNCC
                       {!canUseBncc && <Badge className="text-xs">Plano Essencial+</Badge>}
+                      {canUseBncc && plano === 'maestro' && <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Admin</Badge>}
                     </FormLabel>
                     <p className="text-sm text-muted-foreground">
                       Adicionar códigos de habilidades específicas da BNCC
