@@ -1,4 +1,3 @@
-
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +42,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           localStorage.removeItem('user_type');
           localStorage.removeItem('questionnaire_data');
           localStorage.removeItem('email_verification_skipped');
+          localStorage.removeItem('pending_verification_email');
+        }
+        
+        // Se usuário confirmou email, limpar email pendente
+        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+          console.log('User signed in with confirmed email, clearing pending email');
+          localStorage.removeItem('pending_verification_email');
         }
       }
     );
@@ -75,6 +81,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             title: 'Email não verificado',
             description: 'Você precisa verificar seu email antes de fazer login. Redirecionando...'
           });
+          // Salvar email para reenvio
+          localStorage.setItem('pending_verification_email', email);
           navigate('/verification-pending');
           return;
         }
@@ -92,6 +100,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('Sign in successful for user:', data.user?.email);
+      
+      // Limpar email pendente após login bem-sucedido
+      localStorage.removeItem('pending_verification_email');
       
       toast({
         title: 'Login realizado com sucesso',
@@ -196,6 +207,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem('user_type');
       localStorage.removeItem('questionnaire_data');
       localStorage.removeItem('email_verification_skipped');
+      localStorage.removeItem('pending_verification_email');
       
       toast({
         title: 'Logout realizado com sucesso',

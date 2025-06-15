@@ -75,7 +75,10 @@ const Register = () => {
 
       await signUp(data.email, data.password, data.name, data.type);
       
-      console.log('Register: Signup successful, redirecting to verification');
+      console.log('Register: Signup successful, saving email and redirecting to verification');
+      
+      // Salvar email no localStorage para usar no reenvio
+      localStorage.setItem('pending_verification_email', data.email);
       
       // Redirecionar para verificação após cadastro bem-sucedido
       navigate('/verification-pending', { 

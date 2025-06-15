@@ -1,5 +1,7 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -13,6 +15,8 @@ const VerificationPending = () => {
   const [resending, setResending] = useState(false);
   const [checking, setChecking] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
+  const [manualEmail, setManualEmail] = useState<string>('');
+  const [showManualInput, setShowManualInput] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -26,13 +30,24 @@ const VerificationPending = () => {
           return;
         }
         
-        if (sessionData.session?.user?.email) {
-          console.log('VerificationPending: Found user email:', sessionData.session.user.email);
-          setUserEmail(sessionData.session.user.email);
+        // Tentar obter email da sessão primeiro
+        let email = sessionData.session?.user?.email;
+        
+        // Se não houver email na sessão, tentar obter do localStorage
+        if (!email) {
+          email = localStorage.getItem('pending_verification_email');
+          console.log('VerificationPending: Got email from localStorage:', email);
+        }
+        
+        if (email) {
+          console.log('VerificationPending: Found user email:', email);
+          setUserEmail(email);
           
           // Verificar se já está confirmado
-          if (sessionData.session.user.email_confirmed_at) {
+          if (sessionData.session?.user?.email_confirmed_at) {
             console.log('VerificationPending: Email already confirmed, redirecting to onboarding');
+            // Limpar email salvo
+            localStorage.removeItem('pending_verification_email');
             toast({
               title: 'Email já verificado!',
               description: 'Redirecionando para o onboarding...'
@@ -40,7 +55,8 @@ const VerificationPending = () => {
             navigate('/onboarding');
           }
         } else {
-          console.log('VerificationPending: No user session found');
+          console.log('VerificationPending: No email found in session or localStorage');
+          setShowManualInput(true);
         }
       } catch (error) {
         console.error('VerificationPending: Error checking session:', error);
@@ -56,20 +72,20 @@ const VerificationPending = () => {
     try {
       console.log('VerificationPending: Starting resend process...');
       
-      const { data: sessionData } = await supabase.auth.getSession();
-      const email = sessionData.session?.user?.email || userEmail;
+      // Usar email manual se fornecido, senão usar o email salvo
+      const emailToUse = manualEmail.trim() || userEmail;
       
-      if (!email) {
-        throw new Error('Email não encontrado. Tente fazer login novamente.');
+      if (!emailToUse) {
+        throw new Error('Email é obrigatório. Por favor, insira seu email.');
       }
       
-      console.log('VerificationPending: Attempting to resend confirmation email to:', email);
+      console.log('VerificationPending: Attempting to resend confirmation email to:', emailToUse);
       console.log('VerificationPending: Current origin:', window.location.origin);
       
       // Usar o método correto para reenviar email de confirmação de cadastro
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email: email,
+        email: emailToUse,
         options: {
           emailRedirectTo: `${window.location.origin}/onboarding`
         }
@@ -93,6 +109,14 @@ const VerificationPending = () => {
       }
       
       console.log('VerificationPending: Confirmation email resent successfully');
+      
+      // Se usamos email manual com sucesso, salvar para futuras tentativas
+      if (manualEmail.trim()) {
+        setUserEmail(manualEmail.trim());
+        localStorage.setItem('pending_verification_email', manualEmail.trim());
+        setManualEmail('');
+        setShowManualInput(false);
+      }
       
       toast({
         title: 'Email reenviado!',
@@ -135,6 +159,9 @@ const VerificationPending = () => {
       if (user?.email_confirmed_at) {
         console.log('VerificationPending: Email confirmed! Redirecting...');
         
+        // Limpar email salvo ao confirmar
+        localStorage.removeItem('pending_verification_email');
+        
         toast({
           title: 'Email verificado!',
           description: 'Sua conta foi verificada com sucesso. Redirecionando...'
@@ -169,6 +196,9 @@ const VerificationPending = () => {
   const handleSkipVerification = () => {
     console.log('VerificationPending: Skipping email verification for development');
     
+    // Limpar email salvo
+    localStorage.removeItem('pending_verification_email');
+    
     // Definir flag no localStorage para indicar que a verificação foi pulada
     localStorage.setItem('email_verification_skipped', 'true');
     
@@ -192,8 +222,12 @@ const VerificationPending = () => {
           </div>
           <CardTitle className="text-2xl font-bold">Verifique seu email</CardTitle>
           <CardDescription className="mt-2">
-            Enviamos um email de verificação para {userEmail || 'seu endereço'}.
-            Por favor, clique no link enviado para verificar sua conta.
+            {userEmail ? (
+              <>Enviamos um email de verificação para <strong>{userEmail}</strong>.</>
+            ) : (
+              <>Enviamos um email de verificação para seu endereço.</>
+            )}
+            {' '}Por favor, clique no link enviado para verificar sua conta.
           </CardDescription>
         </CardHeader>
         
@@ -209,6 +243,38 @@ const VerificationPending = () => {
               </div>
             </div>
           </div>
+
+          {showManualInput && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="font-medium">Email não encontrado automaticamente</p>
+                  <p className="text-sm">Por favor, insira o email usado no cadastro:</p>
+                  <Input
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={manualEmail}
+                    onChange={(e) => setManualEmail(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!showManualInput && (
+            <div className="text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowManualInput(true)}
+                className="text-muted-foreground"
+              >
+                Usar email diferente
+              </Button>
+            </div>
+          )}
 
           <Alert>
             <AlertCircle className="h-4 w-4" />
@@ -247,7 +313,7 @@ const VerificationPending = () => {
             onClick={handleResendEmail} 
             variant="outline" 
             className="w-full"
-            disabled={resending}
+            disabled={resending || (!userEmail && !manualEmail.trim())}
           >
             {resending ? (
               <>
