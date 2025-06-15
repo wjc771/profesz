@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -68,17 +67,26 @@ const Register = () => {
     setError(null);
 
     try {
+      console.log('Register: Starting signup process...', {
+        email: data.email,
+        name: data.name,
+        type: data.type
+      });
+
       await signUp(data.email, data.password, data.name, data.type);
       
-      // Redirecionar diretamente para o onboarding após cadastro
-      navigate('/onboarding', { 
+      console.log('Register: Signup successful, redirecting to verification');
+      
+      // Redirecionar para verificação após cadastro bem-sucedido
+      navigate('/verification-pending', { 
         state: { 
-          firstLogin: true, 
+          email: data.email,
           name: data.name,
           userType: data.type 
         } 
       });
     } catch (err: any) {
+      console.error('Register: Signup failed:', err);
       setError(err.message || 'Falha ao criar conta. Este email pode já estar em uso.');
     } finally {
       setIsLoading(false);

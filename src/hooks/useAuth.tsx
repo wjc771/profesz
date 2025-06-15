@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           localStorage.removeItem('onboarding_completed');
           localStorage.removeItem('user_type');
           localStorage.removeItem('questionnaire_data');
+          localStorage.removeItem('email_verification_skipped');
         }
       }
     );
@@ -133,8 +134,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error('Tipo de usuário inválido');
       }
       
-      // Configure redirect URL for verification
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      // Configure redirect URL for verification with more detail
+      const redirectUrl = `${window.location.origin}/onboarding`;
+      
+      console.log('Using redirect URL:', redirectUrl);
       
       const { error, data } = await supabase.auth.signUp({ 
         email, 
@@ -149,15 +152,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       
       if (error) {
-        console.error('Sign up error:', error);
+        console.error('Sign up error details:', error);
+        
+        // Melhor tratamento de erros específicos
+        if (error.message.includes('User already registered')) {
+          throw new Error('Este email já está cadastrado. Tente fazer login ou use outro email.');
+        } else if (error.message.includes('Invalid email')) {
+          throw new Error('Email inválido. Verifique o formato do email.');
+        } else if (error.message.includes('Password')) {
+          throw new Error('Senha inválida. Verifique se atende aos critérios.');
+        }
+        
         throw error;
       }
       
       console.log('Signup successful:', data);
       
       toast({
-        title: 'Cadastro realizado com sucesso',
-        description: 'Sua conta foi criada! Complete seu perfil no próximo passo.'
+        title: 'Cadastro realizado com sucesso!',
+        description: 'Verifique seu email para confirmar sua conta.'
       });
       
       // Don't redirect automatically - let Register.tsx handle it
@@ -182,6 +195,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem('onboarding_completed');
       localStorage.removeItem('user_type');
       localStorage.removeItem('questionnaire_data');
+      localStorage.removeItem('email_verification_skipped');
       
       toast({
         title: 'Logout realizado com sucesso',
