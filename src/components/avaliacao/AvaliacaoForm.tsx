@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -111,7 +110,7 @@ interface AvaliacaoFormProps {
 
 export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 6; // Reduzido de 7 para 6 steps
+  const totalSteps = 7; // Agora são 7 passos
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -133,6 +132,7 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
     }
   };
   
+  // Ajuste: step 7 sempre validado para permitir o botão "Gerar Avaliação"
   const validateStep = (stepNumber: number): boolean => {
     const values = form.getValues();
     
@@ -164,6 +164,8 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
         const step6Valid = !!(values.formatoSaida?.length > 0);
         console.log("Step 6 validation:", step6Valid, { formatoSaida: values.formatoSaida?.length });
         return step6Valid;
+      case 7:
+        return true; // ResumoFinal sempre permitido avançar para gerar avaliação
       default:
         return true;
     }
@@ -308,6 +310,8 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
         return <ModelosCompeticaoStep form={form} plano={plano} />;
       case 6:
         return <DistribuicaoStep form={form} plano={plano} />;
+      case 7:
+        return <ResumoFinalAvaliacaoStep form={form} />;
       default:
         return null;
     }
@@ -331,7 +335,7 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
             currentStep={step}
             totalSteps={totalSteps}
             onBack={prevStep}
-            onNext={step === totalSteps ? form.handleSubmit(onSubmit) : handleNextStep}
+            onNext={step === totalSteps ? undefined : handleNextStep}
             canAdvance={validateStep(step)}
             isLastStep={step === totalSteps}
           />
