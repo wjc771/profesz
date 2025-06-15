@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { Check, Mail, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { sendVerificationEmailViaResend } from '@/utils/emailUtils';
+import { sendVerificationEmailViaSupabase } from '@/utils/emailUtils';
 
 const VerificationPending = () => {
   const { toast } = useToast();
@@ -17,7 +18,6 @@ const VerificationPending = () => {
   const [userEmail, setUserEmail] = useState<string>('');
   const [manualEmail, setManualEmail] = useState<string>('');
   const [showManualInput, setShowManualInput] = useState(false);
-  const [isResendTestMode, setIsResendTestMode] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -79,79 +79,29 @@ const VerificationPending = () => {
         throw new Error('Email é obrigatório. Por favor, insira seu email.');
       }
       
-      console.log('📧 VerificationPending: Tentando envio via Resend para:', emailToUse);
-      console.log('🔗 VerificationPending: Redirect URL:', `${window.location.origin}/onboarding`);
+      console.log('📧 VerificationPending: Reenviando email via Supabase para:', emailToUse);
       
-      try {
-        const result = await sendVerificationEmailViaResend({
-          email: emailToUse,
-          redirectTo: `${window.location.origin}/onboarding`
-        });
-        
-        console.log('✅ VerificationPending: Email enviado com sucesso via Resend:', result);
-        
-        if (manualEmail.trim()) {
-          setUserEmail(manualEmail.trim());
-          localStorage.setItem('pending_verification_email', manualEmail.trim());
-          setManualEmail('');
-          setShowManualInput(false);
-        }
-        
-        setIsResendTestMode(false);
-        
-        toast({
-          title: '✅ Email enviado com sucesso!',
-          description: 'Um email de confirmação foi enviado via Resend. Verifique sua caixa de entrada e spam.'
-        });
-        
-      } catch (resendError: any) {
-        console.warn('⚠️ VerificationPending: Resend failed:', resendError.message);
-        
-        // Detectar se é erro de modo de teste do Resend
-        if (resendError.message.includes('RESEND_TEST_MODE') || resendError.message.includes('RESEND_DOMAIN_ERROR')) {
-          setIsResendTestMode(true);
-          
-          toast({
-            variant: 'destructive',
-            title: '⚠️ Resend em modo de teste',
-            description: 'O Resend está configurado para modo de teste. Use o botão "Pular verificação" ou configure um domínio verificado.'
-          });
-          
-          return; // Não tentar fallback do Supabase
-        }
-        
-        // Fallback para método Supabase nativo apenas se não for erro de configuração
-        console.log('🔄 VerificationPending: Tentando fallback Supabase...');
-        
-        const { error } = await supabase.auth.resend({
-          type: 'signup',
-          email: emailToUse,
-          options: {
-            emailRedirectTo: `${window.location.origin}/onboarding`
-          }
-        });
-        
-        if (error) {
-          console.error('❌ VerificationPending: Supabase fallback também falhou:', error);
-          
-          if (error.message.includes('email_address_not_authorized')) {
-            throw new Error('Este email não está autorizado. Verifique se o domínio está configurado no Supabase.');
-          } else if (error.message.includes('rate_limit')) {
-            throw new Error('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
-          }
-          
-          throw error;
-        }
-        
-        console.log('✅ VerificationPending: Supabase fallback funcionou');
-        toast({
-          title: 'Email reenviado!',
-          description: 'Email enviado via método alternativo. Verifique sua caixa de entrada.'
-        });
+      await sendVerificationEmailViaSupabase({
+        email: emailToUse,
+        redirectTo: `${window.location.origin}/onboarding`
+      });
+      
+      console.log('✅ VerificationPending: Email reenviado com sucesso');
+      
+      if (manualEmail.trim()) {
+        setUserEmail(manualEmail.trim());
+        localStorage.setItem('pending_verification_email', manualEmail.trim());
+        setManualEmail('');
+        setShowManualInput(false);
       }
       
+      toast({
+        title: '✅ Email reenviado!',
+        description: 'Um novo email de verificação foi enviado. Verifique sua caixa de entrada e spam.'
+      });
+      
     } catch (error: any) {
-      console.error('❌ VerificationPending: Todos os métodos falharam:', error);
+      console.error('❌ VerificationPending: Erro ao reenviar email:', error);
       
       toast({
         variant: 'destructive',
@@ -303,21 +253,10 @@ const VerificationPending = () => {
             </div>
           )}
 
-          {isResendTestMode && (
-            <Alert className="border-orange-200 bg-orange-50">
-              <AlertCircle className="h-4 w-4 text-orange-600" />
-              <AlertDescription className="text-orange-800">
-                <strong>⚠️ Modo de teste ativo:</strong> O Resend está configurado para enviar apenas para o email do proprietário da conta. 
-                Para usar em produção, <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="underline">verifique um domínio no Resend.com</a>.
-              </AlertDescription>
-            </Alert>
-          )}
-
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>🚀 Sistema Resend ativo:</strong> Usando Resend.com para envio confiável de emails.
-              {isResendTestMode ? ' Atualmente em modo de teste.' : ' Configuração completa com fallback para Supabase.'}
+              <strong>📧 Sistema simplificado:</strong> Usando método nativo do Supabase para envio de emails.
             </AlertDescription>
           </Alert>
 
@@ -326,9 +265,7 @@ const VerificationPending = () => {
               <strong>🔧 Debug info:</strong>
               <br />📧 Email: {userEmail}
               <br />🌐 Origem: {window.location.origin}
-              <br />📡 Método: Resend + Supabase fallback
-              <br />✅ RESEND_API_KEY: Configurada
-              {isResendTestMode && <><br />⚠️ Status: Modo de teste detectado</>}
+              <br />📡 Método: Supabase nativo
             </div>
           )}
         </CardContent>
