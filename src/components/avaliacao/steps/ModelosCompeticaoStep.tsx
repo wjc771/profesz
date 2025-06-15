@@ -1,4 +1,3 @@
-
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -72,7 +71,6 @@ export function ModelosCompeticaoStep({ form, plano }: ModelosCompeticaoStepProp
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
                   <SelectItem value="vestibular">Vestibular</SelectItem>
                   <SelectItem value="enem">ENEM</SelectItem>
                   {isPremium && <SelectItem value="olimpiada">Olimpíadas Acadêmicas</SelectItem>}
