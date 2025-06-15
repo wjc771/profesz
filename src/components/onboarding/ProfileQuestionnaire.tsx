@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,17 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UserType } from '@/types/profile';
 import { useProfilePreferences, UserPreferences } from '@/hooks/useProfilePreferences';
-
-interface QuestionnaireData {
-  subjects?: string[];
-  gradeLevel?: string;
-  institutionType?: string;
-  experience?: string;
-  goals?: string[];
-  frequency?: string;
-  childName?: string;
-  childGrade?: string;
-}
 
 interface ProfileQuestionnaireProps {
   userType: UserType;
@@ -36,11 +26,9 @@ export function ProfileQuestionnaire({
   onBack 
 }: ProfileQuestionnaireProps) {
   const { savePreferences, saving } = useProfilePreferences();
-  const [localData, setLocalData] = useState<UserPreferences>(data);
-
-  useEffect(() => {
-    setLocalData(data);
-  }, [data]);
+  
+  // Use data from props directly, don't override with local state
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const subjects = [
     'Matemática', 'Português', 'Ciências', 'História', 'Geografia',
@@ -79,20 +67,33 @@ export function ProfileQuestionnaire({
   };
 
   const handleDataChange = (newData: Partial<UserPreferences>) => {
-    const updatedData = { ...localData, ...newData };
-    setLocalData(updatedData);
+    console.log('ProfileQuestionnaire: Data change', { newData, currentData: data });
+    const updatedData = { ...data, ...newData };
     onDataChange(updatedData);
   };
 
   const handleNext = async () => {
-    const success = await savePreferences(localData);
-    if (success) {
-      onNext();
+    console.log('ProfileQuestionnaire: Saving preferences', { data });
+    setIsProcessing(true);
+    
+    try {
+      const success = await savePreferences(data);
+      if (success) {
+        console.log('ProfileQuestionnaire: Preferences saved successfully');
+        onNext();
+      } else {
+        console.error('ProfileQuestionnaire: Failed to save preferences');
+      }
+    } catch (error) {
+      console.error('ProfileQuestionnaire: Error saving preferences', error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleSubjectChange = (subject: string, checked: boolean) => {
-    const currentSubjects = localData.subjects || [];
+    console.log('Subject change:', { subject, checked, currentSubjects: data.subjects });
+    const currentSubjects = data.subjects || [];
     const newSubjects = checked 
       ? [...currentSubjects, subject]
       : currentSubjects.filter(s => s !== subject);
@@ -101,7 +102,8 @@ export function ProfileQuestionnaire({
   };
 
   const handleGoalChange = (goal: string, checked: boolean) => {
-    const currentGoals = localData.goals || [];
+    console.log('Goal change:', { goal, checked, currentGoals: data.goals });
+    const currentGoals = data.goals || [];
     const newGoals = checked 
       ? [...currentGoals, goal]
       : currentGoals.filter(g => g !== goal);
@@ -119,15 +121,20 @@ export function ProfileQuestionnaire({
                 Quais disciplinas você leciona?
               </Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {subjects.map(subject => (
-                  <label key={subject} className="flex items-center space-x-2 cursor-pointer">
-                    <Checkbox
-                      checked={localData.subjects?.includes(subject) || false}
-                      onCheckedChange={(checked) => handleSubjectChange(subject, checked as boolean)}
-                    />
-                    <span className="text-sm">{subject}</span>
-                  </label>
-                ))}
+                {subjects.map(subject => {
+                  const isChecked = data.subjects?.includes(subject) || false;
+                  console.log('Rendering subject checkbox:', { subject, isChecked, allSubjects: data.subjects });
+                  
+                  return (
+                    <label key={subject} className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) => handleSubjectChange(subject, checked as boolean)}
+                      />
+                      <span className="text-sm">{subject}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
@@ -135,7 +142,7 @@ export function ProfileQuestionnaire({
               <Label htmlFor="gradeLevel" className="text-base font-semibold">
                 Nível de ensino principal
               </Label>
-              <Select value={localData.grade_level} onValueChange={(value) => handleDataChange({ grade_level: value })}>
+              <Select value={data.grade_level || ''} onValueChange={(value) => handleDataChange({ grade_level: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o nível" />
                 </SelectTrigger>
@@ -154,7 +161,7 @@ export function ProfileQuestionnaire({
                 Experiência com tecnologia educacional
               </Label>
               <RadioGroup 
-                value={localData.experience} 
+                value={data.experience || ''} 
                 onValueChange={(value) => handleDataChange({ experience: value })}
               >
                 <div className="flex items-center space-x-2">
@@ -181,7 +188,7 @@ export function ProfileQuestionnaire({
               <Label htmlFor="institutionType" className="text-base font-semibold">
                 Tipo de instituição
               </Label>
-              <Select value={localData.institution_type} onValueChange={(value) => handleDataChange({ institution_type: value })}>
+              <Select value={data.institution_type || ''} onValueChange={(value) => handleDataChange({ institution_type: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
@@ -206,15 +213,19 @@ export function ProfileQuestionnaire({
                   { value: 'fundamental2', label: 'Fundamental II' },
                   { value: 'medio', label: 'Ensino Médio' },
                   { value: 'superior', label: 'Ensino Superior' }
-                ].map(level => (
-                  <label key={level.value} className="flex items-center space-x-2 cursor-pointer">
-                    <Checkbox
-                      checked={localData.subjects?.includes(level.value) || false}
-                      onCheckedChange={(checked) => handleSubjectChange(level.value, checked as boolean)}
-                    />
-                    <span className="text-sm">{level.label}</span>
-                  </label>
-                ))}
+                ].map(level => {
+                  const isChecked = data.subjects?.includes(level.value) || false;
+                  
+                  return (
+                    <label key={level.value} className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) => handleSubjectChange(level.value, checked as boolean)}
+                      />
+                      <span className="text-sm">{level.label}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -230,7 +241,7 @@ export function ProfileQuestionnaire({
               <Input
                 id="gradeLevel"
                 placeholder="Ex: 2º ano do Ensino Médio"
-                value={localData.grade_level || ''}
+                value={data.grade_level || ''}
                 onChange={(e) => handleDataChange({ grade_level: e.target.value })}
               />
             </div>
@@ -240,15 +251,19 @@ export function ProfileQuestionnaire({
                 Em quais disciplinas você tem mais interesse ou dificuldade?
               </Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {subjects.map(subject => (
-                  <label key={subject} className="flex items-center space-x-2 cursor-pointer">
-                    <Checkbox
-                      checked={localData.subjects?.includes(subject) || false}
-                      onCheckedChange={(checked) => handleSubjectChange(subject, checked as boolean)}
-                    />
-                    <span className="text-sm">{subject}</span>
-                  </label>
-                ))}
+                {subjects.map(subject => {
+                  const isChecked = data.subjects?.includes(subject) || false;
+                  
+                  return (
+                    <label key={subject} className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) => handleSubjectChange(subject, checked as boolean)}
+                      />
+                      <span className="text-sm">{subject}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -264,7 +279,7 @@ export function ProfileQuestionnaire({
               <Input
                 id="childName"
                 placeholder="Nome do seu filho(a)"
-                value={localData.child_name || ''}
+                value={data.child_name || ''}
                 onChange={(e) => handleDataChange({ child_name: e.target.value })}
               />
             </div>
@@ -276,7 +291,7 @@ export function ProfileQuestionnaire({
               <Input
                 id="childGrade"
                 placeholder="Ex: 5º ano do Fundamental"
-                value={localData.child_grade || ''}
+                value={data.child_grade || ''}
                 onChange={(e) => handleDataChange({ child_grade: e.target.value })}
               />
             </div>
@@ -286,7 +301,7 @@ export function ProfileQuestionnaire({
                 Com que frequência gostaria de receber relatórios?
               </Label>
               <RadioGroup 
-                value={localData.frequency} 
+                value={data.frequency || ''} 
                 onValueChange={(value) => handleDataChange({ frequency: value })}
               >
                 <div className="flex items-center space-x-2">
@@ -329,24 +344,29 @@ export function ProfileQuestionnaire({
               Quais são seus principais objetivos?
             </Label>
             <div className="space-y-3">
-              {goals[userType]?.map(goal => (
-                <label key={goal} className="flex items-center space-x-2 cursor-pointer">
-                  <Checkbox
-                    checked={localData.goals?.includes(goal) || false}
-                    onCheckedChange={(checked) => handleGoalChange(goal, checked as boolean)}
-                  />
-                  <span className="text-sm">{goal}</span>
-                </label>
-              ))}
+              {goals[userType]?.map(goal => {
+                const isChecked = data.goals?.includes(goal) || false;
+                console.log('Rendering goal checkbox:', { goal, isChecked, allGoals: data.goals });
+                
+                return (
+                  <label key={goal} className="flex items-center space-x-2 cursor-pointer">
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={(checked) => handleGoalChange(goal, checked as boolean)}
+                    />
+                    <span className="text-sm">{goal}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
 
           <div className="flex gap-4 pt-6">
-            <Button variant="outline" onClick={onBack} className="flex-1" disabled={saving}>
+            <Button variant="outline" onClick={onBack} className="flex-1" disabled={saving || isProcessing}>
               Voltar
             </Button>
-            <Button onClick={handleNext} className="flex-1" disabled={saving}>
-              {saving ? 'Salvando...' : 'Continuar'}
+            <Button onClick={handleNext} className="flex-1" disabled={saving || isProcessing}>
+              {saving || isProcessing ? 'Salvando...' : 'Continuar'}
             </Button>
           </div>
         </CardContent>

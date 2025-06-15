@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
@@ -22,10 +22,15 @@ export const useProfilePreferences = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const fetchPreferences = async () => {
-    if (!user?.id) return;
+  const fetchPreferences = useCallback(async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
+      console.log('useProfilePreferences: Fetching preferences for user', user.id);
+      
       const { data, error } = await supabase
         .from('user_preferences')
         .select('*')
@@ -38,7 +43,7 @@ export const useProfilePreferences = () => {
       }
 
       if (data) {
-        setPreferences({
+        const fetchedPreferences = {
           subjects: data.subjects || [],
           grade_level: data.grade_level || '',
           institution_type: data.institution_type || '',
@@ -47,14 +52,20 @@ export const useProfilePreferences = () => {
           frequency: data.frequency || '',
           child_name: data.child_name || '',
           child_grade: data.child_grade || ''
-        });
+        };
+        
+        console.log('useProfilePreferences: Fetched preferences', fetchedPreferences);
+        setPreferences(fetchedPreferences);
+      } else {
+        console.log('useProfilePreferences: No preferences found, using empty object');
+        setPreferences({});
       }
     } catch (error) {
       console.error('Error fetching preferences:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   const savePreferences = async (newPreferences: UserPreferences) => {
     if (!user?.id) {
@@ -68,6 +79,8 @@ export const useProfilePreferences = () => {
 
     setSaving(true);
     try {
+      console.log('useProfilePreferences: Saving preferences', newPreferences);
+      
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
@@ -92,6 +105,7 @@ export const useProfilePreferences = () => {
         return false;
       }
 
+      console.log('useProfilePreferences: Preferences saved successfully');
       setPreferences(newPreferences);
       return true;
     } catch (error) {
@@ -111,6 +125,8 @@ export const useProfilePreferences = () => {
     if (!user?.id) return false;
 
     try {
+      console.log('useProfilePreferences: Marking onboarding complete for user', user.id);
+      
       const { error } = await supabase
         .from('profiles')
         .update({ onboarding_completed_at: new Date().toISOString() })
@@ -121,6 +137,7 @@ export const useProfilePreferences = () => {
         return false;
       }
 
+      console.log('useProfilePreferences: Onboarding marked as complete');
       return true;
     } catch (error) {
       console.error('Error marking onboarding complete:', error);
@@ -132,6 +149,8 @@ export const useProfilePreferences = () => {
     if (!user?.id) return false;
 
     try {
+      console.log('useProfilePreferences: Checking onboarding status for user', user.id);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('onboarding_completed_at')
@@ -143,18 +162,25 @@ export const useProfilePreferences = () => {
         return false;
       }
 
-      return !!data?.onboarding_completed_at;
+      const isCompleted = !!data?.onboarding_completed_at;
+      console.log('useProfilePreferences: Onboarding status', { isCompleted, completedAt: data?.onboarding_completed_at });
+      
+      return isCompleted;
     } catch (error) {
       console.error('Error checking onboarding status:', error);
       return false;
     }
   };
 
+  // Only fetch preferences once when user changes
   useEffect(() => {
     if (user?.id) {
       fetchPreferences();
+    } else {
+      setLoading(false);
+      setPreferences({});
     }
-  }, [user?.id]);
+  }, [fetchPreferences]);
 
   return {
     preferences,

@@ -29,9 +29,26 @@ export default function NewOnboarding() {
   const [questionnaireData, setQuestionnaireData] = useState<UserPreferences>({});
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   
+  console.log('NewOnboarding: Render with state', { 
+    currentStep, 
+    userType, 
+    questionnaireData,
+    preferences,
+    loading,
+    preferencesLoading
+  });
+
+  // Initialize questionnaire data from preferences only once
+  useEffect(() => {
+    if (preferences && Object.keys(preferences).length > 0 && Object.keys(questionnaireData).length === 0) {
+      console.log('NewOnboarding: Initializing questionnaire data from preferences', preferences);
+      setQuestionnaireData(preferences);
+    }
+  }, [preferences, questionnaireData]);
+  
   // Verify user authentication and onboarding status
   useEffect(() => {
-    console.log('NewOnboarding: Component mounted', { 
+    console.log('NewOnboarding: Auth check', { 
       user: !!user, 
       loading, 
       userEmail: user?.email,
@@ -54,23 +71,23 @@ export default function NewOnboarding() {
         return;
       }
       
-      // Check onboarding status from database
-      checkOnboardingStatus().then(completed => {
-        console.log('NewOnboarding: Onboarding status from DB', { completed });
-        
-        if (completed) {
-          console.log('NewOnboarding: Onboarding already completed, redirecting to dashboard');
-          navigate('/dashboard');
-          return;
-        }
-        
-        // Se não completou onboarding, carregar preferências existentes se houver
-        setQuestionnaireData(preferences);
-        setOnboardingChecked(true);
-        console.log('NewOnboarding: User authenticated and onboarding not completed - proceeding');
-      });
+      // Check onboarding status from database only once
+      if (!onboardingChecked) {
+        checkOnboardingStatus().then(completed => {
+          console.log('NewOnboarding: Onboarding status from DB', { completed });
+          
+          if (completed) {
+            console.log('NewOnboarding: Onboarding already completed, redirecting to dashboard');
+            navigate('/dashboard');
+            return;
+          }
+          
+          setOnboardingChecked(true);
+          console.log('NewOnboarding: User authenticated and onboarding not completed - proceeding');
+        });
+      }
     }
-  }, [user, loading, preferencesLoading, navigate, checkOnboardingStatus, preferences]);
+  }, [user, loading, preferencesLoading, navigate, checkOnboardingStatus, onboardingChecked]);
   
   const isFirstLogin = location.state?.firstLogin ?? true;
   const userName = location.state?.name || user?.user_metadata?.name || user?.email?.split('@')[0];
@@ -100,10 +117,12 @@ export default function NewOnboarding() {
   };
 
   const handleUserTypeSelect = (type: UserType) => {
+    console.log('NewOnboarding: User type selected', { type });
     setUserType(type);
   };
 
   const handleQuestionnaireDataChange = (data: UserPreferences) => {
+    console.log('NewOnboarding: Questionnaire data changed', { data });
     setQuestionnaireData(data);
   };
 
