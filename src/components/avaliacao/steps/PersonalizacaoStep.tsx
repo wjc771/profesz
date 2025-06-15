@@ -1,23 +1,14 @@
 
-import { UseFormReturn } from "react-hook-form";
-import { 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { CardContent } from "@/components/ui/card";
-import { SubscriptionPlanType } from "@/types/profile";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { SubscriptionPlanType } from "@/types/profile";
+import { UseFormReturn } from "react-hook-form";
 import { Lock } from "lucide-react";
 
 interface PersonalizacaoStepProps {
@@ -26,207 +17,241 @@ interface PersonalizacaoStepProps {
 }
 
 export function PersonalizacaoStep({ form, plano }: PersonalizacaoStepProps) {
-  const canUseAdvancedStyles = plano === 'essencial' || plano === 'maestro' || plano === 'institucional';
-  const canUseFullPersonalization = plano === 'maestro' || plano === 'institucional';
-  
+  const isAdmin = plano === 'maestro' || plano === 'institucional';
+  const isPremium = plano === 'essencial' || isAdmin;
+
   return (
-    <CardContent className="space-y-6 p-6">
-      <h3 className="text-lg font-semibold">Personalização Avançada</h3>
-      
-      <FormField
-        control={form.control}
-        name="estiloQuestoes"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="flex items-center">
-              Estilo das Questões
-              {!canUseAdvancedStyles && <Lock className="ml-2 h-4 w-4 text-muted-foreground" />}
-            </FormLabel>
-            <Select 
-              onValueChange={field.onChange} 
-              defaultValue={field.value}
-              disabled={!canUseAdvancedStyles}
-            >
-              <FormControl>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione o estilo das questões" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="conceitual">Conceitual</SelectItem>
-                <SelectItem value="aplicacao">Aplicação prática</SelectItem>
-                <SelectItem value="interpretacao">Interpretação de texto/dados</SelectItem>
-                <SelectItem value="resolucao">Resolução de problemas</SelectItem>
-                <SelectItem value="analise">Análise crítica</SelectItem>
-                <SelectItem value="vestibular">Estilo ENEM/vestibular</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="formatoApresentacao"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Formato de Apresentação</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione o formato de apresentação" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="padrao">Padrão (questões sequenciais)</SelectItem>
-                <SelectItem value="temas">Agrupado por temas</SelectItem>
-                <SelectItem value="dificuldade">Por ordem de dificuldade</SelectItem>
-                <SelectItem value="alternancia">Alternância de tipos</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      <div className={`space-y-4 ${!canUseFullPersonalization && 'opacity-60'}`}>
-        <h4 className="font-medium flex items-center">
-          Personalização Visual
-          {!canUseFullPersonalization && <Lock className="ml-2 h-4 w-4 text-muted-foreground" />}
-        </h4>
-        
+    <>
+      <CardHeader>
+        <CardTitle>Personalização Avançada</CardTitle>
+        <CardDescription>
+          Configure o estilo, tempo e aparência da sua avaliação
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Estilo das Questões */}
         <FormField
           control={form.control}
-          name="logo"
+          name="estiloQuestoes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Link para o Logo da Instituição</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="https://example.com/logo.png" 
-                  {...field} 
-                  disabled={!canUseFullPersonalization}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="cabecalhoPersonalizado"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cabeçalho Personalizado</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Cabeçalho personalizado para sua avaliação" 
-                  {...field} 
-                  disabled={!canUseFullPersonalization}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="rodapePersonalizado"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Rodapé Personalizado</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Rodapé personalizado para sua avaliação" 
-                  {...field} 
-                  disabled={!canUseFullPersonalization}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="estiloFonte"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Estilo de Fonte</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-                disabled={!canUseFullPersonalization}
-              >
+              <FormLabel>Estilo das Questões</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione o estilo de fonte" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o estilo" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="default">Padrão</SelectItem>
-                  <SelectItem value="serif">Serifa</SelectItem>
-                  <SelectItem value="sans">Sem Serifa</SelectItem>
-                  <SelectItem value="mono">Monoespaçada</SelectItem>
+                  <SelectItem value="conceitual">Conceitual</SelectItem>
+                  <SelectItem value="aplicacao">Aplicação Prática</SelectItem>
+                  {isPremium && <SelectItem value="analise">Análise e Síntese</SelectItem>}
+                  {isPremium && <SelectItem value="criativo">Pensamento Criativo</SelectItem>}
+                  {isAdmin && <SelectItem value="competitivo">Estilo Competitivo</SelectItem>}
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-      </div>
-      
-      <div className={`space-y-4 ${!canUseAdvancedStyles && 'opacity-60'}`}>
-        <h4 className="font-medium flex items-center">
-          Opções de Tempo
-          {!canUseAdvancedStyles && <Lock className="ml-2 h-4 w-4 text-muted-foreground" />}
-        </h4>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        {/* Formato de Apresentação */}
+        <FormField
+          control={form.control}
+          name="formatoApresentacao"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Formato de Apresentação</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o formato" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="padrao">Padrão</SelectItem>
+                  <SelectItem value="moderno">Moderno</SelectItem>
+                  {isPremium && <SelectItem value="academico">Acadêmico</SelectItem>}
+                  {isPremium && <SelectItem value="colorido">Colorido e Visual</SelectItem>}
+                  {isAdmin && <SelectItem value="institucional">Institucional</SelectItem>}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Separator />
+
+        {/* Configurações de Tempo */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium">Configurações de Tempo</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="duracaoSugerida"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Duração Sugerida (minutos)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={5}
+                      max={300}
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tempoPorQuestao"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tempo por Questão (minutos)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0.5}
+                      max={30}
+                      step={0.5}
+                      {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="duracaoSugerida"
+            name="incluirCronometro"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={!isPremium && !isAdmin}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="flex items-center gap-2">
+                    Incluir cronômetro visual
+                    {!isPremium && !isAdmin && <Lock className="h-3 w-3" />}
+                    {!isPremium && <Badge className="text-xs">Premium</Badge>}
+                  </FormLabel>
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <Separator />
+
+        {/* Personalização Visual */}
+        <div className={`space-y-4 ${!isPremium && !isAdmin ? 'opacity-50 pointer-events-none' : ''}`}>
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-medium">Personalização Visual</h4>
+            {!isPremium && !isAdmin && <Badge className="text-xs">Premium</Badge>}
+          </div>
+
+          <FormField
+            control={form.control}
+            name="logo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Duração Sugerida (min)</FormLabel>
+                <FormLabel>URL do Logo da Instituição</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min="1"
-                    {...field} 
-                    disabled={!canUseAdvancedStyles}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  <Input
+                    placeholder="https://exemplo.com/logo.png"
+                    {...field}
+                    disabled={!isPremium && !isAdmin}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
-            name="tempoPorQuestao"
+            name="cabecalhoPersonalizado"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tempo por Questão (min)</FormLabel>
+                <FormLabel>Cabeçalho Personalizado</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    min="1"
-                    {...field} 
-                    disabled={!canUseAdvancedStyles}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  <Textarea
+                    placeholder="Nome da Instituição, Curso, Disciplina, etc."
+                    {...field}
+                    disabled={!isPremium && !isAdmin}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="rodapePersonalizado"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rodapé Personalizado</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Informações adicionais, instruções, etc."
+                    {...field}
+                    disabled={!isPremium && !isAdmin}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="estiloFonte"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Estilo de Fonte</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isPremium && !isAdmin}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o estilo da fonte" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="arial">Arial</SelectItem>
+                    <SelectItem value="times">Times New Roman</SelectItem>
+                    <SelectItem value="calibri">Calibri</SelectItem>
+                    <SelectItem value="verdana">Verdana</SelectItem>
+                    {isAdmin && <SelectItem value="custom">Fonte Customizada</SelectItem>}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-      </div>
-    </CardContent>
+
+        {isAdmin && (
+          <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              <strong>Acesso Admin:</strong> Você tem acesso a todas as funcionalidades de personalização, 
+              incluindo recursos exclusivos para administradores.
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </>
   );
 }

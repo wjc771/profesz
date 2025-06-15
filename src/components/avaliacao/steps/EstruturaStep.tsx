@@ -1,353 +1,374 @@
-import { useEffect } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage,
-  FormDescription 
-} from "@/components/ui/form";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { CardContent } from "@/components/ui/card";
+
+import { useState, useEffect } from "react";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { SubscriptionPlanType } from "@/types/profile";
-import { Input } from "@/components/ui/input";
+import { UseFormReturn } from "react-hook-form";
+import { useBnccData } from "@/hooks/useBnccData";
+import { useProfilePreferences } from "@/hooks/useProfilePreferences";
+import { Loader2, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface EstruturaStepProps {
   form: UseFormReturn<any>;
   plano: SubscriptionPlanType;
 }
 
-// Mock data for subjects and units - in a real app, these would come from an API or database
-const materias = [
-  { value: "matematica", label: "Matemática" },
-  { value: "portugues", label: "Português" },
-  { value: "ciencias", label: "Ciências" },
-  { value: "historia", label: "História" },
-  { value: "geografia", label: "Geografia" },
-  { value: "fisica", label: "Física" },
-  { value: "quimica", label: "Química" },
-  { value: "biologia", label: "Biologia" },
-  { value: "lingua_estrangeira", label: "Língua Estrangeira" },
-  { value: "educacao_fisica", label: "Educação Física" },
-  { value: "arte", label: "Arte" },
-  { value: "filosofia", label: "Filosofia" },
-  { value: "sociologia", label: "Sociologia" },
-  { value: "outros", label: "Outros" }
-];
-
-const getUnidades = (materia: string) => {
-  if (materia === "matematica") {
-    return [
-      { value: "numeros", label: "Unidade 1 - Números e Operações" },
-      { value: "algebra", label: "Unidade 2 - Álgebra e Funções" },
-      { value: "geometria", label: "Unidade 3 - Geometria" },
-      { value: "estatistica", label: "Unidade 4 - Estatística e Probabilidade" }
-    ];
-  }
-  
-  // Default sample units for other subjects
-  return [
-    { value: "unidade1", label: "Unidade 1" },
-    { value: "unidade2", label: "Unidade 2" },
-    { value: "unidade3", label: "Unidade 3" },
-    { value: "unidade4", label: "Unidade 4" }
-  ];
-};
-
-const getCapitulos = (unidade: string) => {
-  if (unidade === "numeros") {
-    return [
-      { value: "naturais", label: "Capítulo 1 - Números Naturais" },
-      { value: "inteiros", label: "Capítulo 2 - Números Inteiros" },
-      { value: "racionais", label: "Capítulo 3 - Números Racionais" },
-      { value: "reais", label: "Capítulo 4 - Números Reais" }
-    ];
-  }
-  
-  // Default sample chapters
-  return [
-    { value: "capitulo1", label: "Capítulo 1" },
-    { value: "capitulo2", label: "Capítulo 2" },
-    { value: "capitulo3", label: "Capítulo 3" },
-    { value: "capitulo4", label: "Capítulo 4" }
-  ];
-};
-
-const getTemas = (capitulo: string) => {
-  if (capitulo === "naturais") {
-    return [
-      { value: "adicao", label: "Adição e Subtração" },
-      { value: "multiplicacao", label: "Multiplicação e Divisão" },
-      { value: "potenciacao", label: "Potenciação e Radiciação" },
-      { value: "expressoes", label: "Expressões Numéricas" },
-      { value: "multiplos", label: "Múltiplos e Divisores" }
-    ];
-  }
-  
-  // Default sample topics
-  return [
-    { value: "tema1", label: "Tema 1" },
-    { value: "tema2", label: "Tema 2" },
-    { value: "tema3", label: "Tema 3" },
-    { value: "tema4", label: "Tema 4" },
-    { value: "tema5", label: "Tema 5" }
-  ];
-};
-
 export function EstruturaStep({ form, plano }: EstruturaStepProps) {
-  // Update dependent dropdowns when parent selection changes
-  const selectedMateria = form.watch("materia");
-  const selectedUnidade = form.watch("unidade");
-  const selectedCapitulos = form.watch("capitulos") || [];
-  
+  const { preferences } = useProfilePreferences();
+  const { 
+    areas, 
+    componentes, 
+    anosEscolares, 
+    unidadesTematicas, 
+    objetosConhecimento,
+    loading,
+    fetchComponentesByArea,
+    fetchUnidadesTematicasByComponenteAndAno,
+    fetchObjetosConhecimentoByUnidade
+  } = useBnccData();
+
+  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedComponente, setSelectedComponente] = useState("");
+  const [selectedAno, setSelectedAno] = useState("");
+  const [selectedUnidades, setSelectedUnidades] = useState<string[]>([]);
+  const [selectedTemas, setSelectedTemas] = useState<string[]>([]);
+
+  const materias = form.watch("materia");
+  const unidade = form.watch("unidade");
+  const capitulos = form.watch("capitulos") || [];
+  const temas = form.watch("temas") || [];
+
+  // Pré-selecionar baseado nas preferências do usuário
   useEffect(() => {
-    // Reset dependent fields when parent selection changes
-    if (form.getValues("materia")) {
-      form.setValue("unidade", "");
-      form.setValue("capitulos", []);
-      form.setValue("temas", []);
+    if (preferences?.grade_level && anosEscolares.length > 0) {
+      const anoPreferido = anosEscolares.find(ano => 
+        ano.nome.toLowerCase().includes(preferences.grade_level?.toLowerCase() || "")
+      );
+      if (anoPreferido) {
+        setSelectedAno(anoPreferido.id);
+      }
     }
-  }, [selectedMateria, form]);
-  
-  useEffect(() => {
-    if (form.getValues("unidade")) {
-      form.setValue("capitulos", []);
-      form.setValue("temas", []);
+  }, [preferences, anosEscolares]);
+
+  // Filtrar anos escolares com base no perfil
+  const anosEscolaresFiltrados = anosEscolares.filter(ano => {
+    if (!preferences?.grade_level) return true;
+    
+    const gradeLevel = preferences.grade_level.toLowerCase();
+    if (gradeLevel.includes('fundamental')) {
+      return ano.etapa === 'fundamental1' || ano.etapa === 'fundamental2';
     }
-  }, [selectedUnidade, form]);
+    if (gradeLevel.includes('médio') || gradeLevel.includes('medio')) {
+      return ano.etapa === 'medio';
+    }
+    if (gradeLevel.includes('infantil')) {
+      return ano.etapa === 'infantil';
+    }
+    return true;
+  });
+
+  // Filtrar componentes baseado nas preferências
+  const componentesFiltrados = componentes.filter(comp => {
+    if (!preferences?.subjects?.length) return true;
+    return preferences.subjects.some(subject => 
+      comp.nome.toLowerCase().includes(subject.toLowerCase()) ||
+      subject.toLowerCase().includes(comp.nome.toLowerCase())
+    );
+  });
+
+  const handleAreaChange = (areaId: string) => {
+    setSelectedArea(areaId);
+    setSelectedComponente("");
+    setSelectedUnidades([]);
+    setSelectedTemas([]);
+    form.setValue("materia", "");
+    form.setValue("unidade", "");
+    form.setValue("capitulos", []);
+    form.setValue("temas", []);
+    fetchComponentesByArea(areaId);
+  };
+
+  const handleComponenteChange = (componenteId: string) => {
+    setSelectedComponente(componenteId);
+    setSelectedUnidades([]);
+    setSelectedTemas([]);
+    form.setValue("unidade", "");
+    form.setValue("capitulos", []);
+    form.setValue("temas", []);
+    
+    const componenteSelecionado = componentes.find(c => c.id === componenteId);
+    if (componenteSelecionado) {
+      form.setValue("materia", componenteSelecionado.nome);
+      if (selectedAno) {
+        fetchUnidadesTematicasByComponenteAndAno(componenteId, selectedAno);
+      }
+    }
+  };
+
+  const handleAnoChange = (anoId: string) => {
+    setSelectedAno(anoId);
+    setSelectedUnidades([]);
+    setSelectedTemas([]);
+    form.setValue("unidade", "");
+    form.setValue("capitulos", []);
+    form.setValue("temas", []);
+    
+    if (selectedComponente) {
+      fetchUnidadesTematicasByComponenteAndAno(selectedComponente, anoId);
+    }
+  };
+
+  const handleUnidadeToggle = (unidadeId: string, unidadeNome: string) => {
+    const newSelectedUnidades = selectedUnidades.includes(unidadeId)
+      ? selectedUnidades.filter(id => id !== unidadeId)
+      : [...selectedUnidades, unidadeId];
+    
+    setSelectedUnidades(newSelectedUnidades);
+    
+    const nomes = newSelectedUnidades.map(id => 
+      unidadesTematicas.find(u => u.id === id)?.nome || ""
+    ).filter(Boolean);
+    
+    form.setValue("capitulos", nomes);
+    
+    // Carregar objetos de conhecimento para as unidades selecionadas
+    if (newSelectedUnidades.length > 0) {
+      newSelectedUnidades.forEach(id => {
+        fetchObjetosConhecimentoByUnidade(id);
+      });
+    }
+  };
+
+  const handleTemaToggle = (temaNome: string) => {
+    const newSelectedTemas = selectedTemas.includes(temaNome)
+      ? selectedTemas.filter(nome => nome !== temaNome)
+      : [...selectedTemas, temaNome];
+    
+    setSelectedTemas(newSelectedTemas);
+    form.setValue("temas", newSelectedTemas);
+  };
+
+  const isAdmin = plano === 'maestro' || plano === 'institucional';
+  const canUseBncc = plano !== 'inicial';
 
   return (
-    <CardContent className="space-y-6 p-6">
-      <h3 className="text-lg font-semibold">Estrutura Curricular</h3>
-      
-      <FormField
-        control={form.control}
-        name="materia"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Matéria</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione uma matéria" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {materias.map(materia => (
-                  <SelectItem key={materia.value} value={materia.value}>
-                    {materia.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      {selectedMateria && (
-        <FormField
-          control={form.control}
-          name="unidade"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Unidade</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione uma unidade" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {getUnidades(selectedMateria).map(unidade => (
-                    <SelectItem key={unidade.value} value={unidade.value}>
-                      {unidade.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-      
-      {selectedUnidade && (
-        <FormField
-          control={form.control}
-          name="capitulos"
-          render={() => (
-            <FormItem>
-              <div className="mb-4">
-                <FormLabel>Capítulos</FormLabel>
-                <FormDescription>
-                  Selecione um ou mais capítulos
-                </FormDescription>
-              </div>
-              {getCapitulos(selectedUnidade).map((capitulo) => (
-                <FormField
-                  key={capitulo.value}
-                  control={form.control}
-                  name="capitulos"
-                  render={({ field }) => {
-                    return (
-                      <FormItem
-                        key={capitulo.value}
-                        className="flex flex-row items-start space-x-3 space-y-0 mb-3"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(capitulo.value)}
-                            onCheckedChange={(checked) => {
-                              const values = field.value || []
-                              return checked
-                                ? field.onChange([...values, capitulo.value])
-                                : field.onChange(
-                                    values.filter(
-                                      (value) => value !== capitulo.value
-                                    )
-                                  )
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          {capitulo.label}
-                        </FormLabel>
-                      </FormItem>
-                    )
-                  }}
-                />
-              ))}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-      
-      {selectedCapitulos.length > 0 && (
-        <FormField
-          control={form.control}
-          name="temas"
-          render={() => (
-            <FormItem>
-              <div className="mb-4">
-                <FormLabel>Temas</FormLabel>
-                <FormDescription>
-                  Selecione um ou mais temas
-                </FormDescription>
-              </div>
-              {getTemas(selectedCapitulos[0]).map((tema) => (
-                <FormField
-                  key={tema.value}
-                  control={form.control}
-                  name="temas"
-                  render={({ field }) => {
-                    return (
-                      <FormItem
-                        key={tema.value}
-                        className="flex flex-row items-start space-x-3 space-y-0 mb-3"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(tema.value)}
-                            onCheckedChange={(checked) => {
-                              const values = field.value || []
-                              return checked
-                                ? field.onChange([...values, tema.value])
-                                : field.onChange(
-                                    values.filter((value) => value !== tema.value)
-                                  )
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          {tema.label}
-                        </FormLabel>
-                      </FormItem>
-                    )
-                  }}
-                />
-              ))}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-      
-      {/* Seção de Modelos de Vestibulares */}
-      <div className="mt-8">
-        <h4 className="text-md font-semibold mb-4">Modelos de Vestibulares</h4>
-        <FormDescription className="mb-3">
-          Selecione vestibulares famosos e quantas questões deseja incluir de cada um
-        </FormDescription>
-        
-        <div className="space-y-4">
-          {form.watch("modelosVestibular")?.map((modelo: any, index: number) => (
-            <div key={index} className="flex items-center gap-4">
-              <div className="flex-grow">
-                <FormLabel>{modelo.nome}</FormLabel>
-              </div>
-              <div className="w-24">
-                <FormField
-                  control={form.control}
-                  name={`modelosVestibular.${index}.quantidade`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          max={20}
-                          value={field.value}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value || "0");
-                            if (value >= 0 && value <= 20) {
-                              field.onChange(value);
-                            }
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      {(plano === 'essencial' || plano === 'maestro' || plano === 'institucional') && (
-        <FormField
-          control={form.control}
-          name="incluirBncc"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>
-                  Incluir códigos BNCC
+    <TooltipProvider>
+      <>
+        <CardHeader>
+          <CardTitle>Estrutura Curricular</CardTitle>
+          <CardDescription>
+            Selecione os componentes curriculares baseados no seu perfil e na BNCC
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Área de Conhecimento */}
+          <FormField
+            control={form.control}
+            name="area"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2">
+                  Área de Conhecimento *
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Áreas conforme a Base Nacional Comum Curricular (BNCC)</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </FormLabel>
-                <FormDescription>
-                  Alinhe as questões com os códigos da Base Nacional Comum Curricular
-                </FormDescription>
-              </div>
-            </FormItem>
+                <Select onValueChange={handleAreaChange} value={selectedArea}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma área de conhecimento" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {areas.map((area) => (
+                      <SelectItem key={area.id} value={area.id}>
+                        {area.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Componente Curricular (Matéria) */}
+          <FormField
+            control={form.control}
+            name="materia"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2">
+                  Componente Curricular *
+                  {preferences?.subjects?.length && (
+                    <Badge variant="outline" className="text-xs">
+                      Baseado no seu perfil
+                    </Badge>
+                  )}
+                </FormLabel>
+                <Select 
+                  onValueChange={handleComponenteChange} 
+                  value={selectedComponente}
+                  disabled={!selectedArea}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um componente curricular" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {componentesFiltrados.map((componente) => (
+                      <SelectItem key={componente.id} value={componente.id}>
+                        {componente.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Ano Escolar */}
+          <FormField
+            control={form.control}
+            name="anoEscolar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2">
+                  Ano Escolar *
+                  {preferences?.grade_level && (
+                    <Badge variant="outline" className="text-xs">
+                      Pré-selecionado
+                    </Badge>
+                  )}
+                </FormLabel>
+                <Select onValueChange={handleAnoChange} value={selectedAno}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o ano escolar" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {anosEscolaresFiltrados.map((ano) => (
+                      <SelectItem key={ano.id} value={ano.id}>
+                        {ano.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Unidades Temáticas (Capítulos) */}
+          {unidadesTematicas.length > 0 && (
+            <FormField
+              control={form.control}
+              name="capitulos"
+              render={() => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    Unidades Temáticas *
+                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  </FormLabel>
+                  <div className="grid grid-cols-1 gap-3 mt-2">
+                    {unidadesTematicas.map((unidade) => (
+                      <div key={unidade.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={unidade.id}
+                          checked={selectedUnidades.includes(unidade.id)}
+                          onCheckedChange={() => handleUnidadeToggle(unidade.id, unidade.nome)}
+                        />
+                        <label
+                          htmlFor={unidade.id}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {unidade.nome}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
-        />
-      )}
-    </CardContent>
+
+          {/* Objetos de Conhecimento (Temas) */}
+          {objetosConhecimento.length > 0 && (
+            <FormField
+              control={form.control}
+              name="temas"
+              render={() => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    Objetos de Conhecimento *
+                    {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  </FormLabel>
+                  <div className="grid grid-cols-1 gap-3 mt-2 max-h-48 overflow-y-auto">
+                    {objetosConhecimento.map((objeto) => (
+                      <div key={objeto.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={objeto.id}
+                          checked={selectedTemas.includes(objeto.nome)}
+                          onCheckedChange={() => handleTemaToggle(objeto.nome)}
+                        />
+                        <label
+                          htmlFor={objeto.id}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {objeto.nome}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* BNCC Alignment */}
+          <div className={!canUseBncc ? "opacity-50 pointer-events-none" : ""}>
+            <FormField
+              control={form.control}
+              name="incluirBncc"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={!canUseBncc}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="flex items-center gap-2">
+                      Incluir alinhamento detalhado com BNCC
+                      {!canUseBncc && <Badge className="text-xs">Plano Essencial+</Badge>}
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Adicionar códigos de habilidades específicas da BNCC
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
+        </CardContent>
+      </>
+    </TooltipProvider>
   );
 }

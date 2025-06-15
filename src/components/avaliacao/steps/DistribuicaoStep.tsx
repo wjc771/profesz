@@ -1,17 +1,12 @@
 
-import { UseFormReturn } from "react-hook-form";
-import { 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage,
-  FormDescription 
-} from "@/components/ui/form";
-import { CardContent } from "@/components/ui/card";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SubscriptionPlanType } from "@/types/profile";
-import { Lock } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
+import { Download, Share, Lock } from "lucide-react";
 
 interface DistribuicaoStepProps {
   form: UseFormReturn<any>;
@@ -19,313 +14,222 @@ interface DistribuicaoStepProps {
 }
 
 export function DistribuicaoStep({ form, plano }: DistribuicaoStepProps) {
-  const isPaid = plano !== 'inicial';
-  const isMaestro = plano === 'maestro' || plano === 'institucional';
-  
+  const formatoSaida = form.watch("formatoSaida") || [];
+  const opcaoCompartilhamento = form.watch("opcaoCompartilhamento") || [];
+
+  const isAdmin = plano === 'maestro' || plano === 'institucional';
+  const isPremium = plano === 'essencial' || isAdmin;
+
+  const formatosDisponiveis = [
+    { id: 'pdf', nome: 'PDF', icone: '📄', disponivel: true },
+    { id: 'word', nome: 'Word (.docx)', icone: '📝', disponivel: isPremium },
+    { id: 'google_forms', nome: 'Google Forms', icone: '📋', disponivel: isPremium },
+    { id: 'moodle', nome: 'Moodle XML', icone: '🎓', disponivel: isAdmin },
+    { id: 'qti', nome: 'QTI (Padrão Internacional)', icone: '🌐', disponivel: isAdmin },
+    { id: 'html', nome: 'HTML Interativo', icone: '🌐', disponivel: isAdmin },
+  ];
+
+  const opcoesCompartilhamento = [
+    { id: 'link_publico', nome: 'Link Público', disponivel: isPremium },
+    { id: 'email', nome: 'Envio por E-mail', disponivel: isPremium },
+    { id: 'whatsapp', nome: 'Compartilhar via WhatsApp', disponivel: true },
+    { id: 'classroom', nome: 'Google Classroom', disponivel: isAdmin },
+    { id: 'teams', nome: 'Microsoft Teams', disponivel: isAdmin },
+    { id: 'lms', nome: 'Sistema LMS', disponivel: isAdmin },
+  ];
+
+  const handleFormatoToggle = (formatoId: string) => {
+    const formato = formatosDisponiveis.find(f => f.id === formatoId);
+    if (!formato?.disponivel) return;
+
+    const novosFormatos = formatoSaida.includes(formatoId)
+      ? formatoSaida.filter((id: string) => id !== formatoId)
+      : [...formatoSaida, formatoId];
+    
+    form.setValue("formatoSaida", novosFormatos);
+  };
+
+  const handleCompartilhamentoToggle = (opcaoId: string) => {
+    const opcao = opcoesCompartilhamento.find(o => o.id === opcaoId);
+    if (!opcao?.disponivel) return;
+
+    const novasOpcoes = opcaoCompartilhamento.includes(opcaoId)
+      ? opcaoCompartilhamento.filter((id: string) => id !== opcaoId)
+      : [...opcaoCompartilhamento, opcaoId];
+    
+    form.setValue("opcaoCompartilhamento", novasOpcoes);
+  };
+
   return (
-    <CardContent className="space-y-6 p-6">
-      <h3 className="text-lg font-semibold">Opções de Distribuição</h3>
-      
-      <FormField
-        control={form.control}
-        name="formatoSaida"
-        render={() => (
-          <FormItem>
-            <div className="mb-4">
-              <FormLabel>Formato de Saída</FormLabel>
-              <FormDescription>
-                Selecione um ou mais formatos para exportar sua avaliação
-              </FormDescription>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="formatoSaida"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border p-3">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('pdf')}
-                        onCheckedChange={(checked) => {
-                          const values = field.value || []
-                          return checked
-                            ? field.onChange([...values, 'pdf'])
-                            : field.onChange(values.filter((value: string) => value !== 'pdf'))
-                        }}
-                      />
-                    </FormControl>
-                    <FormLabel className="font-normal">
-                      PDF imprimível
-                    </FormLabel>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="formatoSaida"
-                render={({ field }) => (
-                  <FormItem className={`flex flex-row items-center space-x-3 space-y-0 rounded-lg border p-3 ${!isPaid ? 'opacity-60' : ''}`}>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('doc')}
-                        onCheckedChange={(checked) => {
-                          if (!isPaid) return;
-                          const values = field.value || []
-                          return checked
-                            ? field.onChange([...values, 'doc'])
-                            : field.onChange(values.filter((value: string) => value !== 'doc'))
-                        }}
-                        disabled={!isPaid}
-                      />
-                    </FormControl>
-                    <div className="flex items-center">
-                      <FormLabel className="font-normal">
-                        Documento editável (Word/Google Docs)
-                      </FormLabel>
-                      {!isPaid && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="formatoSaida"
-                render={({ field }) => (
-                  <FormItem className={`flex flex-row items-center space-x-3 space-y-0 rounded-lg border p-3 ${!isPaid ? 'opacity-60' : ''}`}>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('online')}
-                        onCheckedChange={(checked) => {
-                          if (!isPaid) return;
-                          const values = field.value || []
-                          return checked
-                            ? field.onChange([...values, 'online'])
-                            : field.onChange(values.filter((value: string) => value !== 'online'))
-                        }}
-                        disabled={!isPaid}
-                      />
-                    </FormControl>
-                    <div className="flex items-center">
-                      <FormLabel className="font-normal">
-                        Versão online/digital
-                      </FormLabel>
-                      {!isPaid && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="formatoSaida"
-                render={({ field }) => (
-                  <FormItem className={`flex flex-row items-center space-x-3 space-y-0 rounded-lg border p-3 ${!isMaestro ? 'opacity-60' : ''}`}>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('interativa')}
-                        onCheckedChange={(checked) => {
-                          if (!isMaestro) return;
-                          const values = field.value || []
-                          return checked
-                            ? field.onChange([...values, 'interativa'])
-                            : field.onChange(values.filter((value: string) => value !== 'interativa'))
-                        }}
-                        disabled={!isMaestro}
-                      />
-                    </FormControl>
-                    <div className="flex items-center">
-                      <FormLabel className="font-normal">
-                        Apresentação interativa
-                      </FormLabel>
-                      {!isMaestro && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormMessage />
-          </FormItem>
+    <>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Download className="h-5 w-5" />
+          Distribuição e Compartilhamento
+        </CardTitle>
+        <CardDescription>
+          Configure como você deseja exportar e compartilhar sua avaliação
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Formatos de Saída */}
+        <FormField
+          control={form.control}
+          name="formatoSaida"
+          render={() => (
+            <FormItem>
+              <FormLabel>Formatos de Saída *</FormLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                {formatosDisponiveis.map((formato) => (
+                  <div key={formato.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={formato.id}
+                      checked={formatoSaida.includes(formato.id)}
+                      onCheckedChange={() => handleFormatoToggle(formato.id)}
+                      disabled={!formato.disponivel}
+                    />
+                    <label
+                      htmlFor={formato.id}
+                      className={`text-sm font-medium leading-none cursor-pointer flex items-center gap-2 ${
+                        !formato.disponivel ? 'opacity-50' : 'peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                      }`}
+                    >
+                      <span>{formato.icone}</span>
+                      {formato.nome}
+                      {!formato.disponivel && <Lock className="h-3 w-3" />}
+                      {!formato.disponivel && plano === 'inicial' && (
+                        <Badge className="text-xs">Premium</Badge>
+                      )}
+                      {!formato.disponivel && !isAdmin && plano !== 'inicial' && (
+                        <Badge className="text-xs">Admin</Badge>
+                      )}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Opções de Compartilhamento */}
+        <FormField
+          control={form.control}
+          name="opcaoCompartilhamento"
+          render={() => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                <Share className="h-4 w-4" />
+                Opções de Compartilhamento
+              </FormLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                {opcoesCompartilhamento.map((opcao) => (
+                  <div key={opcao.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={opcao.id}
+                      checked={opcaoCompartilhamento.includes(opcao.id)}
+                      onCheckedChange={() => handleCompartilhamentoToggle(opcao.id)}
+                      disabled={!opcao.disponivel}
+                    />
+                    <label
+                      htmlFor={opcao.id}
+                      className={`text-sm font-medium leading-none cursor-pointer flex items-center gap-2 ${
+                        !opcao.disponivel ? 'opacity-50' : 'peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                      }`}
+                    >
+                      {opcao.nome}
+                      {!opcao.disponivel && <Lock className="h-3 w-3" />}
+                      {!opcao.disponivel && plano === 'inicial' && (
+                        <Badge className="text-xs">Premium</Badge>
+                      )}
+                      {!opcao.disponivel && !isAdmin && plano !== 'inicial' && (
+                        <Badge className="text-xs">Admin</Badge>
+                      )}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Informações sobre formatos */}
+        {formatoSaida.length > 0 && (
+          <Alert>
+            <Download className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Formatos selecionados:</strong>
+              <ul className="list-disc list-inside mt-2">
+                {formatoSaida.map((id: string) => {
+                  const formato = formatosDisponiveis.find(f => f.id === id);
+                  return formato ? (
+                    <li key={id}>
+                      <strong>{formato.nome}:</strong> {getFormatoDescription(id)}
+                    </li>
+                  ) : null;
+                })}
+              </ul>
+            </AlertDescription>
+          </Alert>
         )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="opcaoCompartilhamento"
-        render={() => (
-          <FormItem>
-            <div className="mb-4">
-              <FormLabel>Opções de Compartilhamento</FormLabel>
-              <FormDescription>
-                Selecione como deseja compartilhar sua avaliação
-              </FormDescription>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="opcaoCompartilhamento"
-                render={({ field }) => (
-                  <FormItem className={`flex flex-row items-center space-x-3 space-y-0 rounded-lg border p-3 ${!isPaid ? 'opacity-60' : ''}`}>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('link')}
-                        onCheckedChange={(checked) => {
-                          if (!isPaid) return;
-                          const values = field.value || []
-                          return checked
-                            ? field.onChange([...values, 'link'])
-                            : field.onChange(values.filter((value: string) => value !== 'link'))
-                        }}
-                        disabled={!isPaid}
-                      />
-                    </FormControl>
-                    <div className="flex items-center">
-                      <FormLabel className="font-normal">
-                        Link compartilhável
-                      </FormLabel>
-                      {!isPaid && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="opcaoCompartilhamento"
-                render={({ field }) => (
-                  <FormItem className={`flex flex-row items-center space-x-3 space-y-0 rounded-lg border p-3 ${plano === 'inicial' ? 'opacity-60' : ''}`}>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('email')}
-                        onCheckedChange={(checked) => {
-                          if (plano === 'inicial') return;
-                          const values = field.value || []
-                          return checked
-                            ? field.onChange([...values, 'email'])
-                            : field.onChange(values.filter((value: string) => value !== 'email'))
-                        }}
-                        disabled={plano === 'inicial'}
-                      />
-                    </FormControl>
-                    <div className="flex items-center">
-                      <FormLabel className="font-normal">
-                        Envio por e-mail
-                      </FormLabel>
-                      {plano === 'inicial' && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="opcaoCompartilhamento"
-                render={({ field }) => (
-                  <FormItem className={`flex flex-row items-center space-x-3 space-y-0 rounded-lg border p-3 ${!isMaestro ? 'opacity-60' : ''}`}>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('lms')}
-                        onCheckedChange={(checked) => {
-                          if (!isMaestro) return;
-                          const values = field.value || []
-                          return checked
-                            ? field.onChange([...values, 'lms'])
-                            : field.onChange(values.filter((value: string) => value !== 'lms'))
-                        }}
-                        disabled={!isMaestro}
-                      />
-                    </FormControl>
-                    <div className="flex items-center">
-                      <FormLabel className="font-normal">
-                        Integração com LMS
-                      </FormLabel>
-                      {!isMaestro && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="opcaoCompartilhamento"
-                render={({ field }) => (
-                  <FormItem className={`flex flex-row items-center space-x-3 space-y-0 rounded-lg border p-3 ${!isMaestro ? 'opacity-60' : ''}`}>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value?.includes('qrcode')}
-                        onCheckedChange={(checked) => {
-                          if (!isMaestro) return;
-                          const values = field.value || []
-                          return checked
-                            ? field.onChange([...values, 'qrcode'])
-                            : field.onChange(values.filter((value: string) => value !== 'qrcode'))
-                        }}
-                        disabled={!isMaestro}
-                      />
-                    </FormControl>
-                    <div className="flex items-center">
-                      <FormLabel className="font-normal">
-                        QR Code
-                      </FormLabel>
-                      {!isMaestro && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormMessage />
-          </FormItem>
+
+        {/* Limitações do plano */}
+        {!isPremium && (
+          <Alert>
+            <Lock className="h-4 w-4" />
+            <AlertDescription>
+              Formatos como Word, Google Forms e opções de compartilhamento avançado estão disponíveis 
+              nos planos Essencial ou superiores. PDF e WhatsApp estão incluídos no seu plano atual.
+            </AlertDescription>
+          </Alert>
         )}
-      />
-      
-      <div className="mt-8 p-4 bg-muted rounded-lg text-muted-foreground text-sm">
-        <h4 className="font-medium mb-2">Recursos disponíveis no seu plano</h4>
-        <ul className="list-disc list-inside space-y-1">
-          {plano === 'inicial' && (
-            <>
-              <li>Limitado a 25 questões por mês</li>
-              <li>Tipos básicos de questões</li>
-              <li>Sem alinhamento automático com BNCC</li>
-              <li>Exportação apenas em PDF básico</li>
-              <li>Sem personalização avançada</li>
-            </>
-          )}
-          {plano === 'essencial' && (
-            <>
-              <li>Limite de 100 questões por mês</li>
-              <li>Todos os tipos de questões</li>
-              <li>Alinhamento básico com BNCC</li>
-              <li>Exportação em múltiplos formatos</li>
-              <li>Personalização básica</li>
-              <li>Recursos visuais limitados</li>
-            </>
-          )}
-          {plano === 'maestro' && (
-            <>
-              <li>Geração ilimitada de questões</li>
-              <li>Banco de questões próprio</li>
-              <li>Alinhamento avançado com BNCC</li>
-              <li>Personalização completa</li>
-              <li>Questões adaptativas</li>
-              <li>Integração com planos de aula</li>
-              <li>Análise de resultados</li>
-            </>
-          )}
-          {plano === 'institucional' && (
-            <>
-              <li>Todos os recursos do Maestro</li>
-              <li>Questões com base no currículo próprio</li>
-              <li>Branding institucional</li>
-              <li>Integração com sistemas da instituição</li>
-              <li>Compartilhamento interno</li>
-              <li>Análise avançada de desempenho</li>
-            </>
-          )}
-        </ul>
-      </div>
-    </CardContent>
+
+        {isPremium && !isAdmin && (
+          <Alert>
+            <Lock className="h-4 w-4" />
+            <AlertDescription>
+              Recursos como Moodle XML, QTI, HTML interativo e integração com LMS estão disponíveis 
+              apenas para administradores.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isAdmin && (
+          <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              <strong>Acesso Admin:</strong> Você tem acesso a todos os formatos de exportação e 
+              opções de compartilhamento, incluindo integração com sistemas LMS.
+            </p>
+          </div>
+        )}
+
+        {formatoSaida.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            <Download className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>Selecione pelo menos um formato de saída para continuar.</p>
+          </div>
+        )}
+      </CardContent>
+    </>
   );
+
+  function getFormatoDescription(id: string): string {
+    switch (id) {
+      case 'pdf':
+        return 'Documento pronto para impressão e compartilhamento';
+      case 'word':
+        return 'Editável no Microsoft Word para personalização adicional';
+      case 'google_forms':
+        return 'Formulário online interativo para aplicação digital';
+      case 'moodle':
+        return 'Importação direta para plataformas Moodle';
+      case 'qti':
+        return 'Padrão internacional para sistemas de e-learning';
+      case 'html':
+        return 'Página web interativa com recursos multimídia';
+      default:
+        return '';
+    }
+  }
 }

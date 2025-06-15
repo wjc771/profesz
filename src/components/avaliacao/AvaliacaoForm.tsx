@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,33 +13,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { incrementUserActivity } from "@/integrations/supabase/rpc";
 import { ConfiguracaoStep } from "./steps/ConfiguracaoStep";
 import { EstruturaStep } from "./steps/EstruturaStep";
-import { ModelosCompeticaoStep } from "./steps/ModelosCompeticaoStep";
 import { QuestoesStep } from "./steps/QuestoesStep";
 import { PersonalizacaoStep } from "./steps/PersonalizacaoStep";
+import { ModelosCompeticaoStep } from "./steps/ModelosCompeticaoStep";
 import { DistribuicaoStep } from "./steps/DistribuicaoStep";
 import { ResumoFinalAvaliacaoStep } from "./steps/ResumoFinalAvaliacaoStep";
 import { AvaliacaoFormStepper } from "./AvaliacaoFormStepper";
 
+// Schema simplificado e reestruturado
 const avaliacaoFormSchema = z.object({
-  // Configuração Inicial
+  // Step 1: Configuração Básica
   tipoAvaliacao: z.string().min(1, "Selecione um tipo de avaliação"),
   objetivoAvaliacao: z.string().min(1, "Selecione um objetivo"),
-  modeloCriacao: z.string().min(1, "Selecione um modelo de criação"),
   
-  // Estrutura Curricular
+  // Step 2: Estrutura Curricular
+  area: z.string().optional(),
   materia: z.string().min(1, "Selecione uma matéria"),
-  unidade: z.string().min(1, "Selecione uma unidade"),
-  capitulos: z.array(z.string()).min(1, "Selecione pelo menos um capítulo"),
-  temas: z.array(z.string()).min(1, "Selecione pelo menos um tema"),
+  anoEscolar: z.string().optional(),
+  unidade: z.string().optional(),
+  capitulos: z.array(z.string()).min(1, "Selecione pelo menos uma unidade temática"),
+  temas: z.array(z.string()).min(1, "Selecione pelo menos um objeto de conhecimento"),
   incluirBncc: z.boolean().optional(),
   
-  // Configuração das Questões
-  numeroQuestoes: z.number().min(1, "Mínimo de 1 questão").max(20, "Máximo de 20 questões"),
+  // Step 3: Configuração das Questões
+  numeroQuestoes: z.number().min(1, "Mínimo de 1 questão").max(50, "Máximo de 50 questões"),
   tipoQuestoes: z.string().min(1, "Selecione um tipo de questão"),
   proporcaoMultiplaEscolha: z.number().min(0).max(100).optional(),
-  nivelDificuldade: z.number().min(0).max(10),
+  nivelDificuldade: z.number().min(1).max(10),
   
-  // Opções Adicionais
+  // Opções das questões
   incluirFormulas: z.boolean().optional(),
   incluirImagens: z.boolean().optional(),
   incluirTabelas: z.boolean().optional(),
@@ -48,24 +51,22 @@ const avaliacaoFormSchema = z.object({
   incluirGabarito: z.boolean().optional(),
   questoesAdaptativas: z.boolean().optional(),
   
-  // Personalização Avançada
+  // Step 4: Personalização Avançada
   estiloQuestoes: z.string().optional(),
   formatoApresentacao: z.string().optional(),
-  // Visual avançado
+  duracaoSugerida: z.number().optional(),
+  tempoPorQuestao: z.number().optional(),
+  incluirCronometro: z.boolean().optional(),
   logo: z.string().optional(),
   cabecalhoPersonalizado: z.string().optional(),
   rodapePersonalizado: z.string().optional(),
   estiloFonte: z.string().optional(),
-  // Tempo
-  duracaoSugerida: z.number().optional(),
-  tempoPorQuestao: z.number().optional(),
-  incluirCronometro: z.boolean().optional(),
   
-  // Modelos de Competição
+  // Step 5: Modelos de Competição
   tipoCompeticao: z.string().optional(),
   modelosCompeticao: z.array(z.string()).optional(),
   
-  // Distribuição
+  // Step 6: Distribuição
   formatoSaida: z.array(z.string()).min(1, "Selecione pelo menos um formato"),
   opcaoCompartilhamento: z.array(z.string()).optional(),
 });
@@ -75,15 +76,13 @@ type AvaliacaoFormValues = z.infer<typeof avaliacaoFormSchema>;
 const defaultValues: Partial<AvaliacaoFormValues> = {
   tipoAvaliacao: "",
   objetivoAvaliacao: "",
-  modeloCriacao: "zero",
   materia: "",
-  unidade: "",
   capitulos: [],
   temas: [],
   incluirBncc: false,
   numeroQuestoes: 10,
-  tipoQuestoes: "multipla",
-  proporcaoMultiplaEscolha: 100,
+  tipoQuestoes: "",
+  proporcaoMultiplaEscolha: 50,
   nivelDificuldade: 5,
   incluirFormulas: false,
   incluirImagens: false,
@@ -112,7 +111,7 @@ interface AvaliacaoFormProps {
 
 export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormProps) {
   const [step, setStep] = useState(1);
-  const totalSteps = 7;
+  const totalSteps = 6; // Reduzido de 7 para 6 steps
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -141,30 +140,19 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
       return true;
     }
     
-    console.log("Current step:", step);
-    console.log("Current fields:", currentFields);
-    console.log("Form values:", form.getValues());
-    console.log("Form errors:", form.formState.errors);
-    
-    // Check required fields based on the step
     return currentFields.every((field) => {
       const fieldState = form.getFieldState(field as any);
       const value = form.getValues(field as any);
       
-      // Skip validation for optional fields
       if (isOptionalField(field)) {
         return true;
       }
       
-      // Check for errors
       if (fieldState.error) {
-        console.log(`Field ${field} has error:`, fieldState.error);
         return false;
       }
       
-      // Check if field is empty
       if (isEmptyValue(value)) {
-        console.log(`Field ${field} is empty`);
         return false;
       }
       
@@ -174,7 +162,7 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
   
   const isOptionalField = (field: string) => {
     const optionalFields = [
-      'incluirBncc', 'proporcaoMultiplaEscolha', 
+      'incluirBncc', 'proporcaoMultiplaEscolha', 'area', 'anoEscolar', 'unidade',
       'incluirFormulas', 'incluirImagens', 'incluirTabelas', 
       'incluirContexto', 'incluirInterdisciplinar', 'permitirCalculadora', 
       'incluirGabarito', 'questoesAdaptativas', 'estiloQuestoes',
@@ -205,94 +193,46 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
 
   const getCurrentStepFields = () => {
     switch (step) {
-      case 1: // Configuração Inicial
-        return ['tipoAvaliacao', 'objetivoAvaliacao', 'modeloCriacao'];
+      case 1: // Configuração Básica
+        return ['tipoAvaliacao', 'objetivoAvaliacao'];
       case 2: // Estrutura Curricular
-        return ['materia', 'unidade', 'capitulos', 'temas'];
-      case 3: // Modelos de Competição
-        return []; // Todos campos opcionais
-      case 4: // Configuração das Questões
+        return ['materia', 'capitulos', 'temas'];
+      case 3: // Configuração das Questões
         return ['numeroQuestoes', 'tipoQuestoes', 'nivelDificuldade'];
-      case 5: // Personalização Avançada
+      case 4: // Personalização Avançada
+        return []; // Todos campos opcionais
+      case 5: // Modelos de Competição
         return []; // Todos campos opcionais
       case 6: // Distribuição
         return ['formatoSaida'];
-      case 7: // Resumo Final
-        return [];
       default:
         return [];
     }
   };
 
-  // Validação específica para step 1
-  const validateStep1 = () => {
-    const values = form.getValues();
-    const errors = [];
-
-    if (!values.tipoAvaliacao || values.tipoAvaliacao.trim() === '') {
-      errors.push('Tipo de avaliação é obrigatório');
-    }
-
-    if (!values.objetivoAvaliacao || values.objetivoAvaliacao.trim() === '') {
-      errors.push('Objetivo da avaliação é obrigatório');
-    }
-
-    if (!values.modeloCriacao || values.modeloCriacao.trim() === '') {
-      errors.push('Modelo de criação é obrigatório');
-    }
-
-    return errors;
-  };
-
-  // Validação específica para step 2
-  const validateStep2 = () => {
-    const values = form.getValues();
-    const errors = [];
-
-    if (!values.materia || values.materia.trim() === '') {
-      errors.push('Matéria é obrigatória');
-    }
-
-    if (!values.unidade || values.unidade.trim() === '') {
-      errors.push('Unidade é obrigatória');
-    }
-
-    if (!values.capitulos || values.capitulos.length === 0) {
-      errors.push('Pelo menos um capítulo deve ser selecionado');
-    }
-
-    if (!values.temas || values.temas.length === 0) {
-      errors.push('Pelo menos um tema deve ser selecionado');
-    }
-
-    return errors;
-  };
-
-  // Override do nextStep com validação melhorada
   const handleNextStep = () => {
     let errors: string[] = [];
 
     switch (step) {
       case 1:
-        errors = validateStep1();
+        const values1 = form.getValues();
+        if (!values1.tipoAvaliacao) errors.push('Tipo de avaliação é obrigatório');
+        if (!values1.objetivoAvaliacao) errors.push('Objetivo da avaliação é obrigatório');
         break;
       case 2:
-        errors = validateStep2();
+        const values2 = form.getValues();
+        if (!values2.materia) errors.push('Matéria é obrigatória');
+        if (!values2.capitulos || values2.capitulos.length === 0) errors.push('Selecione pelo menos uma unidade temática');
+        if (!values2.temas || values2.temas.length === 0) errors.push('Selecione pelo menos um objeto de conhecimento');
         break;
-      case 4:
-        const values = form.getValues();
-        if (!values.numeroQuestoes || values.numeroQuestoes < 1) {
-          errors.push('Número de questões deve ser maior que 0');
-        }
-        if (!values.tipoQuestoes || values.tipoQuestoes.trim() === '') {
-          errors.push('Tipo de questões é obrigatório');
-        }
+      case 3:
+        const values3 = form.getValues();
+        if (!values3.numeroQuestoes || values3.numeroQuestoes < 1) errors.push('Número de questões deve ser maior que 0');
+        if (!values3.tipoQuestoes) errors.push('Tipo de questões é obrigatório');
         break;
       case 6:
         const formatos = form.getValues('formatoSaida');
-        if (!formatos || formatos.length === 0) {
-          errors.push('Pelo menos um formato de saída deve ser selecionado');
-        }
+        if (!formatos || formatos.length === 0) errors.push('Selecione pelo menos um formato de saída');
         break;
     }
 
@@ -310,30 +250,26 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
   
   const onSubmit = async (values: AvaliacaoFormValues) => {
     try {
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error("Usuário não autenticado");
       }
       
-      // Check if user has reached their limit
       if (usageLimit !== null && usageCount >= usageLimit) {
         toast({
           variant: "destructive",
-          title: "Limite de questões atingido",
-          description: "Você atingiu seu limite mensal de questões. Considere atualizar seu plano.",
+          title: "Limite de avaliações atingido",
+          description: "Você atingiu seu limite mensal de avaliações. Considere atualizar seu plano.",
         });
         return;
       }
       
-      // Create a structured data object for the evaluation
       const avaliacaoData = {
         tipo: values.tipoAvaliacao,
         objetivo: values.objetivoAvaliacao,
         configuracao: {
           materia: values.materia,
-          unidade: values.unidade,
           capitulos: values.capitulos,
           temas: values.temas,
           incluirBncc: values.incluirBncc,
@@ -377,11 +313,6 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
         }
       };
       
-      // Call the API to generate the evaluation
-      // This is a placeholder for the actual API call
-      // TODO: Replace with actual API call to generate questions
-      
-      // Log the activity
       const { error: activityError } = await incrementUserActivity(user.id, 'avaliacoes');
       
       if (activityError) {
@@ -413,15 +344,13 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
       case 2:
         return <EstruturaStep form={form} plano={plano} />;
       case 3:
-        return <ModelosCompeticaoStep form={form} plano={plano} />;
-      case 4:
         return <QuestoesStep form={form} plano={plano} usageLimit={usageLimit} />;
-      case 5:
+      case 4:
         return <PersonalizacaoStep form={form} plano={plano} />;
+      case 5:
+        return <ModelosCompeticaoStep form={form} plano={plano} />;
       case 6:
         return <DistribuicaoStep form={form} plano={plano} />;
-      case 7:
-        return <ResumoFinalAvaliacaoStep form={form} />;
       default:
         return null;
     }

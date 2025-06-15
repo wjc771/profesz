@@ -133,6 +133,204 @@ export type Database = {
         }
         Relationships: []
       }
+      bncc_anos_escolares: {
+        Row: {
+          codigo: string
+          created_at: string
+          etapa: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          etapa: string
+          id?: string
+          nome: string
+          ordem: number
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          etapa?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
+      bncc_areas_conhecimento: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      bncc_componentes: {
+        Row: {
+          area_id: string | null
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          area_id?: string | null
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          area_id?: string | null
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bncc_componentes_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "bncc_areas_conhecimento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bncc_habilidades: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string
+          id: string
+          objeto_conhecimento_id: string | null
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao: string
+          id?: string
+          objeto_conhecimento_id?: string | null
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          objeto_conhecimento_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bncc_habilidades_objeto_conhecimento_id_fkey"
+            columns: ["objeto_conhecimento_id"]
+            isOneToOne: false
+            referencedRelation: "bncc_objetos_conhecimento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bncc_objetos_conhecimento: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          unidade_tematica_id: string | null
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          unidade_tematica_id?: string | null
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          unidade_tematica_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bncc_objetos_conhecimento_unidade_tematica_id_fkey"
+            columns: ["unidade_tematica_id"]
+            isOneToOne: false
+            referencedRelation: "bncc_unidades_tematicas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bncc_unidades_tematicas: {
+        Row: {
+          ano_escolar_id: string | null
+          codigo: string
+          componente_id: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          ano_escolar_id?: string | null
+          codigo: string
+          componente_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          ano_escolar_id?: string | null
+          codigo?: string
+          componente_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bncc_unidades_tematicas_ano_escolar_id_fkey"
+            columns: ["ano_escolar_id"]
+            isOneToOne: false
+            referencedRelation: "bncc_anos_escolares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bncc_unidades_tematicas_componente_id_fkey"
+            columns: ["componente_id"]
+            isOneToOne: false
+            referencedRelation: "bncc_componentes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       communication_templates: {
         Row: {
           category: string
