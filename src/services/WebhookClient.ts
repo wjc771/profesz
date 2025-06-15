@@ -20,12 +20,46 @@ import { globalCache } from "@/utils/requestCache";
 export class WebhookService {
   private static requestCount = 0;
   private static readonly MAX_REQUESTS = 3;
-  private static readonly REQUEST_TIMEOUT = 10000; // Reduzido para 10s
+  private static readonly REQUEST_TIMEOUT = 45000; // Aumentado para 45s
   private static isBlocked = false;
   private static lastRequestTime = 0;
   private static readonly RATE_LIMIT_MS = 2000; // Reduzido para 2s
 
+  private static readonly MAX_RETRIES = 3;
+
   static async sendData(webhookUrl: string, data: WebhookPayload): Promise<WebhookResponse> {
+    // Novo bloco de retry
+    let attempt = 0;
+    let lastError: any = null;
+    let delay = 1000;
+    while (attempt < this.MAX_RETRIES) {
+      try {
+        return await this.trySendData(webhookUrl, data);
+      } catch (error: any) {
+        lastError = error;
+        // Se erro for timeout, tenta novamente
+        if (
+          error?.message &&
+          (error.message.includes("Timeout") || error.message.includes("demorou mais que o esperado"))
+        ) {
+          attempt++;
+          if (attempt < this.MAX_RETRIES) {
+            console.warn("[Webhook] Timeout, retrying attempt", attempt + 1, "...", error.message);
+            await new Promise(res => setTimeout(res, delay));
+            delay = delay * 2; // backoff exponencial
+            continue;
+          }
+        }
+        // Para outros erros, não faz retry.
+        break;
+      }
+    }
+    // Se todas as tentativas falharem, lança a última mensagem de erro
+    throw lastError || new Error("Erro desconhecido ao comunicar com o servidor.");
+  }
+
+  // Extraído para uma função auxiliar para implementar retry de timeout
+  private static async trySendData(webhookUrl: string, data: WebhookPayload): Promise<WebhookResponse> {
     if (!webhookUrl) {
       throw new Error("URL do webhook é obrigatória");
     }
