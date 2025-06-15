@@ -144,8 +144,10 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
         console.log("Step 1 validation:", step1Valid, { tipoAvaliacao: values.tipoAvaliacao, objetivoAvaliacao: values.objetivoAvaliacao });
         return step1Valid;
       case 2:
-        const step2Valid = !!(values.materia && values.capitulos?.length > 0 && values.temas?.length > 0);
-        console.log("Step 2 validation:", step2Valid, { 
+        // Validação mais flexível: requer matéria e pelo menos uma unidade temática
+        // Temas são opcionais se não houver objetos de conhecimento disponíveis
+        const step2Valid = !!(values.materia && values.capitulos?.length > 0);
+        console.log("Step 2 validation (flexible):", step2Valid, { 
           materia: values.materia, 
           capitulos: values.capitulos?.length, 
           temas: values.temas?.length 
@@ -180,7 +182,7 @@ export function AvaliacaoForm({ plano, usageCount, usageLimit }: AvaliacaoFormPr
           errorMessage = 'Preencha o tipo e objetivo da avaliação';
           break;
         case 2:
-          errorMessage = 'Selecione a matéria, unidades temáticas e objetos de conhecimento';
+          errorMessage = 'Selecione a matéria e pelo menos uma unidade temática';
           break;
         case 3:
           errorMessage = 'Configure o número e tipo de questões';

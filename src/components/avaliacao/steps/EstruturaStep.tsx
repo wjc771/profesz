@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,8 +10,9 @@ import { SubscriptionPlanType } from "@/types/profile";
 import { UseFormReturn } from "react-hook-form";
 import { useBnccData } from "@/hooks/useBnccData";
 import { useProfilePreferences } from "@/hooks/useProfilePreferences";
-import { Loader2, Info } from "lucide-react";
+import { Loader2, Info, AlertCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EstruturaStepProps {
   form: UseFormReturn<any>;
@@ -173,6 +175,10 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
 
   const canUseBncc = plano !== 'inicial';
 
+  // Verificar se há objetos de conhecimento disponíveis
+  const hasObjetosConhecimento = objetosConhecimento.length > 0;
+  const hasSelectedUnidades = selectedUnidades.length > 0;
+
   return (
     <TooltipProvider>
       <>
@@ -183,13 +189,15 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Debug Info */}
+          {/* Status da Validação */}
           <div className="p-3 bg-blue-50 rounded-lg text-sm">
             <strong>Status da Validação:</strong>
             <div>Matéria: {materia ? '✓' : '✗'} ({materia || 'não selecionada'})</div>
-            <div>Capítulos: {capitulos?.length > 0 ? '✓' : '✗'} ({capitulos?.length || 0} selecionados)</div>
-            <div>Temas: {temas?.length > 0 ? '✓' : '✗'} ({temas?.length || 0} selecionados)</div>
-            <div>Pode avançar: {(materia && capitulos?.length > 0 && temas?.length > 0) ? '✓ SIM' : '✗ NÃO'}</div>
+            <div>Unidades Temáticas: {capitulos?.length > 0 ? '✓' : '✗'} ({capitulos?.length || 0} selecionadas)</div>
+            <div>Objetos de Conhecimento: {temas?.length > 0 ? '✓' : hasObjetosConhecimento ? '✗' : 'N/A'} ({temas?.length || 0} selecionados)</div>
+            <div className="font-semibold mt-2">
+              Pode avançar: {(materia && capitulos?.length > 0) ? '✓ SIM' : '✗ NÃO'}
+            </div>
           </div>
 
           {/* Área de Conhecimento */}
@@ -332,6 +340,17 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
             />
           )}
 
+          {/* Alerta quando não há objetos de conhecimento */}
+          {hasSelectedUnidades && !hasObjetosConhecimento && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Os objetos de conhecimento para as unidades selecionadas ainda não estão disponíveis no sistema. 
+                Você pode prosseguir com apenas as unidades temáticas selecionadas.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Objetos de Conhecimento (Temas) */}
           {objetosConhecimento.length > 0 && (
             <FormField
@@ -340,8 +359,9 @@ export function EstruturaStep({ form, plano }: EstruturaStepProps) {
               render={() => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
-                    Objetos de Conhecimento *
+                    Objetos de Conhecimento
                     {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <Badge variant="outline" className="text-xs">Opcional</Badge>
                   </FormLabel>
                   <div className="grid grid-cols-1 gap-3 mt-2 max-h-48 overflow-y-auto">
                     {objetosConhecimento.map((objeto) => (
