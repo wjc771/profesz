@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfilePreferences } from '@/hooks/useProfilePreferences';
 
 interface OnboardingRequiredProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface OnboardingRequiredProps {
 
 export const OnboardingRequired = ({ children }: OnboardingRequiredProps) => {
   const { user, loading } = useAuth();
+  const { checkOnboardingStatus } = useProfilePreferences();
   const navigate = useNavigate();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
 
@@ -37,26 +39,35 @@ export const OnboardingRequired = ({ children }: OnboardingRequiredProps) => {
         return;
       }
       
-      // Check onboarding completion
-      const onboardingCompleted = localStorage.getItem('onboarding_completed');
-      
-      console.log('OnboardingRequired: onboarding status', { onboardingCompleted });
-      
-      if (!onboardingCompleted) {
-        // Redirect to onboarding if not completed
-        console.log('OnboardingRequired: Redirecting to onboarding');
-        navigate('/onboarding', { 
-          state: { 
-            firstLogin: true, 
-            name: user.user_metadata?.name || user.email?.split('@')[0] 
-          } 
-        });
-      } else {
-        console.log('OnboardingRequired: Onboarding completed, allowing access');
-        setOnboardingChecked(true);
-      }
+      // Check onboarding completion from database
+      checkOnboardingStatus().then(completed => {
+        console.log('OnboardingRequired: onboarding status from DB', { completed });
+        
+        if (!completed) {
+          // Redirect to onboarding if not completed
+          console.log('OnboardingRequired: Redirecting to onboarding');
+          navigate('/onboarding', { 
+            state: { 
+              firstLogin: true, 
+              name: user.user_metadata?.name || user.email?.split('@')[0] 
+            } 
+          });
+        } else {
+          console.log('OnboardingRequired: Onboarding completed, allowing access');
+          
+          // Limpar dados legados do localStorage se ainda existirem
+          const legacyOnboarding = localStorage.getItem('onboarding_completed');
+          if (legacyOnboarding) {
+            localStorage.removeItem('onboarding_completed');
+            localStorage.removeItem('user_type');
+            localStorage.removeItem('questionnaire_data');
+          }
+          
+          setOnboardingChecked(true);
+        }
+      });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, checkOnboardingStatus]);
 
   if (loading || !onboardingChecked) {
     console.log('OnboardingRequired: Still loading or checking onboarding');

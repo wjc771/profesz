@@ -24,6 +24,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Function to check onboarding status from database
+  const checkOnboardingStatusFromDB = async (userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('onboarding_completed_at')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error checking onboarding status:', error);
+        return false;
+      }
+
+      return !!data?.onboarding_completed_at;
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     console.log('AuthProvider: Setting up auth state listener');
     
@@ -109,9 +130,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: 'Bem-vindo de volta!'
       });
       
-      // Check onboarding status
-      const onboardingCompleted = localStorage.getItem('onboarding_completed');
-      console.log('Onboarding completed status:', onboardingCompleted);
+      // Check onboarding status from database
+      const onboardingCompleted = await checkOnboardingStatusFromDB(data.user.id);
+      console.log('Onboarding completed status from DB:', onboardingCompleted);
       
       if (!onboardingCompleted) {
         console.log('Redirecting to onboarding');

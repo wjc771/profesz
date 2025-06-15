@@ -439,6 +439,7 @@ export type Database = {
           email: string
           id: string
           name: string | null
+          onboarding_completed_at: string | null
           phone: string | null
           school_name: string | null
           subscription_plan_id:
@@ -453,6 +454,7 @@ export type Database = {
           email: string
           id: string
           name?: string | null
+          onboarding_completed_at?: string | null
           phone?: string | null
           school_name?: string | null
           subscription_plan_id?:
@@ -467,6 +469,7 @@ export type Database = {
           email?: string
           id?: string
           name?: string | null
+          onboarding_completed_at?: string | null
           phone?: string | null
           school_name?: string | null
           subscription_plan_id?:
@@ -566,6 +569,59 @@ export type Database = {
             foreignKeyName: "user_activity_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          child_grade: string | null
+          child_name: string | null
+          created_at: string
+          experience: string | null
+          frequency: string | null
+          goals: string[] | null
+          grade_level: string | null
+          id: string
+          institution_type: string | null
+          subjects: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          child_grade?: string | null
+          child_name?: string | null
+          created_at?: string
+          experience?: string | null
+          frequency?: string | null
+          goals?: string[] | null
+          grade_level?: string | null
+          id?: string
+          institution_type?: string | null
+          subjects?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          child_grade?: string | null
+          child_name?: string | null
+          created_at?: string
+          experience?: string | null
+          frequency?: string | null
+          goals?: string[] | null
+          grade_level?: string | null
+          id?: string
+          institution_type?: string | null
+          subjects?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },

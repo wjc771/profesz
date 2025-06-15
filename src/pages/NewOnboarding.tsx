@@ -10,27 +10,24 @@ import { OnboardingComplete } from '@/components/onboarding/OnboardingComplete';
 import { UserType } from '@/types/profile';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-
-interface QuestionnaireData {
-  subjects?: string[];
-  gradeLevel?: string;
-  institutionType?: string;
-  experience?: string;
-  goals?: string[];
-  frequency?: string;
-  childName?: string;
-  childGrade?: string;
-}
+import { useProfilePreferences, UserPreferences } from '@/hooks/useProfilePreferences';
 
 export default function NewOnboarding() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const { user, loading } = useAuth();
+  const { 
+    preferences, 
+    loading: preferencesLoading, 
+    markOnboardingComplete, 
+    checkOnboardingStatus 
+  } = useProfilePreferences();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [userType, setUserType] = useState<UserType | undefined>();
-  const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>({});
+  const [questionnaireData, setQuestionnaireData] = useState<UserPreferences>({});
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
   
   // Verify user authentication and onboarding status
   useEffect(() => {
@@ -41,7 +38,7 @@ export default function NewOnboarding() {
       emailConfirmed: user?.email_confirmed_at 
     });
     
-    if (!loading) {
+    if (!loading && !preferencesLoading) {
       if (!user) {
         console.log('NewOnboarding: No user, redirecting to login');
         navigate('/login');
@@ -57,18 +54,23 @@ export default function NewOnboarding() {
         return;
       }
       
-      const onboardingCompleted = localStorage.getItem('onboarding_completed');
-      console.log('NewOnboarding: Checking onboarding status', { onboardingCompleted });
-      
-      if (onboardingCompleted) {
-        console.log('NewOnboarding: Onboarding already completed, redirecting to dashboard');
-        navigate('/dashboard');
-        return;
-      }
-      
-      console.log('NewOnboarding: User authenticated and email confirmed/skipped, onboarding not completed - proceeding');
+      // Check onboarding status from database
+      checkOnboardingStatus().then(completed => {
+        console.log('NewOnboarding: Onboarding status from DB', { completed });
+        
+        if (completed) {
+          console.log('NewOnboarding: Onboarding already completed, redirecting to dashboard');
+          navigate('/dashboard');
+          return;
+        }
+        
+        // Se não completou onboarding, carregar preferências existentes se houver
+        setQuestionnaireData(preferences);
+        setOnboardingChecked(true);
+        console.log('NewOnboarding: User authenticated and onboarding not completed - proceeding');
+      });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, preferencesLoading, navigate, checkOnboardingStatus, preferences]);
   
   const isFirstLogin = location.state?.firstLogin ?? true;
   const userName = location.state?.name || user?.user_metadata?.name || user?.email?.split('@')[0];
@@ -101,30 +103,40 @@ export default function NewOnboarding() {
     setUserType(type);
   };
 
-  const handleQuestionnaireDataChange = (data: QuestionnaireData) => {
+  const handleQuestionnaireDataChange = (data: UserPreferences) => {
     setQuestionnaireData(data);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     console.log('NewOnboarding: Finishing onboarding', { userType, questionnaireData });
     
-    localStorage.setItem('onboarding_completed', 'true');
-    localStorage.setItem('user_type', userType || '');
-    localStorage.setItem('questionnaire_data', JSON.stringify(questionnaireData));
+    // Marcar onboarding como completo no banco de dados
+    const success = await markOnboardingComplete();
     
-    // Limpar a flag de verificação pulada se existir
-    localStorage.removeItem('email_verification_skipped');
-    
-    toast({
-      title: 'Onboarding concluído!',
-      description: 'Sua conta foi configurada com sucesso. Bem-vindo ao ProfesZ!',
-    });
-    
-    console.log('NewOnboarding: Redirecting to dashboard');
-    navigate('/dashboard');
+    if (success) {
+      // Limpar localStorage legado
+      localStorage.removeItem('onboarding_completed');
+      localStorage.removeItem('user_type');
+      localStorage.removeItem('questionnaire_data');
+      localStorage.removeItem('email_verification_skipped');
+      
+      toast({
+        title: 'Onboarding concluído!',
+        description: 'Sua conta foi configurada com sucesso. Bem-vindo ao ProfesZ!',
+      });
+      
+      console.log('NewOnboarding: Redirecting to dashboard');
+      navigate('/dashboard');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível concluir o onboarding. Tente novamente.',
+      });
+    }
   };
 
-  if (loading) {
+  if (loading || preferencesLoading || !onboardingChecked) {
     console.log('NewOnboarding: Still loading...');
     return (
       <div className="flex items-center justify-center min-h-screen">

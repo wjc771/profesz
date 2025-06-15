@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UserType } from '@/types/profile';
+import { useProfilePreferences, UserPreferences } from '@/hooks/useProfilePreferences';
 
 interface QuestionnaireData {
   subjects?: string[];
@@ -22,8 +22,8 @@ interface QuestionnaireData {
 
 interface ProfileQuestionnaireProps {
   userType: UserType;
-  data: QuestionnaireData;
-  onDataChange: (data: QuestionnaireData) => void;
+  data: UserPreferences;
+  onDataChange: (data: UserPreferences) => void;
   onNext: () => void;
   onBack: () => void;
 }
@@ -35,6 +35,13 @@ export function ProfileQuestionnaire({
   onNext, 
   onBack 
 }: ProfileQuestionnaireProps) {
+  const { savePreferences, saving } = useProfilePreferences();
+  const [localData, setLocalData] = useState<UserPreferences>(data);
+
+  useEffect(() => {
+    setLocalData(data);
+  }, [data]);
+
   const subjects = [
     'Matemática', 'Português', 'Ciências', 'História', 'Geografia',
     'Biologia', 'Física', 'Química', 'Inglês', 'Educação Física', 'Arte'
@@ -71,22 +78,35 @@ export function ProfileQuestionnaire({
     ]
   };
 
+  const handleDataChange = (newData: Partial<UserPreferences>) => {
+    const updatedData = { ...localData, ...newData };
+    setLocalData(updatedData);
+    onDataChange(updatedData);
+  };
+
+  const handleNext = async () => {
+    const success = await savePreferences(localData);
+    if (success) {
+      onNext();
+    }
+  };
+
   const handleSubjectChange = (subject: string, checked: boolean) => {
-    const currentSubjects = data.subjects || [];
+    const currentSubjects = localData.subjects || [];
     const newSubjects = checked 
       ? [...currentSubjects, subject]
       : currentSubjects.filter(s => s !== subject);
     
-    onDataChange({ ...data, subjects: newSubjects });
+    handleDataChange({ subjects: newSubjects });
   };
 
   const handleGoalChange = (goal: string, checked: boolean) => {
-    const currentGoals = data.goals || [];
+    const currentGoals = localData.goals || [];
     const newGoals = checked 
       ? [...currentGoals, goal]
       : currentGoals.filter(g => g !== goal);
     
-    onDataChange({ ...data, goals: newGoals });
+    handleDataChange({ goals: newGoals });
   };
 
   const renderQuestionsByUserType = () => {
@@ -102,7 +122,7 @@ export function ProfileQuestionnaire({
                 {subjects.map(subject => (
                   <label key={subject} className="flex items-center space-x-2 cursor-pointer">
                     <Checkbox
-                      checked={data.subjects?.includes(subject) || false}
+                      checked={localData.subjects?.includes(subject) || false}
                       onCheckedChange={(checked) => handleSubjectChange(subject, checked as boolean)}
                     />
                     <span className="text-sm">{subject}</span>
@@ -115,7 +135,7 @@ export function ProfileQuestionnaire({
               <Label htmlFor="gradeLevel" className="text-base font-semibold">
                 Nível de ensino principal
               </Label>
-              <Select value={data.gradeLevel} onValueChange={(value) => onDataChange({ ...data, gradeLevel: value })}>
+              <Select value={localData.grade_level} onValueChange={(value) => handleDataChange({ grade_level: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o nível" />
                 </SelectTrigger>
@@ -134,8 +154,8 @@ export function ProfileQuestionnaire({
                 Experiência com tecnologia educacional
               </Label>
               <RadioGroup 
-                value={data.experience} 
-                onValueChange={(value) => onDataChange({ ...data, experience: value })}
+                value={localData.experience} 
+                onValueChange={(value) => handleDataChange({ experience: value })}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="iniciante" id="iniciante" />
@@ -161,7 +181,7 @@ export function ProfileQuestionnaire({
               <Label htmlFor="institutionType" className="text-base font-semibold">
                 Tipo de instituição
               </Label>
-              <Select value={data.institutionType} onValueChange={(value) => onDataChange({ ...data, institutionType: value })}>
+              <Select value={localData.institution_type} onValueChange={(value) => handleDataChange({ institution_type: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
@@ -189,7 +209,7 @@ export function ProfileQuestionnaire({
                 ].map(level => (
                   <label key={level.value} className="flex items-center space-x-2 cursor-pointer">
                     <Checkbox
-                      checked={data.subjects?.includes(level.value) || false}
+                      checked={localData.subjects?.includes(level.value) || false}
                       onCheckedChange={(checked) => handleSubjectChange(level.value, checked as boolean)}
                     />
                     <span className="text-sm">{level.label}</span>
@@ -210,8 +230,8 @@ export function ProfileQuestionnaire({
               <Input
                 id="gradeLevel"
                 placeholder="Ex: 2º ano do Ensino Médio"
-                value={data.gradeLevel || ''}
-                onChange={(e) => onDataChange({ ...data, gradeLevel: e.target.value })}
+                value={localData.grade_level || ''}
+                onChange={(e) => handleDataChange({ grade_level: e.target.value })}
               />
             </div>
 
@@ -223,7 +243,7 @@ export function ProfileQuestionnaire({
                 {subjects.map(subject => (
                   <label key={subject} className="flex items-center space-x-2 cursor-pointer">
                     <Checkbox
-                      checked={data.subjects?.includes(subject) || false}
+                      checked={localData.subjects?.includes(subject) || false}
                       onCheckedChange={(checked) => handleSubjectChange(subject, checked as boolean)}
                     />
                     <span className="text-sm">{subject}</span>
@@ -244,8 +264,8 @@ export function ProfileQuestionnaire({
               <Input
                 id="childName"
                 placeholder="Nome do seu filho(a)"
-                value={data.childName || ''}
-                onChange={(e) => onDataChange({ ...data, childName: e.target.value })}
+                value={localData.child_name || ''}
+                onChange={(e) => handleDataChange({ child_name: e.target.value })}
               />
             </div>
 
@@ -256,8 +276,8 @@ export function ProfileQuestionnaire({
               <Input
                 id="childGrade"
                 placeholder="Ex: 5º ano do Fundamental"
-                value={data.childGrade || ''}
-                onChange={(e) => onDataChange({ ...data, childGrade: e.target.value })}
+                value={localData.child_grade || ''}
+                onChange={(e) => handleDataChange({ child_grade: e.target.value })}
               />
             </div>
 
@@ -266,8 +286,8 @@ export function ProfileQuestionnaire({
                 Com que frequência gostaria de receber relatórios?
               </Label>
               <RadioGroup 
-                value={data.frequency} 
-                onValueChange={(value) => onDataChange({ ...data, frequency: value })}
+                value={localData.frequency} 
+                onValueChange={(value) => handleDataChange({ frequency: value })}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="diario" id="diario" />
@@ -312,7 +332,7 @@ export function ProfileQuestionnaire({
               {goals[userType]?.map(goal => (
                 <label key={goal} className="flex items-center space-x-2 cursor-pointer">
                   <Checkbox
-                    checked={data.goals?.includes(goal) || false}
+                    checked={localData.goals?.includes(goal) || false}
                     onCheckedChange={(checked) => handleGoalChange(goal, checked as boolean)}
                   />
                   <span className="text-sm">{goal}</span>
@@ -322,11 +342,11 @@ export function ProfileQuestionnaire({
           </div>
 
           <div className="flex gap-4 pt-6">
-            <Button variant="outline" onClick={onBack} className="flex-1">
+            <Button variant="outline" onClick={onBack} className="flex-1" disabled={saving}>
               Voltar
             </Button>
-            <Button onClick={onNext} className="flex-1">
-              Continuar
+            <Button onClick={handleNext} className="flex-1" disabled={saving}>
+              {saving ? 'Salvando...' : 'Continuar'}
             </Button>
           </div>
         </CardContent>
