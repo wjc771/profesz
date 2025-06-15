@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
@@ -31,14 +32,25 @@ export default function NewOnboarding() {
   const [userType, setUserType] = useState<UserType | undefined>();
   const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>({});
   
-  // Verificar se o usuário já completou o onboarding
+  // Verify user authentication and onboarding status
   useEffect(() => {
-    console.log('NewOnboarding: Component mounted', { user: !!user, loading });
+    console.log('NewOnboarding: Component mounted', { 
+      user: !!user, 
+      loading, 
+      userEmail: user?.email,
+      emailConfirmed: user?.email_confirmed_at 
+    });
     
     if (!loading) {
       if (!user) {
         console.log('NewOnboarding: No user, redirecting to login');
         navigate('/login');
+        return;
+      }
+      
+      if (!user.email_confirmed_at) {
+        console.log('NewOnboarding: Email not confirmed, redirecting to verification');
+        navigate('/verification-pending');
         return;
       }
       
@@ -51,7 +63,7 @@ export default function NewOnboarding() {
         return;
       }
       
-      console.log('NewOnboarding: User authenticated, onboarding not completed - proceeding');
+      console.log('NewOnboarding: User authenticated and confirmed, onboarding not completed - proceeding');
     }
   }, [user, loading, navigate]);
   
@@ -59,7 +71,7 @@ export default function NewOnboarding() {
   const userName = location.state?.name || user?.user_metadata?.name || user?.email?.split('@')[0];
   const preselectedUserType = location.state?.userType;
   
-  // Definir userType se foi preselectionado
+  // Set userType if preselected
   useEffect(() => {
     if (preselectedUserType && !userType) {
       console.log('NewOnboarding: Setting preselected user type', { preselectedUserType });
@@ -117,6 +129,11 @@ export default function NewOnboarding() {
 
   if (!user) {
     console.log('NewOnboarding: No user found');
+    return null;
+  }
+
+  if (!user.email_confirmed_at) {
+    console.log('NewOnboarding: Email not confirmed');
     return null;
   }
 

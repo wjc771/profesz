@@ -1,3 +1,4 @@
+
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +26,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('AuthProvider: Setting up auth state listener');
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -32,12 +35,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Handle specific auth events
+        if (event === 'SIGNED_OUT') {
+          console.log('User signed out, clearing local storage');
+          localStorage.removeItem('onboarding_completed');
+          localStorage.removeItem('user_type');
+          localStorage.removeItem('questionnaire_data');
+        }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('Initial session check:', session?.user?.email, error);
+      if (error) {
+        console.error('Session check error:', error);
+      }
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -48,10 +62,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Attempting sign in for:', email);
       const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
-        // Se o erro for de email não confirmado, redirecionar para página de verificação
+        console.error('Sign in error:', error);
+        
+        // Handle specific error cases
         if (error.message === 'Email not confirmed') {
           toast({
             title: 'Email não verificado',
@@ -60,17 +77,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           navigate('/verification-pending');
           return;
         }
+        
+        if (error.message === 'Invalid login credentials') {
+          toast({
+            variant: 'destructive',
+            title: 'Erro no login',
+            description: 'Email ou senha incorretos.'
+          });
+          throw error;
+        }
+        
         throw error;
       }
+      
+      console.log('Sign in successful for user:', data.user?.email);
       
       toast({
         title: 'Login realizado com sucesso',
         description: 'Bem-vindo de volta!'
       });
       
-      // Verificar se onboarding foi completado antes de redirecionar
+      // Check onboarding status
       const onboardingCompleted = localStorage.getItem('onboarding_completed');
+      console.log('Onboarding completed status:', onboardingCompleted);
+      
       if (!onboardingCompleted) {
+        console.log('Redirecting to onboarding');
         navigate('/onboarding', { 
           state: { 
             firstLogin: false, 
@@ -78,6 +110,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           } 
         });
       } else {
+        console.log('Redirecting to dashboard');
         navigate('/dashboard');
       }
     } catch (error: any) {
@@ -93,12 +126,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, name: string, userType: UserType) => {
     try {
+      console.log('Attempting sign up for:', email, 'as', userType);
+      
       const validTypes: UserType[] = ['professor', 'instituicao', 'aluno', 'pais'];
       if (!validTypes.includes(userType)) {
         throw new Error('Tipo de usuário inválido');
       }
       
-      // Configurar URL de redirecionamento para verificação
+      // Configure redirect URL for verification
       const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { error, data } = await supabase.auth.signUp({ 
@@ -113,7 +148,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Sign up error:', error);
+        throw error;
+      }
       
       console.log('Signup successful:', data);
       
@@ -122,7 +160,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: 'Sua conta foi criada! Complete seu perfil no próximo passo.'
       });
       
-      // Não redirecionar automaticamente - deixar o Register.tsx fazer isso
+      // Don't redirect automatically - let Register.tsx handle it
     } catch (error: any) {
       console.error('Signup error:', error);
       toast({
@@ -136,8 +174,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      console.log('Signing out user');
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Clear local storage
+      localStorage.removeItem('onboarding_completed');
+      localStorage.removeItem('user_type');
+      localStorage.removeItem('questionnaire_data');
       
       toast({
         title: 'Logout realizado com sucesso',
@@ -145,6 +189,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       navigate('/');
     } catch (error: any) {
+      console.error('Sign out error:', error);
       toast({
         variant: 'destructive',
         title: 'Erro ao sair',
@@ -158,6 +203,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       return user;
     } catch (error) {
+      console.error('Check current user error:', error);
       return null;
     }
   };
@@ -191,16 +237,21 @@ export const AuthRequired = ({ children }: { children: React.ReactNode }) => {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
+    console.log('AuthRequired: checking session', { session: !!session, loading });
+    
     if (!loading) {
       if (!session) {
+        console.log('AuthRequired: No session, redirecting to login');
         navigate('/login');
       } else {
+        console.log('AuthRequired: Session found, allowing access');
         setChecked(true);
       }
     }
   }, [session, loading, navigate]);
 
   if (loading || !checked) {
+    console.log('AuthRequired: Still loading or checking');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
