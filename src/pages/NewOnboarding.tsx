@@ -48,8 +48,11 @@ export default function NewOnboarding() {
         return;
       }
       
-      if (!user.email_confirmed_at) {
-        console.log('NewOnboarding: Email not confirmed, redirecting to verification');
+      // Verificar se o email foi confirmado ou se a verificação foi pulada
+      const emailVerificationSkipped = localStorage.getItem('email_verification_skipped') === 'true';
+      
+      if (!user.email_confirmed_at && !emailVerificationSkipped) {
+        console.log('NewOnboarding: Email not confirmed and not skipped, redirecting to verification');
         navigate('/verification-pending');
         return;
       }
@@ -63,7 +66,7 @@ export default function NewOnboarding() {
         return;
       }
       
-      console.log('NewOnboarding: User authenticated and confirmed, onboarding not completed - proceeding');
+      console.log('NewOnboarding: User authenticated and email confirmed/skipped, onboarding not completed - proceeding');
     }
   }, [user, loading, navigate]);
   
@@ -109,6 +112,9 @@ export default function NewOnboarding() {
     localStorage.setItem('user_type', userType || '');
     localStorage.setItem('questionnaire_data', JSON.stringify(questionnaireData));
     
+    // Limpar a flag de verificação pulada se existir
+    localStorage.removeItem('email_verification_skipped');
+    
     toast({
       title: 'Onboarding concluído!',
       description: 'Sua conta foi configurada com sucesso. Bem-vindo ao ProfesZ!',
@@ -132,8 +138,10 @@ export default function NewOnboarding() {
     return null;
   }
 
-  if (!user.email_confirmed_at) {
-    console.log('NewOnboarding: Email not confirmed');
+  const emailVerificationSkipped = localStorage.getItem('email_verification_skipped') === 'true';
+  
+  if (!user.email_confirmed_at && !emailVerificationSkipped) {
+    console.log('NewOnboarding: Email not confirmed and not skipped');
     return null;
   }
 

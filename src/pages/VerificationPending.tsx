@@ -15,7 +15,6 @@ const VerificationPending = () => {
   const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
-    // Verificar se já existe uma sessão e obter o email
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user?.email) {
@@ -29,7 +28,6 @@ const VerificationPending = () => {
     setResending(true);
     
     try {
-      // Verificar se temos email na sessão atual
       const { data } = await supabase.auth.getSession();
       const email = data.session?.user?.email || userEmail;
       
@@ -37,12 +35,17 @@ const VerificationPending = () => {
         throw new Error('Email não encontrado. Tente fazer login novamente.');
       }
       
+      console.log('Tentando reenviar email para:', email);
+      
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao reenviar email:', error);
+        throw error;
+      }
       
       toast({
         title: 'Email reenviado',
@@ -53,33 +56,52 @@ const VerificationPending = () => {
       toast({
         variant: 'destructive',
         title: 'Erro',
-        description: error.message || 'Não foi possível reenviar o email. Tente novamente mais tarde.'
+        description: error.message || 'Não foi possível reenviar o email. Verifique se o Supabase está configurado para envio de emails.'
       });
     } finally {
       setResending(false);
     }
   };
 
-  const handleSkipVerification = async () => {
-    // Para desenvolvimento, permitir skip da verificação
+  const handleSkipVerification = () => {
+    console.log('Pulando verificação de email - modo desenvolvimento');
+    
+    // Definir flag no localStorage para indicar que a verificação foi pulada
+    localStorage.setItem('email_verification_skipped', 'true');
+    
     toast({
       title: 'Verificação ignorada',
-      description: 'Redirecionando para o dashboard...'
+      description: 'Redirecionando para o onboarding... (Modo desenvolvimento)'
     });
-    navigate('/dashboard');
+    
+    // Aguardar um pouco para mostrar o toast antes de navegar
+    setTimeout(() => {
+      navigate('/onboarding');
+    }, 1000);
   };
 
   const handleCheckVerification = async () => {
     try {
-      // Verificar se o usuário já confirmou o email
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Verificando status do email...');
+      
+      // Forçar atualização da sessão
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        throw error;
+      }
+      
+      console.log('Status do usuário:', { 
+        email: user?.email, 
+        emailConfirmed: user?.email_confirmed_at 
+      });
       
       if (user?.email_confirmed_at) {
         toast({
           title: 'Email verificado!',
           description: 'Sua conta foi verificada com sucesso.'
         });
-        navigate('/dashboard');
+        navigate('/onboarding');
       } else {
         toast({
           variant: 'destructive',
@@ -124,7 +146,6 @@ const VerificationPending = () => {
             </div>
           </div>
 
-          {/* Aviso sobre configuração de email */}
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -151,7 +172,6 @@ const VerificationPending = () => {
             {resending ? 'Reenviando...' : 'Reenviar email de verificação'}
           </Button>
           
-          {/* Botão para desenvolvimento */}
           <Button 
             onClick={handleSkipVerification} 
             variant="secondary" 

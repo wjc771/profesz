@@ -28,9 +28,11 @@ export const OnboardingRequired = ({ children }: OnboardingRequiredProps) => {
         return;
       }
       
-      // If user exists but email not confirmed, redirect to verification
-      if (!user.email_confirmed_at) {
-        console.log('OnboardingRequired: Email not confirmed, redirecting to verification');
+      // Verificar se o email foi confirmado ou se a verificação foi pulada
+      const emailVerificationSkipped = localStorage.getItem('email_verification_skipped') === 'true';
+      
+      if (!user.email_confirmed_at && !emailVerificationSkipped) {
+        console.log('OnboardingRequired: Email not confirmed and not skipped, redirecting to verification');
         navigate('/verification-pending');
         return;
       }
